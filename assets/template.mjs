@@ -1,6 +1,5 @@
 import * as twgl from "twgl.js";
 
-const m4 = twgl.m4;
 twgl.setDefaults({ attribPrefix: "a_" });
 let canvas = document.querySelector("canvas");
 canvas.width = window.innerWidth;
@@ -29,33 +28,38 @@ const programInfo = twgl.createProgramInfo(gl, [vs, fs]);
 const numLines = 10;
 const arrays = {
   position: twgl.primitives.createAugmentedTypedArray(3, numLines * 2),
+  indices: [0,1,1,2,2,3,3,0, 0,4, 1,5, 2,6, 3,7, 4,5, 5,6, 6,7, 7,4]
 };
 
 arrays.position[0] = -0.5;
 arrays.position[1] = -0.5;
 arrays.position[2] = 0;
+
 arrays.position[3] = -0.5;
 arrays.position[4] = 0.5;
 arrays.position[5] = 0;
 
-arrays.position[6] = -0.5;
+arrays.position[6] = 0.5;
 arrays.position[7] = 0.5;
 arrays.position[8] = 0;
+
 arrays.position[9] = 0.5;
-arrays.position[10] = 0.5;
+arrays.position[10] = -0.5;
 arrays.position[11] = 0;
 
-arrays.position[12] = 0.5;
-arrays.position[13] = 0.5;
+arrays.position[12] = -0.5;
+arrays.position[13] = -0.5;
 arrays.position[14] = 0;
-arrays.position[15] = 0.5;
-arrays.position[16] = -0.5;
+
+arrays.position[15] = -0.5;
+arrays.position[16] = 0.5;
 arrays.position[17] = 0;
 
 arrays.position[18] = 0.5;
-arrays.position[19] = -0.5;
+arrays.position[19] = 0.5;
 arrays.position[20] = 0;
-arrays.position[21] = -0.5;
+
+arrays.position[21] = 0.5;
 arrays.position[22] = -0.5;
 arrays.position[23] = 0;
 
