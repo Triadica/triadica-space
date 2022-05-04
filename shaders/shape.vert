@@ -1,6 +1,9 @@
 uniform vec4 u_offsets;
-attribute vec2 a_position;
+attribute vec3 a_position;
+
+varying float z;
 
 void main() {
-  gl_Position = vec4(a_position * 0.001, 0, 1);
+  z = a_position.z;
+  gl_Position = vec4(a_position * 0.001, 1);
 }

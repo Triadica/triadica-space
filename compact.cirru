@@ -1,22 +1,25 @@
 
 {} (:package |app)
   :configs $ {} (:init-fn |app.main/main!) (:reload-fn |app.main/reload!) (:version |0.0.1)
-    :modules $ [] |touch-control/
+    :modules $ [] |touch-control/ |respo.calcit/
   :entries $ {}
   :files $ {}
     |app.3d $ {}
       :defs $ {}
         |screen-vec $ quote
-          def screen-vec $ [] 200 0 1000
+          def screen-vec $ [] 10 0 800
         |transform-3d $ quote
           defn transform-3d (point)
             let
+                view-position $ wo-log (new-lookat-point)
+                screen view-position
+                ; screen screen-vec
                 x $ nth point 0
-                y $ negate (nth point 1)
+                y $ nth point 1
                 z $ nth point 2
-                a $ nth screen-vec 0
-                b $ negate (nth screen-vec 1)
-                c $ nth screen-vec 2
+                a $ nth screen 0
+                b $ nth screen 1
+                c $ nth screen 2
                 L2 $ + (* a a) (* c c)
                 L $ sqrt L2
                 r $ wo-log
@@ -33,9 +36,13 @@
                 x' $ /
                   * L $ - (* x c) (* z a)
                   + (* a x) (* c z)
+              hud-display "\"screen" $ map screen round
               map ([] x' y' z')
                 fn (p) p
-      :ns $ quote (ns app.3d)
+      :ns $ quote
+        ns app.3d $ :require
+          app.core :refer $ new-lookat-point
+          app.hud :refer $ hud-display
     |app.config $ {}
       :defs $ {}
         |dev? $ quote
@@ -102,30 +109,28 @@
         |move-viewer-by! $ quote
           defn move-viewer-by! (x0 y0 z0)
             let-sugar
-                camera $ println "\"TODO CAmera"
-                ([] dx dy dz) (to-viewer-axis x0 y0 z0)
-                position $ .-position camera
-                x $ &+ (.-x position) dx
-                y $ &+ (.-y position) dy
-                z $ &+ (.-z position) dz
+                  [] dx dy dz
+                  to-viewer-axis x0 y0 z0
+                position @*viewer-position
+                x $ &+ (nth position 0) dx
+                y $ &+ (nth position 1) dy
+                z $ &+ (nth position 2) dz
+              reset! *viewer-position $ [] x y z
               ; println ([] x0 y0 z0) |=> $ [] dx dy dz
-              set! (.-x position) x
-              set! (.-y position) y
-              set! (.-z position) z
-              println "\"CAMERA"
-              println "\"TODO RENDER"
+              ; render-canvas
         |new-lookat-point $ quote
-          defn new-lookat-point ()
-            ; let-sugar
-                camera $ j
-                position $ .-position camera
-                x2 $ &+ (.-x position)
+          defn new-lookat-point () (; println "\"lookat" @*viewer-position @*viewer-angle)
+            let-sugar
+                position @*viewer-position
+                x2 $ &+ (nth position 0)
                   &* 4 $ cos @*viewer-angle
-                y2 $ &+ (.-y position) (&* 0.2 @*viewer-y-shift)
-                z2 $ &+ (.-z position)
+                y2 $ &+ (nth position 1) (&* 0.2 @*viewer-y-shift)
+                z2 $ &+ (nth position 2)
                   &* -4 $ sin @*viewer-angle
-              println "\"lookat" x2 y2 z2
-            println "\"new lookat point"
+              hud-display "\"angle" $ round @*viewer-angle
+              hud-display "\"position" $ map @*viewer-position round
+              hud-display "\"y-shift" @*viewer-y-shift
+              [] x2 y2 z2
         |on-control-event $ quote
           defn on-control-event (elapsed states delta)
             let
@@ -168,17 +173,21 @@
                     (< (js/Math.abs shift) 0.06)
                       shift-viewer-by! false
                     true nil
+              when
+                or
+                  not= l-move $ [] 0 0
+                  not= r-move $ [] 0 0
+                render-canvas
         |refine-strength $ quote
           defn refine-strength (x)
             &* x $ sqrt
               js/Math.abs $ &* x 0.02
         |rotate-viewer-by! $ quote
-          defn rotate-viewer-by! (x)
+          defn rotate-viewer-by! (x) (println "\"x" x)
             let
                 camera $ println "\"CAMERA"
               swap! *viewer-angle &+ x
-              println "\"CONFIG CAMERA"
-              println "\"RENDER"
+              ; render-canvas
         |shift-viewer-by! $ quote
           defn shift-viewer-by! (x)
             let
@@ -263,13 +272,46 @@
         ns quatrefoil.core $ :require
           touch-control.core :refer $ render-control! control-states start-control-loop! clear-control-loop!
           "\"@quatrefoil/utils" :refer $ hcl-to-hex
-          app.global :refer $ *viewer-angle *viewer-y-shift
+          app.global :refer $ *viewer-angle *viewer-y-shift *viewer-position
+          app.render :refer $ render-canvas
+          app.hud :refer $ hud-display
     |app.global $ {}
       :defs $ {}
+        |*buffer-info $ quote (defatom *buffer-info nil)
+        |*gl-context $ quote (defatom *gl-context nil)
+        |*program-info $ quote (defatom *program-info nil)
         |*viewer-angle $ quote
           defatom *viewer-angle $ &/ &PI 2
+        |*viewer-position $ quote
+          defatom *viewer-position $ [] 0 0 -1000
         |*viewer-y-shift $ quote (defatom *viewer-y-shift 0)
       :ns $ quote (ns app.global)
+    |app.hud $ {}
+      :defs $ {}
+        |*debug-info $ quote
+          defatom *debug-info $ {}
+        |css-debug $ quote
+          defstyle css-debug $ {}
+            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"4px 6px")
+              :background-color $ hsl 0 0 40 0.4
+              :position :absolute
+              :top 100
+              :font-size 12
+        |hud-display $ quote
+          defn hud-display (name content) (swap! *debug-info assoc name content)
+            -> (js/document.querySelector "\"#debug") .-innerHTML $ set!
+              trim $ format-cirru-edn @*debug-info
+        |inject-hud! $ quote
+          defn inject-hud! () $ js/document.body.appendChild
+            let
+                el $ js/document.createElement "\"pre"
+              -> el .-id $ set! "\"debug"
+              -> el .-className $ set! css-debug
+              , el
+      :ns $ quote
+        ns app.hud $ :require
+          respo.css :refer $ defstyle
+          respo.util.format :refer $ hsl
     |app.main $ {}
       :defs $ {}
         |canvas $ quote
@@ -277,6 +319,11 @@
         |main! $ quote
           defn main! ()
             twgl/setDefaults $ js-object (:attribPrefix "\"a_")
+            inject-hud!
+            let
+                gl $ .!getContext canvas "\"webgl"
+              reset! *gl-context gl
+              create-gl-program
             -> canvas .-width $ set! js/window.innerWidth
             -> canvas .-height $ set! js/window.innerHeight
             render-canvas
@@ -294,19 +341,15 @@
           touch-control.core :refer $ render-control! control-states start-control-loop! clear-control-loop! replace-control-loop!
           app.core :refer $ handle-key-event on-control-event
           app.3d :refer $ transform-3d
-          app.render :refer $ render-canvas
+          app.render :refer $ render-canvas create-gl-program
+          app.global :refer $ *gl-context *program-info *buffer-info
+          respo.css :refer $ defstyle
+          app.hud :refer $ inject-hud!
     |app.render $ {}
       :defs $ {}
-        |move-point $ quote
-          defn move-point (p)
-            -> p
-              map $ fn (i) (* i 800)
-              update 1 $ fn (y) (+ y 20)
-              update 2 $ fn (z) (- z 1000)
-        |render-canvas $ quote
-          defn render-canvas () $ let
-              canvas $ js/document.querySelector "\"canvas"
-              gl $ .!getContext canvas "\"webgl"
+        |create-gl-program $ quote
+          defn create-gl-program () $ let
+              gl @*gl-context
               arrays $ js-object
                 :position $ .!createAugmentedTypedArray twgl/primitives 3 16
                 :indices $ js-array 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
@@ -317,7 +360,7 @@
             loop
                 idx 0
                 xs points
-              println idx
+              ; println idx
               if
                 not $ empty? xs
                 let
@@ -332,13 +375,28 @@
                     + 2 $ * 3 idx
                     nth p 2
                   recur (+ idx 1) (rest xs)
-            js/console.log "\"position" $ .-position arrays
-            println "\"console.log" "\"demo"
+            ; js/console.log "\"position" $ .-position arrays
             let
                 vs $ inline-shader "\"shape.vert"
                 fs $ inline-shader "\"shape.frag"
                 program-info $ twgl/createProgramInfo gl (js-array vs fs)
                 buffer-info $ twgl/createBufferInfoFromArrays gl arrays
+              reset! *program-info program-info
+              reset! *buffer-info buffer-info
+        |move-point $ quote
+          defn move-point (p)
+            -> p
+              map $ fn (i) (* i 400)
+              update 1 $ fn (y) (+ y 0)
+              update 2 $ fn (z) (- z 1200)
+        |render-canvas $ quote
+          defn render-canvas () $ let
+              gl @*gl-context
+              program-info @*program-info
+              buffer-info @*buffer-info
+            ; println "\"console.log" "\"demo"
+            create-gl-program
+            let
                 offsets $ js-array 0 0 0 1
                 uniforms $ js-object (:offsets offsets)
               twgl/resizeCanvasToDisplaySize $ .-canvas gl
@@ -357,3 +415,4 @@
         ns app.render $ :require ("\"twgl.js" :as twgl)
           app.3d :refer $ transform-3d
           app.config :refer $ inline-shader
+          app.global :refer $ *gl-context *program-info *buffer-info
