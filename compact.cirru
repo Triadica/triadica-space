@@ -7,36 +7,48 @@
     |app.3d $ {}
       :defs $ {}
         |screen-vec $ quote
-          def screen-vec $ [] 10 0 800
+          def screen-vec $ [] -100 0 -6000
+        |square $ quote
+          defn square (x) (&* x x)
+        |sum-squares $ quote
+          defn sum-squares (a b)
+            &+ (&* a a) (&* b b)
         |transform-3d $ quote
           defn transform-3d (point)
             let
                 view-position $ wo-log (new-lookat-point)
-                screen view-position
-                ; screen screen-vec
+                ; screen view-position
+                screen screen-vec
+                s 1
                 x $ nth point 0
                 y $ nth point 1
                 z $ nth point 2
                 a $ nth screen 0
                 b $ nth screen 1
                 c $ nth screen 2
-                L2 $ + (* a a) (* c c)
-                L $ sqrt L2
-                r $ wo-log
+                r $ /
+                  + (* a x) (* b y) (* c z)
+                  + (square a) (square b) (square c)
+                L2 $ sum-squares a c
+                q $ / (+ s 1) (+ r s)
+                L1 $ sqrt
+                  + (* a a b b)
+                    square $ sum-squares a c
+                    * b b c c
+                y' $ *
                   /
-                    + (* a x) (* c z)
-                    + (* a a) (* c c)
-                y' $ /
-                  *
-                    - y $ * b r
-                    sqrt $ + 1
-                      / (* b b) L2
-                  + r $ / y L2
+                    + (* q y) (* b q s) (* -1 b s) (* -1 b)
+                    sum-squares a c
+                  , L1
+                x' $ *
+                  /
+                    -
+                      + (* q x) (* a q s) (* -1 s a) (* -1 a)
+                      * y' $ / (* -1 a b) L1
+                    , c -1
+                  sqrt $ sum-squares a c
                 z' $ negate r
-                x' $ /
-                  * L $ - (* x c) (* z a)
-                  + (* a x) (* c z)
-              hud-display "\"screen" $ map screen round
+              ; println $ [] x' y' z'
               map ([] x' y' z')
                 fn (p) p
       :ns $ quote
@@ -127,8 +139,8 @@
                 y2 $ &+ (nth position 1) (&* 0.2 @*viewer-y-shift)
                 z2 $ &+ (nth position 2)
                   &* -4 $ sin @*viewer-angle
-              hud-display "\"angle" $ round @*viewer-angle
-              hud-display "\"position" $ map @*viewer-position round
+              ; hud-display "\"angle" @*viewer-angle 
+              ; hud-display "\"position" $ map @*viewer-position round
               hud-display "\"y-shift" @*viewer-y-shift
               [] x2 y2 z2
         |on-control-event $ quote
@@ -292,15 +304,13 @@
           defatom *debug-info $ {}
         |css-debug $ quote
           defstyle css-debug $ {}
-            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"4px 6px")
+            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"6px 8px") (:border-radius "\"6px") (:position :absolute) (:top 100) (:font-size 10) (:line-height 1.5)
               :background-color $ hsl 0 0 40 0.4
-              :position :absolute
-              :top 100
-              :font-size 12
         |hud-display $ quote
           defn hud-display (name content) (swap! *debug-info assoc name content)
             -> (js/document.querySelector "\"#debug") .-innerHTML $ set!
               trim $ format-cirru-edn @*debug-info
+            , content
         |inject-hud! $ quote
           defn inject-hud! () $ js/document.body.appendChild
             let
