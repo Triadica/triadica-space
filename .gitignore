@@ -1,5 +1,7 @@
 
-node_modules/
-js-out/
-
+.compact-inc.cirru
 .calcit-error.cirru
+
+js-out/
+node_modules/
+dist/

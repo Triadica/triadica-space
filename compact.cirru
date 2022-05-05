@@ -29,7 +29,6 @@
                 r $ /
                   + (* a x) (* b y) (* c z)
                   + (square a) (square b) (square c)
-                L2 $ sum-squares a c
                 q $ / (+ s 1) (+ r s)
                 L1 $ sqrt
                   + (* a a b b)

@@ -180,14 +180,6 @@
                                     :data $ {}
                                       |T $ {} (:at 1651692760556) (:by |u0) (:text |square) (:type :leaf)
                                       |h $ {} (:at 1651692732029) (:by |u0) (:text |c) (:type :leaf)
-                      |uT $ {} (:at 1651692903604) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651692906684) (:by |u0) (:text |L2) (:type :leaf)
-                          |b $ {} (:at 1651692908985) (:by |u0) (:type :expr)
-                            :data $ {}
-                              |T $ {} (:at 1651692908985) (:by |u0) (:text |sum-squares) (:type :leaf)
-                              |b $ {} (:at 1651692908985) (:by |u0) (:text |a) (:type :leaf)
-                              |h $ {} (:at 1651692908985) (:by |u0) (:text |c) (:type :leaf)
                       |v $ {} (:at 1651699956894) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1651699960478) (:by |u0) (:text |q) (:type :leaf)
