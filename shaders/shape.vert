@@ -8,8 +8,6 @@ uniform vec3 cameraPosition;
 attribute vec3 a_position;
 
 varying float z_color;
-varying float v_coneBackScale;
-varying vec3 v_posNext;
 
 float square(float a) {
   return a * a;
@@ -24,8 +22,6 @@ float sumSquares3(float a, float b, float c) {
 }
 
 void main() {
-
-  v_coneBackScale = coneBackScale;
 
   vec3 moved_point = a_position - cameraPosition;
 
@@ -49,13 +45,7 @@ void main() {
 
   vec3 pos_next = vec3(x_next, y_next / viewportRatio, z_next);
 
-  // z = a_position.z;
-  // gl_Position = vec4(a_position * 0.0001, 1.0);
-
-  v_posNext = pos_next;
-
   z_color = r;
-  // z = -10.0;
   gl_Position = vec4(pos_next * 0.0002, 1.0);
   // gl_Position = vec4(a_position/10000.0, 1.0);
 }

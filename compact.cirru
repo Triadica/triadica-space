@@ -381,7 +381,7 @@
             write-at-position! (.-position arrays) 8 p2s
             write-at-position! (.-position arrays) 16 p3s
             write-at-position! (.-position arrays) 24 p4s
-            js/console.log "\"position" $ .-position arrays
+            ; js/console.log "\"position" $ .-position arrays
             let
                 vs $ inline-shader "\"shape.vert"
                 fs $ inline-shader "\"shape.frag"

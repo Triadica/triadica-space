@@ -2759,6 +2759,7 @@
                       |h $ {} (:at 1651729701175) (:by |u0) (:text |p4s) (:type :leaf)
                   |R $ {} (:at 1651663395522) (:by |u0) (:type :expr)
                     :data $ {}
+                      |D $ {} (:at 1651759082508) (:by |u0) (:text |;) (:type :leaf)
                       |T $ {} (:at 1651663395522) (:by |u0) (:text |js/console.log) (:type :leaf)
                       |b $ {} (:at 1651663395522) (:by |u0) (:text "|\"position") (:type :leaf)
                       |h $ {} (:at 1651663395522) (:by |u0) (:type :expr)
