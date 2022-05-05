@@ -196,6 +196,7 @@
                 or
                   not= l-move $ [] 0 0
                   not= r-move $ [] 0 0
+                  , left-b?
                 render-canvas
         |refine-strength $ quote
           defn refine-strength (x)
@@ -205,12 +206,8 @@
           defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
         |shift-viewer-by! $ quote
           defn shift-viewer-by! (x)
-            let
-                camera $ println "\"GLOBAL CAMERA"
-              if (= x false) (reset! *viewer-y-shift 0)
-                swap! *viewer-y-shift &+ $ * 2 x
-              println "\"CONFIG CAMERA"
-              println "\"COMPONENT"
+            if (= x false) (reset! *viewer-y-shift 0)
+              swap! *viewer-y-shift &+ $ * 2 x
         |to-viewer-axis $ quote
           defn to-viewer-axis (x y z)
             let

@@ -1435,6 +1435,7 @@
                                   |T $ {} (:at 1651663756614) (:by |u0) (:text |[]) (:type :leaf)
                                   |b $ {} (:at 1651663756614) (:by |u0) (:text |0) (:type :leaf)
                                   |h $ {} (:at 1651663756614) (:by |u0) (:text |0) (:type :leaf)
+                          |l $ {} (:at 1651728035133) (:by |u0) (:text |left-b?) (:type :leaf)
                       |h $ {} (:at 1651663756614) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1651663756614) (:by |u0) (:text |render-canvas) (:type :leaf)
@@ -1486,47 +1487,27 @@
                   |T $ {} (:at 1651658419548) (:by |u0) (:text |x) (:type :leaf)
               |l $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                 :data $ {}
-                  |T $ {} (:at 1651658419548) (:by |u0) (:text |let) (:type :leaf)
+                  |T $ {} (:at 1651658419548) (:by |u0) (:text |if) (:type :leaf)
                   |b $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                     :data $ {}
-                      |T $ {} (:at 1651658419548) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651658419548) (:by |u0) (:text |camera) (:type :leaf)
-                          |b $ {} (:at 1651660105303) (:by |u0) (:type :expr)
-                            :data $ {}
-                              |T $ {} (:at 1651660106012) (:by |u0) (:text |println) (:type :leaf)
-                              |b $ {} (:at 1651660110296) (:by |u0) (:text "|\"GLOBAL CAMERA") (:type :leaf)
+                      |T $ {} (:at 1651658419548) (:by |u0) (:text |=) (:type :leaf)
+                      |b $ {} (:at 1651658419548) (:by |u0) (:text |x) (:type :leaf)
+                      |h $ {} (:at 1651658419548) (:by |u0) (:text |false) (:type :leaf)
                   |h $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                     :data $ {}
-                      |T $ {} (:at 1651658419548) (:by |u0) (:text |if) (:type :leaf)
-                      |b $ {} (:at 1651658419548) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651658419548) (:by |u0) (:text |=) (:type :leaf)
-                          |b $ {} (:at 1651658419548) (:by |u0) (:text |x) (:type :leaf)
-                          |h $ {} (:at 1651658419548) (:by |u0) (:text |false) (:type :leaf)
-                      |h $ {} (:at 1651658419548) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651658419548) (:by |u0) (:text |reset!) (:type :leaf)
-                          |b $ {} (:at 1651658419548) (:by |u0) (:text |*viewer-y-shift) (:type :leaf)
-                          |h $ {} (:at 1651658419548) (:by |u0) (:text |0) (:type :leaf)
+                      |T $ {} (:at 1651658419548) (:by |u0) (:text |reset!) (:type :leaf)
+                      |b $ {} (:at 1651658419548) (:by |u0) (:text |*viewer-y-shift) (:type :leaf)
+                      |h $ {} (:at 1651658419548) (:by |u0) (:text |0) (:type :leaf)
+                  |l $ {} (:at 1651658419548) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651658419548) (:by |u0) (:text |swap!) (:type :leaf)
+                      |b $ {} (:at 1651658419548) (:by |u0) (:text |*viewer-y-shift) (:type :leaf)
+                      |h $ {} (:at 1651658419548) (:by |u0) (:text |&+) (:type :leaf)
                       |l $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                         :data $ {}
-                          |T $ {} (:at 1651658419548) (:by |u0) (:text |swap!) (:type :leaf)
-                          |b $ {} (:at 1651658419548) (:by |u0) (:text |*viewer-y-shift) (:type :leaf)
-                          |h $ {} (:at 1651658419548) (:by |u0) (:text |&+) (:type :leaf)
-                          |l $ {} (:at 1651658419548) (:by |u0) (:type :expr)
-                            :data $ {}
-                              |T $ {} (:at 1651658419548) (:by |u0) (:text |*) (:type :leaf)
-                              |b $ {} (:at 1651658419548) (:by |u0) (:text |2) (:type :leaf)
-                              |h $ {} (:at 1651658419548) (:by |u0) (:text |x) (:type :leaf)
-                  |p $ {} (:at 1651660087735) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651660088645) (:by |u0) (:text |println) (:type :leaf)
-                      |b $ {} (:at 1651660091710) (:by |u0) (:text "|\"CONFIG CAMERA") (:type :leaf)
-                  |q $ {} (:at 1651660078745) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651660080570) (:by |u0) (:text |println) (:type :leaf)
-                      |b $ {} (:at 1651660086897) (:by |u0) (:text "|\"COMPONENT") (:type :leaf)
+                          |T $ {} (:at 1651658419548) (:by |u0) (:text |*) (:type :leaf)
+                          |b $ {} (:at 1651658419548) (:by |u0) (:text |2) (:type :leaf)
+                          |h $ {} (:at 1651658419548) (:by |u0) (:text |x) (:type :leaf)
           |to-viewer-axis $ {} (:at 1651658419548) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1651658419548) (:by |u0) (:text |defn) (:type :leaf)
