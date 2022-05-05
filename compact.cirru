@@ -164,7 +164,7 @@
               when
                 not= 0 $ nth l-move 1
                 move-viewer-by! 0 0 $ negate
-                  * 0.6 elapsed $ nth l-move 1
+                  * 2 elapsed $ nth l-move 1
               when
                 not= 0 $ nth l-move 0
                 rotate-viewer-by! $ * -0.01 elapsed (nth l-move 0)
@@ -172,8 +172,8 @@
                 and (not left-a?) (not left-b?)
                   not= ([] 0 0) r-move
                 move-viewer-by!
-                  * 0.4 elapsed $ nth r-move 0
-                  * 0.4 elapsed $ nth r-move 1
+                  * 2 elapsed $ nth r-move 0
+                  * 2 elapsed $ nth r-move 1
                   , 0
               when
                 and left-a? $ not= 0 (nth r-delta 1)
@@ -330,19 +330,24 @@
           defn main! ()
             twgl/setDefaults $ js-object (:attribPrefix "\"a_")
             inject-hud!
+            -> canvas .-width $ set! js/window.innerWidth
+            -> canvas .-height $ set! js/window.innerHeight
             let
                 gl $ .!getContext canvas "\"webgl"
               reset! *gl-context gl
               create-gl-program
-            -> canvas .-width $ set! js/window.innerWidth
-            -> canvas .-height $ set! js/window.innerHeight
             render-canvas
             render-control!
             start-control-loop! 10 on-control-event
+            js/window.addEventListener "\"resize" $ fn (event)
+              -> canvas .-height $ set! js/window.innerHeight
+              -> canvas .-width $ set! js/window.innerWidth
+              create-gl-program
+              render-canvas
             set! js/window.onkeydown handle-key-event
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (render-canvas) (replace-control-loop! 10 on-control-event) (println "\"TODO..") (hud! "\"ok~" "\"OK")
+            do (render-canvas) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
             hud! "\"error" build-errors
       :ns $ quote
         ns app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
@@ -360,31 +365,30 @@
         |create-gl-program $ quote
           defn create-gl-program () $ let
               gl @*gl-context
+              geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
+              index-order $ js-array 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
               arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3 16
-                :indices $ js-array 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
-              points $ ->
-                [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
+                :position $ .!createAugmentedTypedArray twgl/primitives 3 32
+                :indices $ .!concat index-order
+                  .!map index-order $ fn (x & _a) (+ x 8)
+                  .!map index-order $ fn (x & _a) (+ x 16)
+                  .!map index-order $ fn (x & _a) (+ x 24)
+              points $ -> geo
                 map $ fn (p)
                   transform-3d $ move-point p
-            loop
-                idx 0
-                xs points
-              ; println idx
-              if
-                not $ empty? xs
-                let
-                    p $ first xs
-                  -> arrays .-position $ aset
-                    + 0 $ * 3 idx
-                    nth p 0
-                  -> arrays .-position $ aset
-                    + 1 $ * 3 idx
-                    nth p 1
-                  -> arrays .-position $ aset
-                    + 2 $ * 3 idx
-                    nth p 2
-                  recur (+ idx 1) (rest xs)
+              p2s $ -> geo
+                map $ fn (p)
+                  transform-3d $ move-point-2 p
+              p3s $ -> geo
+                map $ fn (p)
+                  transform-3d $ move-point-3 p
+              p4s $ -> geo
+                map $ fn (p)
+                  transform-3d $ move-point-4 p
+            write-at-position! (.-position arrays) 0 points
+            write-at-position! (.-position arrays) 8 p2s
+            write-at-position! (.-position arrays) 16 p3s
+            write-at-position! (.-position arrays) 24 p4s
             ; js/console.log "\"position" $ .-position arrays
             let
                 vs $ inline-shader "\"shape.vert"
@@ -399,6 +403,26 @@
               map $ fn (i) (* i 400)
               update 1 $ fn (y) (+ y 0)
               update 2 $ fn (z) (- z 1200)
+        |move-point-2 $ quote
+          defn move-point-2 (p)
+            -> p
+              map $ fn (i) (* i 400)
+              update 0 $ fn (x) (+ x 600)
+              update 1 $ fn (y) (+ y 0)
+              update 2 $ fn (z) (- z 1200)
+        |move-point-3 $ quote
+          defn move-point-3 (p)
+            -> p
+              map $ fn (i) (* i 200)
+              update 1 $ fn (y) (+ y 400)
+              update 2 $ fn (z) (- z 1200)
+        |move-point-4 $ quote
+          defn move-point-4 (p)
+            -> p
+              map $ fn (i) (* i 800)
+              update 0 $ fn (x) (- x 800)
+              update 1 $ fn (y) (- y 800)
+              update 2 $ fn (z) (- z 1600)
         |render-canvas $ quote
           defn render-canvas () $ let
               gl @*gl-context
@@ -421,6 +445,26 @@
               twgl/setUniforms gl buffer-info uniforms
               twgl/drawBufferInfo gl buffer-info $ .-LINES gl
               ; twgl/drawBufferInfo gl buffer-info $ .-TRIANGLES gl
+        |write-at-position! $ quote
+          defn write-at-position! (position-array from points)
+            loop
+                idx from
+                xs points
+              ; println idx
+              if
+                not $ empty? xs
+                let
+                    p $ first xs
+                  aset position-array
+                    + 0 $ * 3 idx
+                    nth p 0
+                  aset position-array
+                    + 1 $ * 3 idx
+                    nth p 1
+                  aset position-array
+                    + 2 $ * 3 idx
+                    nth p 2
+                  recur (+ idx 1) (rest xs)
       :ns $ quote
         ns app.render $ :require ("\"twgl.js" :as twgl)
           app.3d :refer $ transform-3d
