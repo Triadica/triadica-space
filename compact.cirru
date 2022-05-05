@@ -48,8 +48,10 @@
                   sqrt $ sum-squares a c
                 z' $ negate r
               ; println $ [] x' y' z'
-              map ([] x' y' z')
-                fn (p) p
+              -> ([] x' y' z')
+                update 1 $ fn (v)
+                  -> v (/ js/window.innerHeight) (* js/window.innerWidth)
+                map $ fn (p) p
       :ns $ quote
         ns app.3d $ :require
           app.core :refer $ new-lookat-point &v- &v+
@@ -412,7 +414,7 @@
                 uniforms $ js-object (:offsets offsets)
               twgl/resizeCanvasToDisplaySize $ .-canvas gl
               .!viewport gl 0 0 (-> gl .-canvas .-width)
-                -> gl .-canvas .-height (* js/window.innerWidth) (/ js/window.innerHeight)
+                -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
               .!enable gl $ .-DEPTH_TEST gl
               .!enable gl $ .-CULL_FACE gl
               .!clearColor gl 0 0 0 1
