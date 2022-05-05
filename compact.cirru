@@ -7,25 +7,25 @@
     |app.3d $ {}
       :defs $ {}
         |screen-vec $ quote
-          def screen-vec $ [] -100 0 -6000
+          def screen-vec $ [] 0 0 -1200
         |square $ quote
           defn square (x) (&* x x)
         |sum-squares $ quote
           defn sum-squares (a b)
             &+ (&* a a) (&* b b)
         |transform-3d $ quote
-          defn transform-3d (point)
+          defn transform-3d (p0)
             let
-                view-position $ wo-log (new-lookat-point)
-                ; screen view-position
-                screen screen-vec
-                s 1
+                point $ &v- p0 @*viewer-position
+                look-distance $ wo-log (new-lookat-point)
+                ; look-distance screen-vec
+                s $ noted "\"back size of light cone?" 8
                 x $ nth point 0
                 y $ nth point 1
                 z $ nth point 2
-                a $ nth screen 0
-                b $ nth screen 1
-                c $ nth screen 2
+                a $ nth look-distance 0
+                b $ nth look-distance 1
+                c $ nth look-distance 2
                 r $ /
                   + (* a x) (* b y) (* c z)
                   + (square a) (square b) (square c)
@@ -53,8 +53,9 @@
                 fn (p) p
       :ns $ quote
         ns app.3d $ :require
-          app.core :refer $ new-lookat-point
+          app.core :refer $ new-lookat-point &v- &v+
           app.hud :refer $ hud-display
+          app.global :refer $ *viewer-position
     |app.config $ {}
       :defs $ {}
         |dev? $ quote
@@ -69,6 +70,10 @@
           defn &v+ (a b)
             let[] (x y z) a $ let[] (x2 y2 z2) b
               [] (&+ x x2) (&+ y y2) (&+ z z2)
+        |&v- $ quote
+          defn &v- (a b)
+            let[] (x y z) a $ let[] (x2 y2 z2) b
+              [] (&- x x2) (&- y y2) (&- z z2)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
@@ -133,16 +138,17 @@
         |new-lookat-point $ quote
           defn new-lookat-point () (; println "\"lookat" @*viewer-position @*viewer-angle)
             let-sugar
-                position @*viewer-position
-                x2 $ &+ (nth position 0)
-                  &* 4 $ cos @*viewer-angle
-                y2 $ &+ (nth position 1) (&* 0.2 @*viewer-y-shift)
-                z2 $ &+ (nth position 2)
-                  &* -4 $ sin @*viewer-angle
-              ; hud-display "\"angle" @*viewer-angle 
-              ; hud-display "\"position" $ map @*viewer-position round
+                x2 $ &* 400 (cos @*viewer-angle)
+                z2 $ &* -400 (sin @*viewer-angle)
+                y2 $ &* 20 @*viewer-y-shift
+                l $ sqrt
+                  + (* x2 x2) (* y2 y2) (* z2 z2)
+              hud-display "\"angle" @*viewer-angle
+              hud-display "\"viewer-position" $ map @*viewer-position round
               hud-display "\"y-shift" @*viewer-y-shift
-              [] x2 y2 z2
+              map ([] x2 y2 z2)
+                fn (v)
+                  -> v (/ l) (* 400)
         |on-control-event $ quote
           defn on-control-event (elapsed states delta)
             let
@@ -195,11 +201,7 @@
             &* x $ sqrt
               js/Math.abs $ &* x 0.02
         |rotate-viewer-by! $ quote
-          defn rotate-viewer-by! (x) (println "\"x" x)
-            let
-                camera $ println "\"CAMERA"
-              swap! *viewer-angle &+ x
-              ; render-canvas
+          defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
         |shift-viewer-by! $ quote
           defn shift-viewer-by! (x)
             let
@@ -295,7 +297,7 @@
         |*viewer-angle $ quote
           defatom *viewer-angle $ &/ &PI 2
         |*viewer-position $ quote
-          defatom *viewer-position $ [] 0 0 -1000
+          defatom *viewer-position $ [] 0 0 0
         |*viewer-y-shift $ quote (defatom *viewer-y-shift 0)
       :ns $ quote (ns app.global)
     |app.hud $ {}
@@ -410,7 +412,8 @@
                 offsets $ js-array 0 0 0 1
                 uniforms $ js-object (:offsets offsets)
               twgl/resizeCanvasToDisplaySize $ .-canvas gl
-              .!viewport gl 0 0 (-> gl .-canvas .-width) (-> gl .-canvas .-height)
+              .!viewport gl 0 0 (-> gl .-canvas .-width)
+                -> gl .-canvas .-height (* js/window.innerWidth) (/ js/window.innerHeight)
               .!enable gl $ .-DEPTH_TEST gl
               .!enable gl $ .-CULL_FACE gl
               .!clearColor gl 0 0 0 1
@@ -420,7 +423,6 @@
               twgl/setUniforms gl buffer-info uniforms
               twgl/drawBufferInfo gl buffer-info $ .-LINES gl
               ; twgl/drawBufferInfo gl buffer-info $ .-TRIANGLES gl
-              println "\"called"
       :ns $ quote
         ns app.render $ :require ("\"twgl.js" :as twgl)
           app.3d :refer $ transform-3d
