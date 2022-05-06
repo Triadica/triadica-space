@@ -144,9 +144,9 @@
                 y2 $ &* 20 @*viewer-y-shift
                 l $ sqrt
                   + (* x2 x2) (* y2 y2) (* z2 z2)
-              hud-display "\"angle" @*viewer-angle
-              hud-display "\"viewer-position" $ map @*viewer-position round
-              hud-display "\"y-shift" @*viewer-y-shift
+              ; hud-display "\"angle" @*viewer-angle
+              ; hud-display "\"viewer-position" $ map @*viewer-position round
+              ; hud-display "\"y-shift" @*viewer-y-shift
               map ([] x2 y2 z2)
                 fn (v)
                   -> v (/ l) (* 600)
@@ -308,7 +308,7 @@
           defatom *debug-info $ {}
         |css-debug $ quote
           defstyle css-debug $ {}
-            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"6px 8px") (:border-radius "\"6px") (:position :absolute) (:top 100) (:font-size 10) (:line-height 1.5)
+            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"6px 8px") (:border-radius "\"6px") (:position :absolute) (:top 0) (:right 0) (:margin 0) (:font-size 10) (:line-height 1.5)
               :background-color $ hsl 0 0 40 0.4
         |hud-display $ quote
           defn hud-display (name content) (swap! *debug-info assoc name content)
