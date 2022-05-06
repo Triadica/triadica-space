@@ -369,26 +369,34 @@
         |create-bg-object $ quote
           defn create-bg-object () $ let
               gl @*gl-context
-              geo $ mapcat (range 41)
+              size 50
+              geo $ mapcat
+                range $ + 1 size
                 fn (i)
-                  map (range 41)
+                  map
+                    range $ + 1 size
                     fn (j) ([] i 0 j)
               arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3 (* 41 41)
+                :position $ .!createAugmentedTypedArray twgl/primitives 3
+                  * (+ 1 size) (+ 1 size)
                 :indices $ let
-                    grid $ mapcat (range 40)
+                    grid $ mapcat (range size)
                       fn (i)
-                        map (range 40)
+                        map (range size)
                           fn (j) ([] i j)
                   -> grid
                     mapcat $ fn (point)
                       let-sugar
                             [] i j
                             , point
-                          from $ + j (* 41 i)
+                          from $ + j
+                            * (+ 1 size) i
                         concat
-                          [] from (+ from 1) (+ from 42)
-                          [] from (+ from 42) (+ from 41)
+                          [] from (+ from 1)
+                            + from $ + 2 size
+                          [] from
+                            + from $ + 2 size
+                            + from $ + 1 size
                     to-js-data
             ; println geo
             write-at-position! (.-position arrays) 0 $ map geo
@@ -397,7 +405,7 @@
                   map $ fn (p) (* p 600)
                   update 1 $ fn (y) (- y 1000)
                   update 2 $ fn (z) (- z 1000)
-            js/console.log "\"arrays" arrays
+            ; js/console.log "\"arrays" arrays
             let
                 vs $ inline-shader "\"bg.vert"
                 fs $ inline-shader "\"bg.frag"

@@ -131,7 +131,7 @@ PointResult transform_perspective(vec3 p) {
 void main() {
 
   vec3 popped = a_position;
-  popped.y += pNoise(a_position.xz*vec2(2., 2.), 1) * 3000.;
+  popped.y += pNoise(a_position.xz*vec2(2., 2.), 10) * 3000.;
 
   PointResult result = transform_perspective(popped);
   vec3 pos_next = result.point;
