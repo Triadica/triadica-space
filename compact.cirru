@@ -19,7 +19,7 @@
                 point $ &v- p0 @*viewer-position
                 look-distance $ wo-log (new-lookat-point)
                 ; look-distance screen-vec
-                s $ noted "\"back size of light cone?" 8
+                s $ noted "\"back size of light cone?" 2
                 x $ nth point 0
                 y $ nth point 1
                 z $ nth point 2
@@ -149,7 +149,7 @@
               hud-display "\"y-shift" @*viewer-y-shift
               map ([] x2 y2 z2)
                 fn (v)
-                  -> v (/ l) (* 400)
+                  -> v (/ l) (* 600)
         |on-control-event $ quote
           defn on-control-event (elapsed states delta)
             let
@@ -347,7 +347,7 @@
             set! js/window.onkeydown handle-key-event
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (render-canvas) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
+            do (create-gl-program) (render-canvas) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
             hud! "\"error" build-errors
       :ns $ quote
         ns app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
@@ -373,18 +373,10 @@
                   .!map index-order $ fn (x & _a) (+ x 8)
                   .!map index-order $ fn (x & _a) (+ x 16)
                   .!map index-order $ fn (x & _a) (+ x 24)
-              points $ -> geo
-                map $ fn (p)
-                  transform-3d $ move-point p
-              p2s $ -> geo
-                map $ fn (p)
-                  transform-3d $ move-point-2 p
-              p3s $ -> geo
-                map $ fn (p)
-                  transform-3d $ move-point-3 p
-              p4s $ -> geo
-                map $ fn (p)
-                  transform-3d $ move-point-4 p
+              points $ -> geo (map move-point)
+              p2s $ -> geo (map move-point-2)
+              p3s $ -> geo (map move-point-3)
+              p4s $ -> geo (map move-point-4)
             write-at-position! (.-position arrays) 0 points
             write-at-position! (.-position arrays) 8 p2s
             write-at-position! (.-position arrays) 16 p3s
@@ -428,13 +420,16 @@
               gl @*gl-context
               program-info @*program-info
               buffer-info @*buffer-info
-            ; println "\"console.log" "\"demo"
-            create-gl-program
+            ; println "\"console.log" "\"demo."
             let
                 offsets $ js-array 0 0 0 1
                 uniforms $ js-object (:offsets offsets)
+                  :lookPoint $ to-js-data (new-lookat-point)
+                  :cameraPosition $ to-js-data @*viewer-position
+                  :coneBackScale 2
+                  :viewportRatio $ / js/window.innerHeight js/window.innerWidth
               twgl/resizeCanvasToDisplaySize $ .-canvas gl
-              .!viewport gl 0 0 (-> gl .-canvas .-width)
+              .!viewport gl 0 0.0 (-> gl .-canvas .-width)
                 -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
               .!enable gl $ .-DEPTH_TEST gl
               .!enable gl $ .-CULL_FACE gl
@@ -442,7 +437,7 @@
               .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
               .!useProgram gl $ .-program program-info
               twgl/setBuffersAndAttributes gl program-info buffer-info
-              twgl/setUniforms gl buffer-info uniforms
+              twgl/setUniforms program-info uniforms
               twgl/drawBufferInfo gl buffer-info $ .-LINES gl
               ; twgl/drawBufferInfo gl buffer-info $ .-TRIANGLES gl
         |write-at-position! $ quote
@@ -469,4 +464,5 @@
         ns app.render $ :require ("\"twgl.js" :as twgl)
           app.3d :refer $ transform-3d
           app.config :refer $ inline-shader
-          app.global :refer $ *gl-context *program-info *buffer-info
+          app.global :refer $ *gl-context *program-info *buffer-info *viewer-position
+          app.core :refer $ new-lookat-point
