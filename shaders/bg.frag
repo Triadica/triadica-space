@@ -1,6 +1,7 @@
 precision mediump float;
 
-varying float z_color;
+varying float v_r;
+varying float v_s;
 varying vec3 original_position;
 
 // Simplex 2D noise
@@ -75,9 +76,9 @@ float pNoise(vec2 p, int res){
 
 
 void main() {
-  if (z_color > -0.0) {
+  if (v_r + v_s > 0.0) {
     gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    float factor = smoothstep(0.0, 0.7, 1.0-z_color/4.0);
+    float factor = smoothstep(0.0, 0.7, 1.0-(v_r + v_s)/10.0);
 
     gl_FragColor = vec4(0.3 + factor, 0.3 + factor, 1.0 - factor, 1.0);
 
@@ -95,5 +96,7 @@ void main() {
 
   // float vv = abs(original_position.y / 1800.0);
   // gl_FragColor = vec4(1.0-vv, 1.0-vv, vv, 1.0);
+
+  // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 
 }

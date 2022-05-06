@@ -475,9 +475,15 @@
               .!viewport gl 0 0.0 (-> gl .-canvas .-width)
                 -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
               .!enable gl $ .-DEPTH_TEST gl
+              .!depthFunc gl $ .-LESS gl
+              ; .!depthFunc gl $ .-GREATER gl
+              .!depthMask gl true
+              ; .!depthFunc gl $ .-GREATER gl
+              ; .!depthFunc gl $ .-ALWAYS gl
               ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
               ; .!enable gl $ .-BLEND gl
-              .!enable gl $ .-CULL_FACE gl
+              ; .!enable gl $ .-CULL_FACE gl
+              ; .!cullFace gl $ .-BACK gl
               ; .!cullFace gl $ .-FRONT_AND_BACK gl
               .!clearColor gl 0 0 0 1
               .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
@@ -493,7 +499,6 @@
                   object @*bg-shader-object
                   program-info $ :program object
                   buffer-info $ :buffer object
-                println "\"daw..."
                 .!useProgram gl $ .-program program-info
                 twgl/setBuffersAndAttributes gl program-info buffer-info
                 twgl/setUniforms program-info uniforms
