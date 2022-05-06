@@ -21,9 +21,8 @@ float sumSquares3(float a, float b, float c) {
   return a * a + b * b + c * c;
 }
 
-void main() {
-
-  vec3 moved_point = a_position - cameraPosition;
+vec3 transform_perspective(vec3 p) {
+  vec3 moved_point = p - cameraPosition;
 
   float s = coneBackScale;
 
@@ -43,9 +42,14 @@ void main() {
   float x_next = (((q*x + a*q*s - a*s - a) - (y_next * (-a * b) / l1)) / -c) * sqrt(sumSquares2(a,c));;
   float z_next = -r;
 
-  vec3 pos_next = vec3(x_next, y_next / viewportRatio, z_next);
+  return vec3(x_next, y_next / viewportRatio, z_next);
+}
 
-  z_color = r;
-  gl_Position = vec4(pos_next * 0.0002, 1.0);
+void main() {
+
+  vec3 pos_next = transform_perspective(a_position);
+
+  z_color = -pos_next.z;
+  gl_Position = vec4(pos_next * 0.001, 1.0);
   // gl_Position = vec4(a_position/10000.0, 1.0);
 }

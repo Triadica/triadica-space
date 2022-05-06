@@ -289,13 +289,17 @@
           app.hud :refer $ hud-display
     |app.global $ {}
       :defs $ {}
+        |*bg-shader-object $ quote
+          defatom *bg-shader-object $ {} (:program nil) (:buffer nil)
         |*buffer-info $ quote (defatom *buffer-info nil)
         |*gl-context $ quote (defatom *gl-context nil)
         |*program-info $ quote (defatom *program-info nil)
+        |*shader-object $ quote
+          defatom *shader-object $ {} (:program nil) (:buffer nil)
         |*viewer-angle $ quote
           defatom *viewer-angle $ &/ &PI 2
         |*viewer-position $ quote
-          defatom *viewer-position $ [] 0 0 0
+          defatom *viewer-position $ [] 0 200 0
         |*viewer-y-shift $ quote (defatom *viewer-y-shift 0)
       :ns $ quote (ns app.global)
     |app.hud $ {}
@@ -362,8 +366,46 @@
           app.hud :refer $ inject-hud!
     |app.render $ {}
       :defs $ {}
-        |create-gl-program $ quote
-          defn create-gl-program () $ let
+        |create-bg-object $ quote
+          defn create-bg-object () $ let
+              gl @*gl-context
+              geo $ mapcat (range 41)
+                fn (i)
+                  map (range 41)
+                    fn (j) ([] i 0 j)
+              arrays $ js-object
+                :position $ .!createAugmentedTypedArray twgl/primitives 3 (* 41 41)
+                :indices $ let
+                    grid $ mapcat (range 40)
+                      fn (i)
+                        map (range 40)
+                          fn (j) ([] i j)
+                  -> grid
+                    mapcat $ fn (point)
+                      let-sugar
+                            [] i j
+                            , point
+                          from $ + j (* 41 i)
+                        concat
+                          [] from (+ from 1) (+ from 42)
+                          [] from (+ from 42) (+ from 41)
+                    to-js-data
+            ; println geo
+            write-at-position! (.-position arrays) 0 $ map geo
+              fn (point)
+                -> point
+                  map $ fn (p) (* p 600)
+                  update 1 $ fn (y) (- y 1000)
+                  update 2 $ fn (z) (- z 1000)
+            js/console.log "\"arrays" arrays
+            let
+                vs $ inline-shader "\"bg.vert"
+                fs $ inline-shader "\"bg.frag"
+                program-info $ twgl/createProgramInfo gl (js-array vs fs)
+                buffer-info $ twgl/createBufferInfoFromArrays gl arrays
+              reset! *bg-shader-object $ {} (:program program-info) (:buffer buffer-info)
+        |create-cube-object $ quote
+          defn create-cube-object () $ let
               gl @*gl-context
               geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
               index-order $ js-array 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
@@ -387,8 +429,9 @@
                 fs $ inline-shader "\"shape.frag"
                 program-info $ twgl/createProgramInfo gl (js-array vs fs)
                 buffer-info $ twgl/createBufferInfoFromArrays gl arrays
-              reset! *program-info program-info
-              reset! *buffer-info buffer-info
+              reset! *shader-object $ {} (:program program-info) (:buffer buffer-info)
+        |create-gl-program $ quote
+          defn create-gl-program () (create-cube-object) (create-bg-object)
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -432,14 +475,30 @@
               .!viewport gl 0 0.0 (-> gl .-canvas .-width)
                 -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
               .!enable gl $ .-DEPTH_TEST gl
+              ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
+              ; .!enable gl $ .-BLEND gl
               .!enable gl $ .-CULL_FACE gl
+              ; .!cullFace gl $ .-FRONT_AND_BACK gl
               .!clearColor gl 0 0 0 1
               .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
-              .!useProgram gl $ .-program program-info
-              twgl/setBuffersAndAttributes gl program-info buffer-info
-              twgl/setUniforms program-info uniforms
-              twgl/drawBufferInfo gl buffer-info $ .-LINES gl
-              ; twgl/drawBufferInfo gl buffer-info $ .-TRIANGLES gl
+              let
+                  object @*shader-object
+                  program-info $ :program object
+                  buffer-info $ :buffer object
+                .!useProgram gl $ .-program program-info
+                twgl/setBuffersAndAttributes gl program-info buffer-info
+                twgl/setUniforms program-info uniforms
+                twgl/drawBufferInfo gl buffer-info $ .-LINES gl
+              let
+                  object @*bg-shader-object
+                  program-info $ :program object
+                  buffer-info $ :buffer object
+                println "\"daw..."
+                .!useProgram gl $ .-program program-info
+                twgl/setBuffersAndAttributes gl program-info buffer-info
+                twgl/setUniforms program-info uniforms
+                twgl/drawBufferInfo gl buffer-info $ .-TRIANGLES gl
+                ; twgl/drawBufferInfo gl buffer-info $ .-LINES gl
         |write-at-position! $ quote
           defn write-at-position! (position-array from points)
             loop
@@ -464,5 +523,5 @@
         ns app.render $ :require ("\"twgl.js" :as twgl)
           app.3d :refer $ transform-3d
           app.config :refer $ inline-shader
-          app.global :refer $ *gl-context *program-info *buffer-info *viewer-position
+          app.global :refer $ *gl-context *program-info *buffer-info *viewer-position *shader-object *bg-shader-object
           app.core :refer $ new-lookat-point
