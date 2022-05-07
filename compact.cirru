@@ -144,9 +144,9 @@
                 y2 $ &* 20 @*viewer-y-shift
                 l $ sqrt
                   + (* x2 x2) (* y2 y2) (* z2 z2)
-              hud-display "\"angle" @*viewer-angle
-              hud-display "\"viewer-position" $ map @*viewer-position round
-              hud-display "\"y-shift" @*viewer-y-shift
+              ; hud-display "\"angle" @*viewer-angle
+              ; hud-display "\"viewer-position" $ map @*viewer-position round
+              ; hud-display "\"y-shift" @*viewer-y-shift
               map ([] x2 y2 z2)
                 fn (v)
                   -> v (/ l) (* 600)
@@ -308,7 +308,7 @@
           defatom *debug-info $ {}
         |css-debug $ quote
           defstyle css-debug $ {}
-            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"6px 8px") (:border-radius "\"6px") (:position :absolute) (:top 100) (:font-size 10) (:line-height 1.5)
+            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"6px 8px") (:border-radius "\"6px") (:position :absolute) (:top 0) (:right 0) (:margin 0) (:font-size 10) (:line-height 1.5)
               :background-color $ hsl 0 0 40 0.4
         |hud-display $ quote
           defn hud-display (name content) (swap! *debug-info assoc name content)
@@ -369,26 +369,34 @@
         |create-bg-object $ quote
           defn create-bg-object () $ let
               gl @*gl-context
-              geo $ mapcat (range 41)
+              size 50
+              geo $ mapcat
+                range $ + 1 size
                 fn (i)
-                  map (range 41)
+                  map
+                    range $ + 1 size
                     fn (j) ([] i 0 j)
               arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3 (* 41 41)
+                :position $ .!createAugmentedTypedArray twgl/primitives 3
+                  * (+ 1 size) (+ 1 size)
                 :indices $ let
-                    grid $ mapcat (range 40)
+                    grid $ mapcat (range size)
                       fn (i)
-                        map (range 40)
+                        map (range size)
                           fn (j) ([] i j)
                   -> grid
                     mapcat $ fn (point)
                       let-sugar
                             [] i j
                             , point
-                          from $ + j (* 41 i)
+                          from $ + j
+                            * (+ 1 size) i
                         concat
-                          [] from (+ from 1) (+ from 42)
-                          [] from (+ from 42) (+ from 41)
+                          [] from (+ from 1)
+                            + from $ + 2 size
+                          [] from
+                            + from $ + 2 size
+                            + from $ + 1 size
                     to-js-data
             ; println geo
             write-at-position! (.-position arrays) 0 $ map geo
@@ -397,7 +405,7 @@
                   map $ fn (p) (* p 600)
                   update 1 $ fn (y) (- y 1000)
                   update 2 $ fn (z) (- z 1000)
-            js/console.log "\"arrays" arrays
+            ; js/console.log "\"arrays" arrays
             let
                 vs $ inline-shader "\"bg.vert"
                 fs $ inline-shader "\"bg.frag"
@@ -475,9 +483,15 @@
               .!viewport gl 0 0.0 (-> gl .-canvas .-width)
                 -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
               .!enable gl $ .-DEPTH_TEST gl
+              .!depthFunc gl $ .-LESS gl
+              ; .!depthFunc gl $ .-GREATER gl
+              .!depthMask gl true
+              ; .!depthFunc gl $ .-GREATER gl
+              ; .!depthFunc gl $ .-ALWAYS gl
               ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
               ; .!enable gl $ .-BLEND gl
-              .!enable gl $ .-CULL_FACE gl
+              ; .!enable gl $ .-CULL_FACE gl
+              ; .!cullFace gl $ .-BACK gl
               ; .!cullFace gl $ .-FRONT_AND_BACK gl
               .!clearColor gl 0 0 0 1
               .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
@@ -493,7 +507,6 @@
                   object @*bg-shader-object
                   program-info $ :program object
                   buffer-info $ :buffer object
-                println "\"daw..."
                 .!useProgram gl $ .-program program-info
                 twgl/setBuffersAndAttributes gl program-info buffer-info
                 twgl/setUniforms program-info uniforms

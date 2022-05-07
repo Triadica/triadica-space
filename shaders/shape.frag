@@ -1,11 +1,12 @@
 precision mediump float;
 
-varying float z_color;
+varying float v_s;
+varying float v_r;
 
 void main() {
-  if (z_color > -0.9) {
+  if (v_r + v_s > 0.0) {
     gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-    float factor = smoothstep(0.0, 0.4, 1.0-z_color/4.0);
+    float factor = smoothstep(0.0, 0.4, 1.0- (v_r + v_s)/10.0);
 
     gl_FragColor = vec4(0.6 + factor, 0.6 + factor, 1.0 - factor, 1.0);
   // } else if (z_color > -1.0) {
