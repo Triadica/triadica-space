@@ -42,6 +42,12 @@ PointResult transform_perspective(vec3 p) {
   float c = lookPoint.z;
 
   float r = (a*x + b*y + c*z) / sumSquares3(a, b, c);
+
+  if (r < (s * -0.8)) {
+    // make it disappear with depth test since it's probably behind the camera
+    return PointResult(vec3(0.0, 0.0, 10000.), r, s);
+  }
+
   float q = (s + 1.0) / (r + s);
   float l1 = sqrt((a*a*b*b) + square(sumSquares2(a,c)) + (b*b*c*c));
 
