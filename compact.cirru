@@ -1,10 +1,10 @@
 
-{} (:package |app)
-  :configs $ {} (:init-fn |app.main/main!) (:reload-fn |app.main/reload!) (:version |0.0.1)
+{} (:package |triadica)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.1)
     :modules $ [] |touch-control/ |respo.calcit/
   :entries $ {}
   :files $ {}
-    |app.3d $ {}
+    |triadica.3d $ {}
       :defs $ {}
         |screen-vec $ quote
           def screen-vec $ [] 0 0 -1200
@@ -53,19 +53,57 @@
                   -> v (/ js/window.innerHeight) (* js/window.innerWidth)
                 map $ fn (p) p
       :ns $ quote
-        ns app.3d $ :require
-          app.core :refer $ new-lookat-point &v- &v+
-          app.hud :refer $ hud-display
-          app.global :refer $ *viewer-position
-    |app.config $ {}
+        ns triadica.3d $ :require
+          triadica.core :refer $ new-lookat-point &v- &v+
+          triadica.hud :refer $ hud-display
+          triadica.global :refer $ *viewer-position
+    |triadica.app.main $ {}
+      :defs $ {}
+        |canvas $ quote
+          def canvas $ js/document.querySelector "\"canvas"
+        |main! $ quote
+          defn main! ()
+            twgl/setDefaults $ js-object (:attribPrefix "\"a_")
+            inject-hud!
+            -> canvas .-width $ set! js/window.innerWidth
+            -> canvas .-height $ set! js/window.innerHeight
+            let
+                gl $ .!getContext canvas "\"webgl"
+              reset! *gl-context gl
+              create-gl-program
+            render-canvas
+            render-control!
+            start-control-loop! 10 on-control-event
+            js/window.addEventListener "\"resize" $ fn (event)
+              -> canvas .-height $ set! js/window.innerHeight
+              -> canvas .-width $ set! js/window.innerWidth
+              create-gl-program
+              render-canvas
+            set! js/window.onkeydown handle-key-event
+        |reload! $ quote
+          defn reload! () $ if (nil? build-errors)
+            do (create-gl-program) (render-canvas) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
+            hud! "\"error" build-errors
+      :ns $ quote
+        ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
+          triadica.config :refer $ dev? inline-shader
+          "\"twgl.js" :as twgl
+          touch-control.core :refer $ render-control! control-states start-control-loop! clear-control-loop! replace-control-loop!
+          triadica.core :refer $ handle-key-event on-control-event
+          triadica.3d :refer $ transform-3d
+          triadica.render :refer $ render-canvas create-gl-program
+          triadica.global :refer $ *gl-context *program-info *buffer-info
+          respo.css :refer $ defstyle
+          triadica.hud :refer $ inject-hud!
+    |triadica.config $ {}
       :defs $ {}
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
         |inline-shader $ quote
           defmacro inline-shader (name)
             read-file $ str "\"shaders/" name
-      :ns $ quote (ns app.config)
-    |app.core $ {}
+      :ns $ quote (ns triadica.config)
+    |triadica.core $ {}
       :defs $ {}
         |&v+ $ quote
           defn &v+ (a b)
@@ -284,10 +322,10 @@
         ns quatrefoil.core $ :require
           touch-control.core :refer $ render-control! control-states start-control-loop! clear-control-loop!
           "\"@quatrefoil/utils" :refer $ hcl-to-hex
-          app.global :refer $ *viewer-angle *viewer-y-shift *viewer-position
-          app.render :refer $ render-canvas
-          app.hud :refer $ hud-display
-    |app.global $ {}
+          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position
+          triadica.render :refer $ render-canvas
+          triadica.hud :refer $ hud-display
+    |triadica.global $ {}
       :defs $ {}
         |*bg-shader-object $ quote
           defatom *bg-shader-object $ {} (:program nil) (:buffer nil)
@@ -301,8 +339,8 @@
         |*viewer-position $ quote
           defatom *viewer-position $ [] 0 200 0
         |*viewer-y-shift $ quote (defatom *viewer-y-shift 0)
-      :ns $ quote (ns app.global)
-    |app.hud $ {}
+      :ns $ quote (ns triadica.global)
+    |triadica.hud $ {}
       :defs $ {}
         |*debug-info $ quote
           defatom *debug-info $ {}
@@ -323,48 +361,10 @@
               -> el .-className $ set! css-debug
               , el
       :ns $ quote
-        ns app.hud $ :require
+        ns triadica.hud $ :require
           respo.css :refer $ defstyle
           respo.util.format :refer $ hsl
-    |app.main $ {}
-      :defs $ {}
-        |canvas $ quote
-          def canvas $ js/document.querySelector "\"canvas"
-        |main! $ quote
-          defn main! ()
-            twgl/setDefaults $ js-object (:attribPrefix "\"a_")
-            inject-hud!
-            -> canvas .-width $ set! js/window.innerWidth
-            -> canvas .-height $ set! js/window.innerHeight
-            let
-                gl $ .!getContext canvas "\"webgl"
-              reset! *gl-context gl
-              create-gl-program
-            render-canvas
-            render-control!
-            start-control-loop! 10 on-control-event
-            js/window.addEventListener "\"resize" $ fn (event)
-              -> canvas .-height $ set! js/window.innerHeight
-              -> canvas .-width $ set! js/window.innerWidth
-              create-gl-program
-              render-canvas
-            set! js/window.onkeydown handle-key-event
-        |reload! $ quote
-          defn reload! () $ if (nil? build-errors)
-            do (create-gl-program) (render-canvas) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
-            hud! "\"error" build-errors
-      :ns $ quote
-        ns app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
-          app.config :refer $ dev? inline-shader
-          "\"twgl.js" :as twgl
-          touch-control.core :refer $ render-control! control-states start-control-loop! clear-control-loop! replace-control-loop!
-          app.core :refer $ handle-key-event on-control-event
-          app.3d :refer $ transform-3d
-          app.render :refer $ render-canvas create-gl-program
-          app.global :refer $ *gl-context *program-info *buffer-info
-          respo.css :refer $ defstyle
-          app.hud :refer $ inject-hud!
-    |app.render $ {}
+    |triadica.render $ {}
       :defs $ {}
         |create-bg-object $ quote
           defn create-bg-object () $ let
@@ -533,8 +533,8 @@
                     nth p 2
                   recur (+ idx 1) (rest xs)
       :ns $ quote
-        ns app.render $ :require ("\"twgl.js" :as twgl)
-          app.3d :refer $ transform-3d
-          app.config :refer $ inline-shader
-          app.global :refer $ *gl-context *program-info *buffer-info *viewer-position *shader-object *bg-shader-object
-          app.core :refer $ new-lookat-point
+        ns triadica.render $ :require ("\"twgl.js" :as twgl)
+          triadica.3d :refer $ transform-3d
+          triadica.config :refer $ inline-shader
+          triadica.global :refer $ *gl-context *program-info *buffer-info *viewer-position *shader-object *bg-shader-object
+          triadica.core :refer $ new-lookat-point

@@ -1,11 +1,11 @@
 
 {}
-  :configs $ {} (:init-fn |app.main/main!) (:port 6001) (:reload-fn |app.main/reload!) (:version |0.0.1)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.1)
     :modules $ [] |touch-control/ |respo.calcit/
   :entries $ {}
-  :ir $ {} (:package |app)
+  :ir $ {} (:package |triadica)
     :files $ {}
-      |app.3d $ {}
+      |triadica.3d $ {}
         :configs $ {}
         :defs $ {}
           |screen-vec $ {} (:at 1651661209678) (:by |u0) (:type :expr)
@@ -389,13 +389,13 @@
         :ns $ {} (:at 1651660759852) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1651660759852) (:by |u0) (:text |ns) (:type :leaf)
-            |b $ {} (:at 1651660759852) (:by |u0) (:text |app.3d) (:type :leaf)
+            |b $ {} (:at 1651660759852) (:by |u0) (:text |triadica.3d) (:type :leaf)
             |h $ {} (:at 1651664235669) (:by |u0) (:type :expr)
               :data $ {}
                 |T $ {} (:at 1651664236879) (:by |u0) (:text |:require) (:type :leaf)
                 |b $ {} (:at 1651664237122) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651664253236) (:by |u0) (:text |app.core) (:type :leaf)
+                    |T $ {} (:at 1651664253236) (:by |u0) (:text |triadica.core) (:type :leaf)
                     |b $ {} (:at 1651664253937) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651664254488) (:by |u0) (:type :expr)
                       :data $ {}
@@ -404,19 +404,262 @@
                         |h $ {} (:at 1651721740328) (:by |u0) (:text |&v+) (:type :leaf)
                 |h $ {} (:at 1651667798074) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651667798074) (:by |u0) (:text |app.hud) (:type :leaf)
+                    |T $ {} (:at 1651667798074) (:by |u0) (:text |triadica.hud) (:type :leaf)
                     |b $ {} (:at 1651667798074) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651667798074) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1651667798074) (:by |u0) (:text |hud-display) (:type :leaf)
                 |l $ {} (:at 1651722041315) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651722046118) (:by |u0) (:text |app.global) (:type :leaf)
+                    |T $ {} (:at 1651722046118) (:by |u0) (:text |triadica.global) (:type :leaf)
                     |b $ {} (:at 1651722049524) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651722050960) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1651722053643) (:by |u0) (:text |*viewer-position) (:type :leaf)
-      |app.config $ {}
+      |triadica.app.main $ {}
+        :configs $ {}
+        :defs $ {}
+          |canvas $ {} (:at 1651655933539) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1651655933539) (:by |u0) (:text |def) (:type :leaf)
+              |b $ {} (:at 1651655933539) (:by |u0) (:text |canvas) (:type :leaf)
+              |h $ {} (:at 1651655933539) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651655942096) (:by |u0) (:text |js/document.querySelector) (:type :leaf)
+                  |b $ {} (:at 1651655943620) (:by |u0) (:text "|\"canvas") (:type :leaf)
+          |main! $ {} (:at 1651655491789) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1651655491789) (:by |u0) (:text |defn) (:type :leaf)
+              |b $ {} (:at 1651655491789) (:by |u0) (:text |main!) (:type :leaf)
+              |h $ {} (:at 1651655491789) (:by |u0) (:type :expr)
+                :data $ {}
+              |hD $ {} (:at 1651663436098) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651663436098) (:by |u0) (:text |twgl/setDefaults) (:type :leaf)
+                  |b $ {} (:at 1651663436098) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651663436098) (:by |u0) (:text |js-object) (:type :leaf)
+                      |b $ {} (:at 1651663436098) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651663436098) (:by |u0) (:text |:attribPrefix) (:type :leaf)
+                          |b $ {} (:at 1651663436098) (:by |u0) (:text "|\"a_") (:type :leaf)
+              |hL $ {} (:at 1651667885766) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651667885766) (:by |u0) (:text |inject-hud!) (:type :leaf)
+              |hP $ {} (:at 1651728388856) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651728388856) (:by |u0) (:text |->) (:type :leaf)
+                  |b $ {} (:at 1651728388856) (:by |u0) (:text |canvas) (:type :leaf)
+                  |h $ {} (:at 1651728388856) (:by |u0) (:text |.-width) (:type :leaf)
+                  |l $ {} (:at 1651728388856) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651728388856) (:by |u0) (:text |set!) (:type :leaf)
+                      |b $ {} (:at 1651728388856) (:by |u0) (:text |js/window.innerWidth) (:type :leaf)
+              |hR $ {} (:at 1651728391083) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651728391083) (:by |u0) (:text |->) (:type :leaf)
+                  |b $ {} (:at 1651728391083) (:by |u0) (:text |canvas) (:type :leaf)
+                  |h $ {} (:at 1651728391083) (:by |u0) (:text |.-height) (:type :leaf)
+                  |l $ {} (:at 1651728391083) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651728391083) (:by |u0) (:text |set!) (:type :leaf)
+                      |b $ {} (:at 1651728391083) (:by |u0) (:text |js/window.innerHeight) (:type :leaf)
+              |hT $ {} (:at 1651662950090) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651662950090) (:by |u0) (:text |let) (:type :leaf)
+                  |b $ {} (:at 1651662950090) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651662950090) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651662950090) (:by |u0) (:text |gl) (:type :leaf)
+                          |b $ {} (:at 1651662950090) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1651662950090) (:by |u0) (:text |.!getContext) (:type :leaf)
+                              |b $ {} (:at 1651662950090) (:by |u0) (:text |canvas) (:type :leaf)
+                              |h $ {} (:at 1651662950090) (:by |u0) (:text "|\"webgl") (:type :leaf)
+                  |h $ {} (:at 1651662950090) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651662950090) (:by |u0) (:text |reset!) (:type :leaf)
+                      |b $ {} (:at 1651662950090) (:by |u0) (:text |*gl-context) (:type :leaf)
+                      |h $ {} (:at 1651662950090) (:by |u0) (:text |gl) (:type :leaf)
+                  |l $ {} (:at 1651663179385) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651663186003) (:by |u0) (:text |create-gl-program) (:type :leaf)
+              |kj $ {} (:at 1651661923146) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651661923146) (:by |u0) (:text |render-canvas) (:type :leaf)
+              |l $ {} (:at 1651659885925) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651659885925) (:by |u0) (:text |render-control!) (:type :leaf)
+              |m $ {} (:at 1651659892483) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651660586963) (:by |u0) (:text |start-control-loop!) (:type :leaf)
+                  |X $ {} (:at 1651660592514) (:by |u0) (:text |10) (:type :leaf)
+                  |b $ {} (:at 1651660591228) (:by |u0) (:text |on-control-event) (:type :leaf)
+              |mT $ {} (:at 1651728334007) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651728338478) (:by |u0) (:text |js/window.addEventListener) (:type :leaf)
+                  |b $ {} (:at 1651728340429) (:by |u0) (:text "|\"resize") (:type :leaf)
+                  |h $ {} (:at 1651728340719) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651728340966) (:by |u0) (:text |fn) (:type :leaf)
+                      |b $ {} (:at 1651728342529) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651728343880) (:by |u0) (:text |event) (:type :leaf)
+                      |c $ {} (:at 1651728379104) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651728379104) (:by |u0) (:text |->) (:type :leaf)
+                          |b $ {} (:at 1651728379104) (:by |u0) (:text |canvas) (:type :leaf)
+                          |h $ {} (:at 1651728379104) (:by |u0) (:text |.-height) (:type :leaf)
+                          |l $ {} (:at 1651728379104) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1651728379104) (:by |u0) (:text |set!) (:type :leaf)
+                              |b $ {} (:at 1651728379104) (:by |u0) (:text |js/window.innerHeight) (:type :leaf)
+                      |d $ {} (:at 1651728382129) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651728382129) (:by |u0) (:text |->) (:type :leaf)
+                          |b $ {} (:at 1651728382129) (:by |u0) (:text |canvas) (:type :leaf)
+                          |h $ {} (:at 1651728382129) (:by |u0) (:text |.-width) (:type :leaf)
+                          |l $ {} (:at 1651728382129) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1651728382129) (:by |u0) (:text |set!) (:type :leaf)
+                              |b $ {} (:at 1651728382129) (:by |u0) (:text |js/window.innerWidth) (:type :leaf)
+                      |e $ {} (:at 1651728368613) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651728368613) (:by |u0) (:text |create-gl-program) (:type :leaf)
+                      |h $ {} (:at 1651728347907) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651728347907) (:by |u0) (:text |render-canvas) (:type :leaf)
+              |n $ {} (:at 1651658307984) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651658307984) (:by |u0) (:text |set!) (:type :leaf)
+                  |b $ {} (:at 1651658307984) (:by |u0) (:text |js/window.onkeydown) (:type :leaf)
+                  |h $ {} (:at 1651658307984) (:by |u0) (:text |handle-key-event) (:type :leaf)
+          |reload! $ {} (:at 1651655496878) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1651655496878) (:by |u0) (:text |defn) (:type :leaf)
+              |b $ {} (:at 1651655496878) (:by |u0) (:text |reload!) (:type :leaf)
+              |h $ {} (:at 1651655496878) (:by |u0) (:type :expr)
+                :data $ {}
+              |l $ {} (:at 1651655737306) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1651655737699) (:by |u0) (:text |if) (:type :leaf)
+                  |b $ {} (:at 1651655738212) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651655739085) (:by |u0) (:text |nil?) (:type :leaf)
+                      |b $ {} (:at 1651655742277) (:by |u0) (:text |build-errors) (:type :leaf)
+                  |h $ {} (:at 1651655813532) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651655814249) (:by |u0) (:text |do) (:type :leaf)
+                      |TT $ {} (:at 1651756763693) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |b $ {} (:at 1651756763693) (:by |u0) (:text |create-gl-program) (:type :leaf)
+                      |U $ {} (:at 1651661966988) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651661966988) (:by |u0) (:text |render-canvas) (:type :leaf)
+                      |V $ {} (:at 1651660616640) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651661969856) (:by |u0) (:text |replace-control-loop!) (:type :leaf)
+                          |b $ {} (:at 1651660616640) (:by |u0) (:text |10) (:type :leaf)
+                          |h $ {} (:at 1651660616640) (:by |u0) (:text |on-control-event) (:type :leaf)
+                      |b $ {} (:at 1651655828085) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1651655829219) (:by |u0) (:text |hud!) (:type :leaf)
+                          |b $ {} (:at 1651655835925) (:by |u0) (:text "|\"ok~") (:type :leaf)
+                          |h $ {} (:at 1651756770277) (:by |u0) (:text "|\"OK") (:type :leaf)
+                  |l $ {} (:at 1651655814965) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1651655816710) (:by |u0) (:text |hud!) (:type :leaf)
+                      |b $ {} (:at 1651655818033) (:by |u0) (:text "|\"error") (:type :leaf)
+                      |h $ {} (:at 1651655822128) (:by |u0) (:text |build-errors) (:type :leaf)
+        :ns $ {} (:at 1651655487518) (:by |u0) (:type :expr)
+          :data $ {}
+            |T $ {} (:at 1651655487518) (:by |u0) (:text |ns) (:type :leaf)
+            |b $ {} (:at 1651655487518) (:by |u0) (:text |triadica.app.main) (:type :leaf)
+            |h $ {} (:at 1651655745051) (:by |u0) (:type :expr)
+              :data $ {}
+                |T $ {} (:at 1651655746877) (:by |u0) (:text |:require) (:type :leaf)
+                |b $ {} (:at 1651655753974) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651655753974) (:by |u0) (:text "|\"./calcit.build-errors") (:type :leaf)
+                    |b $ {} (:at 1651655753974) (:by |u0) (:text |:default) (:type :leaf)
+                    |h $ {} (:at 1651655753974) (:by |u0) (:text |build-errors) (:type :leaf)
+                |h $ {} (:at 1651655760608) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651655760608) (:by |u0) (:text "|\"bottom-tip") (:type :leaf)
+                    |b $ {} (:at 1651655760608) (:by |u0) (:text |:default) (:type :leaf)
+                    |h $ {} (:at 1651655760608) (:by |u0) (:text |hud!) (:type :leaf)
+                |l $ {} (:at 1651655763051) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651655772899) (:by |u0) (:text |triadica.config) (:type :leaf)
+                    |b $ {} (:at 1651656000320) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1651656000568) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1651656002009) (:by |u0) (:text |dev?) (:type :leaf)
+                        |b $ {} (:at 1651656008763) (:by |u0) (:text |inline-shader) (:type :leaf)
+                |o $ {} (:at 1651656071959) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651656076261) (:by |u0) (:text "|\"twgl.js") (:type :leaf)
+                    |b $ {} (:at 1651656079360) (:by |u0) (:text |:as) (:type :leaf)
+                    |h $ {} (:at 1651656081074) (:by |u0) (:text |twgl) (:type :leaf)
+                |q $ {} (:at 1651658493825) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651658493825) (:by |u0) (:text |touch-control.core) (:type :leaf)
+                    |b $ {} (:at 1651658493825) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1651658493825) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1651658493825) (:by |u0) (:text |render-control!) (:type :leaf)
+                        |b $ {} (:at 1651658493825) (:by |u0) (:text |control-states) (:type :leaf)
+                        |h $ {} (:at 1651658493825) (:by |u0) (:text |start-control-loop!) (:type :leaf)
+                        |l $ {} (:at 1651658493825) (:by |u0) (:text |clear-control-loop!) (:type :leaf)
+                        |o $ {} (:at 1651660609830) (:by |u0) (:text |replace-control-loop!) (:type :leaf)
+                |s $ {} (:at 1651658524541) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651658525575) (:by |u0) (:text |triadica.core) (:type :leaf)
+                    |b $ {} (:at 1651658527025) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1651658527242) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1651658530130) (:by |u0) (:text |handle-key-event) (:type :leaf)
+                        |b $ {} (:at 1651660599972) (:by |u0) (:text |on-control-event) (:type :leaf)
+                |t $ {} (:at 1651661195715) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651661198075) (:by |u0) (:text |triadica.3d) (:type :leaf)
+                    |b $ {} (:at 1651661200671) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1651661200917) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1651661201152) (:by |u0) (:text |transform-3d) (:type :leaf)
+                |u $ {} (:at 1651662108474) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651662109648) (:by |u0) (:text |triadica.render) (:type :leaf)
+                    |b $ {} (:at 1651662110926) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1651662111123) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1651662113432) (:by |u0) (:text |render-canvas) (:type :leaf)
+                        |b $ {} (:at 1651664136507) (:by |u0) (:text |create-gl-program) (:type :leaf)
+                |v $ {} (:at 1651662835087) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651662836992) (:by |u0) (:text |triadica.global) (:type :leaf)
+                    |b $ {} (:at 1651662837950) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1651662841736) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1651662848262) (:by |u0) (:text |*gl-context) (:type :leaf)
+                        |b $ {} (:at 1651663247756) (:by |u0) (:text |*program-info) (:type :leaf)
+                        |h $ {} (:at 1651663251947) (:by |u0) (:text |*buffer-info) (:type :leaf)
+                |w $ {} (:at 1651667328668) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651667329732) (:by |u0) (:text |respo.css) (:type :leaf)
+                    |b $ {} (:at 1651667330886) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1651667331136) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1651667332165) (:by |u0) (:text |defstyle) (:type :leaf)
+                |x $ {} (:at 1651667446165) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1651667474067) (:by |u0) (:text |triadica.hud) (:type :leaf)
+                    |b $ {} (:at 1651667449178) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1651667449796) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1651667455931) (:by |u0) (:text |inject-hud!) (:type :leaf)
+      |triadica.config $ {}
         :configs $ {}
         :defs $ {}
           |dev? $ {} (:at 1651655792604) (:by |u0) (:type :expr)
@@ -450,8 +693,8 @@
         :ns $ {} (:at 1651655780439) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1651655780439) (:by |u0) (:text |ns) (:type :leaf)
-            |b $ {} (:at 1651655780439) (:by |u0) (:text |app.config) (:type :leaf)
-      |app.core $ {}
+            |b $ {} (:at 1651655780439) (:by |u0) (:text |triadica.config) (:type :leaf)
+      |triadica.core $ {}
         :defs $ {}
           |&v+ $ {} (:at 1651660137194) (:by |u0) (:type :expr)
             :data $ {}
@@ -2035,7 +2278,7 @@
                         |T $ {} (:at 1651658419548) (:by |u0) (:text |hcl-to-hex) (:type :leaf)
                 |zD $ {} (:at 1651659606040) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651659644934) (:by |u0) (:text |app.global) (:type :leaf)
+                    |T $ {} (:at 1651659644934) (:by |u0) (:text |triadica.global) (:type :leaf)
                     |b $ {} (:at 1651659627586) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651659630412) (:by |u0) (:type :expr)
                       :data $ {}
@@ -2044,19 +2287,19 @@
                         |h $ {} (:at 1651662510761) (:by |u0) (:text |*viewer-position) (:type :leaf)
                 |zP $ {} (:at 1651662725217) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651662726419) (:by |u0) (:text |app.render) (:type :leaf)
+                    |T $ {} (:at 1651662726419) (:by |u0) (:text |triadica.render) (:type :leaf)
                     |b $ {} (:at 1651662729454) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651662729662) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1651662733021) (:by |u0) (:text |render-canvas) (:type :leaf)
                 |zY $ {} (:at 1651669105066) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651669106932) (:by |u0) (:text |app.hud) (:type :leaf)
+                    |T $ {} (:at 1651669106932) (:by |u0) (:text |triadica.hud) (:type :leaf)
                     |b $ {} (:at 1651669108230) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651669108446) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1651669110949) (:by |u0) (:text |hud-display) (:type :leaf)
-      |app.global $ {}
+      |triadica.global $ {}
         :configs $ {}
         :defs $ {}
           |*bg-shader-object $ {} (:at 1651810485552) (:by |u0) (:type :expr)
@@ -2131,8 +2374,8 @@
         :ns $ {} (:at 1651659565911) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1651659565911) (:by |u0) (:text |ns) (:type :leaf)
-            |b $ {} (:at 1651659565911) (:by |u0) (:text |app.global) (:type :leaf)
-      |app.hud $ {}
+            |b $ {} (:at 1651659565911) (:by |u0) (:text |triadica.global) (:type :leaf)
+      |triadica.hud $ {}
         :configs $ {}
         :defs $ {}
           |*debug-info $ {} (:at 1651667659830) (:by |u0) (:type :expr)
@@ -2282,7 +2525,7 @@
         :ns $ {} (:at 1651667387927) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1651667387927) (:by |u0) (:text |ns) (:type :leaf)
-            |b $ {} (:at 1651667387927) (:by |u0) (:text |app.hud) (:type :leaf)
+            |b $ {} (:at 1651667387927) (:by |u0) (:text |triadica.hud) (:type :leaf)
             |h $ {} (:at 1651667425145) (:by |u0) (:type :expr)
               :data $ {}
                 |T $ {} (:at 1651667426894) (:by |u0) (:text |:require) (:type :leaf)
@@ -2300,250 +2543,7 @@
                     |h $ {} (:at 1651667515601) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1651667515965) (:by |u0) (:text |hsl) (:type :leaf)
-      |app.main $ {}
-        :configs $ {}
-        :defs $ {}
-          |canvas $ {} (:at 1651655933539) (:by |u0) (:type :expr)
-            :data $ {}
-              |T $ {} (:at 1651655933539) (:by |u0) (:text |def) (:type :leaf)
-              |b $ {} (:at 1651655933539) (:by |u0) (:text |canvas) (:type :leaf)
-              |h $ {} (:at 1651655933539) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651655942096) (:by |u0) (:text |js/document.querySelector) (:type :leaf)
-                  |b $ {} (:at 1651655943620) (:by |u0) (:text "|\"canvas") (:type :leaf)
-          |main! $ {} (:at 1651655491789) (:by |u0) (:type :expr)
-            :data $ {}
-              |T $ {} (:at 1651655491789) (:by |u0) (:text |defn) (:type :leaf)
-              |b $ {} (:at 1651655491789) (:by |u0) (:text |main!) (:type :leaf)
-              |h $ {} (:at 1651655491789) (:by |u0) (:type :expr)
-                :data $ {}
-              |hD $ {} (:at 1651663436098) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651663436098) (:by |u0) (:text |twgl/setDefaults) (:type :leaf)
-                  |b $ {} (:at 1651663436098) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651663436098) (:by |u0) (:text |js-object) (:type :leaf)
-                      |b $ {} (:at 1651663436098) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651663436098) (:by |u0) (:text |:attribPrefix) (:type :leaf)
-                          |b $ {} (:at 1651663436098) (:by |u0) (:text "|\"a_") (:type :leaf)
-              |hL $ {} (:at 1651667885766) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651667885766) (:by |u0) (:text |inject-hud!) (:type :leaf)
-              |hP $ {} (:at 1651728388856) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651728388856) (:by |u0) (:text |->) (:type :leaf)
-                  |b $ {} (:at 1651728388856) (:by |u0) (:text |canvas) (:type :leaf)
-                  |h $ {} (:at 1651728388856) (:by |u0) (:text |.-width) (:type :leaf)
-                  |l $ {} (:at 1651728388856) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651728388856) (:by |u0) (:text |set!) (:type :leaf)
-                      |b $ {} (:at 1651728388856) (:by |u0) (:text |js/window.innerWidth) (:type :leaf)
-              |hR $ {} (:at 1651728391083) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651728391083) (:by |u0) (:text |->) (:type :leaf)
-                  |b $ {} (:at 1651728391083) (:by |u0) (:text |canvas) (:type :leaf)
-                  |h $ {} (:at 1651728391083) (:by |u0) (:text |.-height) (:type :leaf)
-                  |l $ {} (:at 1651728391083) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651728391083) (:by |u0) (:text |set!) (:type :leaf)
-                      |b $ {} (:at 1651728391083) (:by |u0) (:text |js/window.innerHeight) (:type :leaf)
-              |hT $ {} (:at 1651662950090) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651662950090) (:by |u0) (:text |let) (:type :leaf)
-                  |b $ {} (:at 1651662950090) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651662950090) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651662950090) (:by |u0) (:text |gl) (:type :leaf)
-                          |b $ {} (:at 1651662950090) (:by |u0) (:type :expr)
-                            :data $ {}
-                              |T $ {} (:at 1651662950090) (:by |u0) (:text |.!getContext) (:type :leaf)
-                              |b $ {} (:at 1651662950090) (:by |u0) (:text |canvas) (:type :leaf)
-                              |h $ {} (:at 1651662950090) (:by |u0) (:text "|\"webgl") (:type :leaf)
-                  |h $ {} (:at 1651662950090) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651662950090) (:by |u0) (:text |reset!) (:type :leaf)
-                      |b $ {} (:at 1651662950090) (:by |u0) (:text |*gl-context) (:type :leaf)
-                      |h $ {} (:at 1651662950090) (:by |u0) (:text |gl) (:type :leaf)
-                  |l $ {} (:at 1651663179385) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651663186003) (:by |u0) (:text |create-gl-program) (:type :leaf)
-              |kj $ {} (:at 1651661923146) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651661923146) (:by |u0) (:text |render-canvas) (:type :leaf)
-              |l $ {} (:at 1651659885925) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651659885925) (:by |u0) (:text |render-control!) (:type :leaf)
-              |m $ {} (:at 1651659892483) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651660586963) (:by |u0) (:text |start-control-loop!) (:type :leaf)
-                  |X $ {} (:at 1651660592514) (:by |u0) (:text |10) (:type :leaf)
-                  |b $ {} (:at 1651660591228) (:by |u0) (:text |on-control-event) (:type :leaf)
-              |mT $ {} (:at 1651728334007) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651728338478) (:by |u0) (:text |js/window.addEventListener) (:type :leaf)
-                  |b $ {} (:at 1651728340429) (:by |u0) (:text "|\"resize") (:type :leaf)
-                  |h $ {} (:at 1651728340719) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651728340966) (:by |u0) (:text |fn) (:type :leaf)
-                      |b $ {} (:at 1651728342529) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651728343880) (:by |u0) (:text |event) (:type :leaf)
-                      |c $ {} (:at 1651728379104) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651728379104) (:by |u0) (:text |->) (:type :leaf)
-                          |b $ {} (:at 1651728379104) (:by |u0) (:text |canvas) (:type :leaf)
-                          |h $ {} (:at 1651728379104) (:by |u0) (:text |.-height) (:type :leaf)
-                          |l $ {} (:at 1651728379104) (:by |u0) (:type :expr)
-                            :data $ {}
-                              |T $ {} (:at 1651728379104) (:by |u0) (:text |set!) (:type :leaf)
-                              |b $ {} (:at 1651728379104) (:by |u0) (:text |js/window.innerHeight) (:type :leaf)
-                      |d $ {} (:at 1651728382129) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651728382129) (:by |u0) (:text |->) (:type :leaf)
-                          |b $ {} (:at 1651728382129) (:by |u0) (:text |canvas) (:type :leaf)
-                          |h $ {} (:at 1651728382129) (:by |u0) (:text |.-width) (:type :leaf)
-                          |l $ {} (:at 1651728382129) (:by |u0) (:type :expr)
-                            :data $ {}
-                              |T $ {} (:at 1651728382129) (:by |u0) (:text |set!) (:type :leaf)
-                              |b $ {} (:at 1651728382129) (:by |u0) (:text |js/window.innerWidth) (:type :leaf)
-                      |e $ {} (:at 1651728368613) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651728368613) (:by |u0) (:text |create-gl-program) (:type :leaf)
-                      |h $ {} (:at 1651728347907) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651728347907) (:by |u0) (:text |render-canvas) (:type :leaf)
-              |n $ {} (:at 1651658307984) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651658307984) (:by |u0) (:text |set!) (:type :leaf)
-                  |b $ {} (:at 1651658307984) (:by |u0) (:text |js/window.onkeydown) (:type :leaf)
-                  |h $ {} (:at 1651658307984) (:by |u0) (:text |handle-key-event) (:type :leaf)
-          |reload! $ {} (:at 1651655496878) (:by |u0) (:type :expr)
-            :data $ {}
-              |T $ {} (:at 1651655496878) (:by |u0) (:text |defn) (:type :leaf)
-              |b $ {} (:at 1651655496878) (:by |u0) (:text |reload!) (:type :leaf)
-              |h $ {} (:at 1651655496878) (:by |u0) (:type :expr)
-                :data $ {}
-              |l $ {} (:at 1651655737306) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1651655737699) (:by |u0) (:text |if) (:type :leaf)
-                  |b $ {} (:at 1651655738212) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651655739085) (:by |u0) (:text |nil?) (:type :leaf)
-                      |b $ {} (:at 1651655742277) (:by |u0) (:text |build-errors) (:type :leaf)
-                  |h $ {} (:at 1651655813532) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651655814249) (:by |u0) (:text |do) (:type :leaf)
-                      |TT $ {} (:at 1651756763693) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |b $ {} (:at 1651756763693) (:by |u0) (:text |create-gl-program) (:type :leaf)
-                      |U $ {} (:at 1651661966988) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651661966988) (:by |u0) (:text |render-canvas) (:type :leaf)
-                      |V $ {} (:at 1651660616640) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651661969856) (:by |u0) (:text |replace-control-loop!) (:type :leaf)
-                          |b $ {} (:at 1651660616640) (:by |u0) (:text |10) (:type :leaf)
-                          |h $ {} (:at 1651660616640) (:by |u0) (:text |on-control-event) (:type :leaf)
-                      |b $ {} (:at 1651655828085) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |T $ {} (:at 1651655829219) (:by |u0) (:text |hud!) (:type :leaf)
-                          |b $ {} (:at 1651655835925) (:by |u0) (:text "|\"ok~") (:type :leaf)
-                          |h $ {} (:at 1651756770277) (:by |u0) (:text "|\"OK") (:type :leaf)
-                  |l $ {} (:at 1651655814965) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1651655816710) (:by |u0) (:text |hud!) (:type :leaf)
-                      |b $ {} (:at 1651655818033) (:by |u0) (:text "|\"error") (:type :leaf)
-                      |h $ {} (:at 1651655822128) (:by |u0) (:text |build-errors) (:type :leaf)
-        :ns $ {} (:at 1651655487518) (:by |u0) (:type :expr)
-          :data $ {}
-            |T $ {} (:at 1651655487518) (:by |u0) (:text |ns) (:type :leaf)
-            |b $ {} (:at 1651655487518) (:by |u0) (:text |app.main) (:type :leaf)
-            |h $ {} (:at 1651655745051) (:by |u0) (:type :expr)
-              :data $ {}
-                |T $ {} (:at 1651655746877) (:by |u0) (:text |:require) (:type :leaf)
-                |b $ {} (:at 1651655753974) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651655753974) (:by |u0) (:text "|\"./calcit.build-errors") (:type :leaf)
-                    |b $ {} (:at 1651655753974) (:by |u0) (:text |:default) (:type :leaf)
-                    |h $ {} (:at 1651655753974) (:by |u0) (:text |build-errors) (:type :leaf)
-                |h $ {} (:at 1651655760608) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651655760608) (:by |u0) (:text "|\"bottom-tip") (:type :leaf)
-                    |b $ {} (:at 1651655760608) (:by |u0) (:text |:default) (:type :leaf)
-                    |h $ {} (:at 1651655760608) (:by |u0) (:text |hud!) (:type :leaf)
-                |l $ {} (:at 1651655763051) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651655772899) (:by |u0) (:text |app.config) (:type :leaf)
-                    |b $ {} (:at 1651656000320) (:by |u0) (:text |:refer) (:type :leaf)
-                    |h $ {} (:at 1651656000568) (:by |u0) (:type :expr)
-                      :data $ {}
-                        |T $ {} (:at 1651656002009) (:by |u0) (:text |dev?) (:type :leaf)
-                        |b $ {} (:at 1651656008763) (:by |u0) (:text |inline-shader) (:type :leaf)
-                |o $ {} (:at 1651656071959) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651656076261) (:by |u0) (:text "|\"twgl.js") (:type :leaf)
-                    |b $ {} (:at 1651656079360) (:by |u0) (:text |:as) (:type :leaf)
-                    |h $ {} (:at 1651656081074) (:by |u0) (:text |twgl) (:type :leaf)
-                |q $ {} (:at 1651658493825) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651658493825) (:by |u0) (:text |touch-control.core) (:type :leaf)
-                    |b $ {} (:at 1651658493825) (:by |u0) (:text |:refer) (:type :leaf)
-                    |h $ {} (:at 1651658493825) (:by |u0) (:type :expr)
-                      :data $ {}
-                        |T $ {} (:at 1651658493825) (:by |u0) (:text |render-control!) (:type :leaf)
-                        |b $ {} (:at 1651658493825) (:by |u0) (:text |control-states) (:type :leaf)
-                        |h $ {} (:at 1651658493825) (:by |u0) (:text |start-control-loop!) (:type :leaf)
-                        |l $ {} (:at 1651658493825) (:by |u0) (:text |clear-control-loop!) (:type :leaf)
-                        |o $ {} (:at 1651660609830) (:by |u0) (:text |replace-control-loop!) (:type :leaf)
-                |s $ {} (:at 1651658524541) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651658525575) (:by |u0) (:text |app.core) (:type :leaf)
-                    |b $ {} (:at 1651658527025) (:by |u0) (:text |:refer) (:type :leaf)
-                    |h $ {} (:at 1651658527242) (:by |u0) (:type :expr)
-                      :data $ {}
-                        |T $ {} (:at 1651658530130) (:by |u0) (:text |handle-key-event) (:type :leaf)
-                        |b $ {} (:at 1651660599972) (:by |u0) (:text |on-control-event) (:type :leaf)
-                |t $ {} (:at 1651661195715) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651661198075) (:by |u0) (:text |app.3d) (:type :leaf)
-                    |b $ {} (:at 1651661200671) (:by |u0) (:text |:refer) (:type :leaf)
-                    |h $ {} (:at 1651661200917) (:by |u0) (:type :expr)
-                      :data $ {}
-                        |T $ {} (:at 1651661201152) (:by |u0) (:text |transform-3d) (:type :leaf)
-                |u $ {} (:at 1651662108474) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651662109648) (:by |u0) (:text |app.render) (:type :leaf)
-                    |b $ {} (:at 1651662110926) (:by |u0) (:text |:refer) (:type :leaf)
-                    |h $ {} (:at 1651662111123) (:by |u0) (:type :expr)
-                      :data $ {}
-                        |T $ {} (:at 1651662113432) (:by |u0) (:text |render-canvas) (:type :leaf)
-                        |b $ {} (:at 1651664136507) (:by |u0) (:text |create-gl-program) (:type :leaf)
-                |v $ {} (:at 1651662835087) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651662836992) (:by |u0) (:text |app.global) (:type :leaf)
-                    |b $ {} (:at 1651662837950) (:by |u0) (:text |:refer) (:type :leaf)
-                    |h $ {} (:at 1651662841736) (:by |u0) (:type :expr)
-                      :data $ {}
-                        |T $ {} (:at 1651662848262) (:by |u0) (:text |*gl-context) (:type :leaf)
-                        |b $ {} (:at 1651663247756) (:by |u0) (:text |*program-info) (:type :leaf)
-                        |h $ {} (:at 1651663251947) (:by |u0) (:text |*buffer-info) (:type :leaf)
-                |w $ {} (:at 1651667328668) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651667329732) (:by |u0) (:text |respo.css) (:type :leaf)
-                    |b $ {} (:at 1651667330886) (:by |u0) (:text |:refer) (:type :leaf)
-                    |h $ {} (:at 1651667331136) (:by |u0) (:type :expr)
-                      :data $ {}
-                        |T $ {} (:at 1651667332165) (:by |u0) (:text |defstyle) (:type :leaf)
-                |x $ {} (:at 1651667446165) (:by |u0) (:type :expr)
-                  :data $ {}
-                    |T $ {} (:at 1651667474067) (:by |u0) (:text |app.hud) (:type :leaf)
-                    |b $ {} (:at 1651667449178) (:by |u0) (:text |:refer) (:type :leaf)
-                    |h $ {} (:at 1651667449796) (:by |u0) (:type :expr)
-                      :data $ {}
-                        |T $ {} (:at 1651667455931) (:by |u0) (:text |inject-hud!) (:type :leaf)
-      |app.render $ {}
+      |triadica.render $ {}
         :configs $ {}
         :defs $ {}
           |create-bg-object $ {} (:at 1651810695322) (:by |u0) (:type :expr)
@@ -3940,7 +3940,7 @@
         :ns $ {} (:at 1651662093690) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1651662093690) (:by |u0) (:text |ns) (:type :leaf)
-            |b $ {} (:at 1651662093690) (:by |u0) (:text |app.render) (:type :leaf)
+            |b $ {} (:at 1651662093690) (:by |u0) (:text |triadica.render) (:type :leaf)
             |h $ {} (:at 1651662122353) (:by |u0) (:type :expr)
               :data $ {}
                 |T $ {} (:at 1651662124149) (:by |u0) (:text |:require) (:type :leaf)
@@ -3951,21 +3951,21 @@
                     |h $ {} (:at 1651662124680) (:by |u0) (:text |twgl) (:type :leaf)
                 |h $ {} (:at 1651662134671) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651662134671) (:by |u0) (:text |app.3d) (:type :leaf)
+                    |T $ {} (:at 1651662134671) (:by |u0) (:text |triadica.3d) (:type :leaf)
                     |b $ {} (:at 1651662134671) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651662134671) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1651662134671) (:by |u0) (:text |transform-3d) (:type :leaf)
                 |l $ {} (:at 1651662155586) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651662158607) (:by |u0) (:text |app.config) (:type :leaf)
+                    |T $ {} (:at 1651662158607) (:by |u0) (:text |triadica.config) (:type :leaf)
                     |b $ {} (:at 1651662159421) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651662159629) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1651662161428) (:by |u0) (:text |inline-shader) (:type :leaf)
                 |o $ {} (:at 1651662875372) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651662876874) (:by |u0) (:text |app.global) (:type :leaf)
+                    |T $ {} (:at 1651662876874) (:by |u0) (:text |triadica.global) (:type :leaf)
                     |b $ {} (:at 1651662877696) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651662877922) (:by |u0) (:type :expr)
                       :data $ {}
@@ -3977,7 +3977,7 @@
                         |q $ {} (:at 1651810526448) (:by |u0) (:text |*bg-shader-object) (:type :leaf)
                 |q $ {} (:at 1651757036463) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1651757037640) (:by |u0) (:text |app.core) (:type :leaf)
+                    |T $ {} (:at 1651757037640) (:by |u0) (:text |triadica.core) (:type :leaf)
                     |b $ {} (:at 1651757039470) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1651757039688) (:by |u0) (:type :expr)
                       :data $ {}
