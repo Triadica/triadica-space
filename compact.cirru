@@ -4,164 +4,204 @@
     :modules $ [] |touch-control/ |respo.calcit/
   :entries $ {}
   :files $ {}
-    |triadica.3d $ {}
+    |triadica.alias $ {}
       :defs $ {}
-        |screen-vec $ quote
-          def screen-vec $ [] 0 0 -1200
-        |square $ quote
-          defn square (x) (&* x x)
-        |sum-squares $ quote
-          defn sum-squares (a b)
-            &+ (&* a a) (&* b b)
-        |transform-3d $ quote
-          defn transform-3d (p0)
-            let
-                point $ &v- p0 @*viewer-position
-                look-distance $ wo-log (new-lookat-point)
-                ; look-distance screen-vec
-                s $ noted "\"back size of light cone?" 2
-                x $ nth point 0
-                y $ nth point 1
-                z $ nth point 2
-                a $ nth look-distance 0
-                b $ nth look-distance 1
-                c $ nth look-distance 2
-                r $ /
-                  + (* a x) (* b y) (* c z)
-                  + (square a) (square b) (square c)
-                q $ / (+ s 1) (+ r s)
-                L1 $ sqrt
-                  + (* a a b b)
-                    square $ sum-squares a c
-                    * b b c c
-                y' $ *
-                  /
-                    + (* q y) (* b q s) (* -1 b s) (* -1 b)
-                    sum-squares a c
-                  , L1
-                x' $ *
-                  /
-                    -
-                      + (* q x) (* a q s) (* -1 s a) (* -1 a)
-                      * y' $ / (* -1 a b) L1
-                    , c -1
-                  sqrt $ sum-squares a c
-                z' $ negate r
-              ; println $ [] x' y' z'
-              -> ([] x' y' z')
-                update 1 $ fn (v)
-                  -> v (/ js/window.innerHeight) (* js/window.innerWidth)
-                map $ fn (p) p
+        |group $ quote
+          defn group (options & children)
+            {} (:type :group) (:children children)
+        |object $ quote
+          defn object (options) (assoc options :type :object)
       :ns $ quote
-        ns triadica.3d $ :require
-          triadica.core :refer $ new-lookat-point &v- &v+
-          triadica.hud :refer $ hud-display
-          triadica.global :refer $ *viewer-position
+        ns triadica.alias $ :require
     |triadica.app.main $ {}
       :defs $ {}
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
-        |main! $ quote
-          defn main! ()
-            twgl/setDefaults $ js-object (:attribPrefix "\"a_")
-            inject-hud!
+        |handle-size! $ quote
+          defn handle-size! (canvas)
             -> canvas .-width $ set! js/window.innerWidth
             -> canvas .-height $ set! js/window.innerHeight
-            let
-                gl $ .!getContext canvas "\"webgl"
-              reset! *gl-context gl
-              create-gl-program
-            render-canvas
+        |main! $ quote
+          defn main! ()
+            if dev? $ load-console-formatter!
+            twgl/setDefaults $ js-object (:attribPrefix "\"a_")
+            inject-hud!
+            handle-size! canvas
+            reset! *gl-context $ .!getContext canvas "\"webgl"
+            render-app!
             render-control!
             start-control-loop! 10 on-control-event
-            js/window.addEventListener "\"resize" $ fn (event)
-              -> canvas .-height $ set! js/window.innerHeight
-              -> canvas .-width $ set! js/window.innerWidth
-              create-gl-program
-              render-canvas
-            set! js/window.onkeydown handle-key-event
+            js/window.addEventListener "\"resize" $ fn (event) (handle-size! canvas) (render-app!)
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (create-gl-program) (render-canvas) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
+            do (render-app!) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
             hud! "\"error" build-errors
+        |render-app! $ quote
+          defn render-app! ()
+            load-objects! $ group ({}) (bg-object) (cubes-object)
+            render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
-          triadica.config :refer $ dev? inline-shader
+          triadica.config :refer $ dev?
           "\"twgl.js" :as twgl
-          touch-control.core :refer $ render-control! control-states start-control-loop! clear-control-loop! replace-control-loop!
-          triadica.core :refer $ handle-key-event on-control-event
-          triadica.3d :refer $ transform-3d
-          triadica.render :refer $ render-canvas create-gl-program
-          triadica.global :refer $ *gl-context *program-info *buffer-info
-          respo.css :refer $ defstyle
+          touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
+          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas!
+          triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
+          triadica.app.shapes :refer $ bg-object cubes-object
+          triadica.alias :refer $ group
+    |triadica.app.shapes $ {}
+      :defs $ {}
+        |bg-object $ quote
+          defn bg-object () $ let
+              size 50
+              geo $ mapcat
+                range $ + 1 size
+                fn (i)
+                  map
+                    range $ + 1 size
+                    fn (j) ([] i 0 j)
+              arrays $ js-object
+                :position $ .!createAugmentedTypedArray twgl/primitives 3
+                  * (+ 1 size) (+ 1 size)
+                :indices $ let
+                    grid $ mapcat (range size)
+                      fn (i)
+                        map (range size)
+                          fn (j) ([] i j)
+                  -> grid
+                    mapcat $ fn (point)
+                      let-sugar
+                            [] i j
+                            , point
+                          from $ + j
+                            * (+ 1 size) i
+                        concat
+                          [] from (+ from 1)
+                            + from $ + 2 size
+                          [] from
+                            + from $ + 2 size
+                            + from $ + 1 size
+                    to-js-data
+            ; println geo
+            write-at-position! (.-position arrays) 0 $ map geo
+              fn (point)
+                -> point
+                  map $ fn (p) (* p 600)
+                  update 1 $ fn (y) (- y 1000)
+                  update 2 $ fn (z) (- z 1000)
+            ; js/console.log "\"arrays" arrays
+            {} (:type :object)
+              :vertex-shader $ inline-shader "\"bg.vert"
+              :fragment-shader $ inline-shader "\"bg.frag"
+              :arrays arrays
+              :draw-mode :triangles
+        |cubes-object $ quote
+          defn cubes-object () $ let
+              geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
+              index-order $ js-array 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
+              arrays $ js-object
+                :position $ .!createAugmentedTypedArray twgl/primitives 3 32
+                :indices $ .!concat index-order
+                  .!map index-order $ fn (x & _a) (+ x 8)
+                  .!map index-order $ fn (x & _a) (+ x 16)
+                  .!map index-order $ fn (x & _a) (+ x 24)
+              points $ -> geo (map move-point)
+              p2s $ -> geo (map move-point-2)
+              p3s $ -> geo (map move-point-3)
+              p4s $ -> geo (map move-point-4)
+            write-at-position! (.-position arrays) 0 points
+            write-at-position! (.-position arrays) 8 p2s
+            write-at-position! (.-position arrays) 16 p3s
+            write-at-position! (.-position arrays) 24 p4s
+            ; js/console.log "\"position" $ .-position arrays
+            {} (:type :object) (:draw-mode :lines)
+              :vertex-shader $ inline-shader "\"shape.vert"
+              :fragment-shader $ inline-shader "\"shape.frag"
+              :arrays arrays
+        |move-point $ quote
+          defn move-point (p)
+            -> p
+              map $ fn (i) (* i 400)
+              update 1 $ fn (y) (+ y 0)
+              update 2 $ fn (z) (- z 1200)
+        |move-point-2 $ quote
+          defn move-point-2 (p)
+            -> p
+              map $ fn (i) (* i 400)
+              update 0 $ fn (x) (+ x 600)
+              update 1 $ fn (y) (+ y 0)
+              update 2 $ fn (z) (- z 1200)
+        |move-point-3 $ quote
+          defn move-point-3 (p)
+            -> p
+              map $ fn (i) (* i 200)
+              update 1 $ fn (y) (+ y 400)
+              update 2 $ fn (z) (- z 1200)
+        |move-point-4 $ quote
+          defn move-point-4 (p)
+            -> p
+              map $ fn (i) (* i 800)
+              update 0 $ fn (x) (- x 800)
+              update 1 $ fn (y) (- y 800)
+              update 2 $ fn (z) (- z 1600)
+        |write-at-position! $ quote
+          defn write-at-position! (position-array from points)
+            loop
+                idx from
+                xs points
+              ; println idx
+              if
+                not $ empty? xs
+                let
+                    p $ first xs
+                  aset position-array
+                    + 0 $ * 3 idx
+                    nth p 0
+                  aset position-array
+                    + 1 $ * 3 idx
+                    nth p 1
+                  aset position-array
+                    + 2 $ * 3 idx
+                    nth p 2
+                  recur (+ idx 1) (rest xs)
+      :ns $ quote
+        ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
+          triadica.config :refer $ inline-shader
     |triadica.config $ {}
       :defs $ {}
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
+        |half-pi $ quote
+          def half-pi $ * 0.5 &PI
         |inline-shader $ quote
           defmacro inline-shader (name)
             read-file $ str "\"shaders/" name
       :ns $ quote (ns triadica.config)
     |triadica.core $ {}
       :defs $ {}
-        |&v+ $ quote
-          defn &v+ (a b)
-            let[] (x y z) a $ let[] (x2 y2 z2) b
-              [] (&+ x x2) (&+ y y2) (&+ z z2)
-        |&v- $ quote
-          defn &v- (a b)
-            let[] (x y z) a $ let[] (x2 y2 z2) b
-              [] (&- x x2) (&- y y2) (&- z z2)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
-        |half-pi $ quote
-          def half-pi $ * 0.5 &PI
-        |handle-key-event $ quote
-          defn handle-key-event (event)
+        |flatten-objects $ quote
+          defn flatten-objects (tree)
+            case-default (:type tree)
+              do (js/console.log "\"unknown type in:" tree) ([])
+              :group $ mapcat (:children tree) flatten-objects
+              :object $ [] tree
+        |load-objects! $ quote
+          defn load-objects! (tree)
             let
-                angle @*viewer-angle
-                key $ .-key event
-                shift? $ .-shiftKey event
-              case-default key nil
-                "\"ArrowDown" $ if shift?
-                  tween-move-camera! $ [] :shift -1
-                  tween-move-camera! $ [] :move 0 -2 0
-                "\"ArrowUp" $ if shift?
-                  tween-move-camera! $ [] :shift 1
-                  tween-move-camera! $ [] :move 0 2 0
-                "\"a" $ tween-move-camera! ([] :angle 0.04)
-                "\"d" $ tween-move-camera! ([] :angle -0.04)
-                "\"b" $ tween-move-camera!
-                  [] :angle 1.653959 $ ; "\"manual value for turn back"
-                "\"w" $ &let (a @*viewer-angle)
-                  tween-move-camera! $ [] :move
-                    &* 4 $ cos a
-                    , 0
-                      &* -4 $ sin a
-                "\"s" $ &let (a @*viewer-angle)
-                  tween-move-camera! $ [] :move
-                    &* -2 $ cos a
-                    , 0
-                      &* 2 $ sin a
-                "\"ArrowLeft" $ &let
-                  a $ &+ @*viewer-angle (&/ &PI 2)
-                  tween-move-camera! $ [] :move
-                    &* 1 $ cos a
-                    , 0
-                      &* -1 $ sin a
-                "\"ArrowRight" $ &let
-                  a $ &- @*viewer-angle (&/ &PI 2)
-                  tween-move-camera! $ [] :move
-                    &* 1 $ cos a
-                    , 0
-                      &* -1 $ sin a
-        |hclx $ quote
-          defn hclx (h c l) (hcl-to-hex h c l)
-        |hslx $ quote
-          defn hslx (h s l)
-            let
-                c $ new THREE/Color
-              .!getHex $ .!setHSL c (/ h 360) (/ s 100) (/ l 100)
+                objects $ flatten-objects tree
+                gl @*gl-context
+              reset! *objects-buffer $ []
+              &doseq (obj objects) (; js/console.log obj)
+                let
+                    vs $ :vertex-shader obj
+                    fs $ :fragment-shader obj
+                    arrays $ :arrays obj
+                    program-info $ twgl/createProgramInfo gl (js-array vs fs)
+                    buffer-info $ twgl/createBufferInfoFromArrays gl arrays
+                  swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
+                    :draw-mode $ :draw-mode obj
         |move-viewer-by! $ quote
           defn move-viewer-by! (x0 y0 z0)
             let-sugar
@@ -235,11 +275,51 @@
                   not= l-move $ [] 0 0
                   not= r-move $ [] 0 0
                   , left-b?
-                render-canvas
+                render-canvas!
         |refine-strength $ quote
           defn refine-strength (x)
             &* x $ sqrt
               js/Math.abs $ &* x 0.02
+        |render-canvas! $ quote
+          defn render-canvas! () $ let
+              gl @*gl-context
+            ; println "\"console.log" "\"demo."
+            let
+                offsets $ js-array 0 0 0 1
+                uniforms $ js-object (:offsets offsets)
+                  :lookPoint $ js-array & (new-lookat-point)
+                  :cameraPosition $ js-array & @*viewer-position
+                  :coneBackScale 2
+                  :viewportRatio $ / js/window.innerHeight js/window.innerWidth
+              twgl/resizeCanvasToDisplaySize $ .-canvas gl
+              .!viewport gl 0 0.0 (-> gl .-canvas .-width)
+                -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
+              .!enable gl $ .-DEPTH_TEST gl
+              .!depthFunc gl $ .-LESS gl
+              ; .!depthFunc gl $ .-GREATER gl
+              .!depthMask gl true
+              ; .!depthFunc gl $ .-GREATER gl
+              ; .!depthFunc gl $ .-ALWAYS gl
+              ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
+              ; .!enable gl $ .-BLEND gl
+              ; .!enable gl $ .-CULL_FACE gl
+              ; .!cullFace gl $ .-BACK gl
+              ; .!cullFace gl $ .-FRONT_AND_BACK gl
+              .!clearColor gl 0 0 0 1
+              .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+              &doseq (object @*objects-buffer)
+                let
+                    program-info $ :program object
+                    buffer-info $ :buffer object
+                  .!useProgram gl $ .-program program-info
+                  twgl/setBuffersAndAttributes gl program-info buffer-info
+                  twgl/setUniforms program-info uniforms
+                  case-default (:draw-mode object)
+                    do
+                      js/console.log "\"unknown draw mode" $ :draw-mode object
+                      twgl/drawBufferInfo gl buffer-info $ .-LINES gl
+                    :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
+                    :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
         |rotate-viewer-by! $ quote
           defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
         |shift-viewer-by! $ quote
@@ -283,55 +363,20 @@
                     * $ js/Math.sin angle
                     negate
               -> from-x (&v+ from-y) (&v+ from-z)
-        |tween-call $ quote
-          defn tween-call (n d f)
-            &doseq
-              i $ range 1 n
-              js/setTimeout
-                fn () $ f i
-                * d i
-        |tween-move-camera! $ quote
-          defn tween-move-camera! (control)
-            key-match control
-                :shift shift
-                tween-call 20 5 $ fn (i)
-                  do
-                    swap! *viewer-y-shift &+ $ / shift 10
-                    println "\"look at" $ new-lookat-point
-                    println "\"call render"
-              (:angle angle)
-                tween-call 20 5 $ fn (i)
-                  swap! *viewer-angle &+ $ / angle 10
-                  do
-                    println "\"look at" $ new-lookat-point
-                    println "\"call render"
-              (:move dx dy dz)
-                tween-call 20 5 $ fn (i)
-                  let-sugar
-                      position $ println "\"TODO POSIITON"
-                      x $ &+ (.-x position) (/ dx 10)
-                      y $ &+ (.-y position) (/ dy 10)
-                      z $ &+ (.-z position) (/ dz 10)
-                    set! (.-x position) x
-                    set! (.-y position) y
-                    set! (.-z position) z
-                    println "\"look at" $ new-lookat-point
-                    println "\"call render"
-              _ $ println "\"unknown camera control:" control
       :ns $ quote
         ns quatrefoil.core $ :require
-          touch-control.core :refer $ render-control! control-states start-control-loop! clear-control-loop!
-          "\"@quatrefoil/utils" :refer $ hcl-to-hex
-          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position
-          triadica.render :refer $ render-canvas
+          touch-control.core :refer $ render-control!
+          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context
+          triadica.render :refer $ render-canvas!
           triadica.hud :refer $ hud-display
+          "\"twgl.js" :as twgl
+          triadica.math :refer $ &v+ &v-
+          triadica.config :refer $ half-pi
     |triadica.global $ {}
       :defs $ {}
-        |*bg-shader-object $ quote
-          defatom *bg-shader-object $ {} (:program nil) (:buffer nil)
-        |*buffer-info $ quote (defatom *buffer-info nil)
         |*gl-context $ quote (defatom *gl-context nil)
-        |*program-info $ quote (defatom *program-info nil)
+        |*objects-buffer $ quote
+          defatom *objects-buffer $ []
         |*shader-object $ quote
           defatom *shader-object $ {} (:program nil) (:buffer nil)
         |*viewer-angle $ quote
@@ -364,177 +409,61 @@
         ns triadica.hud $ :require
           respo.css :refer $ defstyle
           respo.util.format :refer $ hsl
-    |triadica.render $ {}
+    |triadica.math $ {}
       :defs $ {}
-        |create-bg-object $ quote
-          defn create-bg-object () $ let
-              gl @*gl-context
-              size 50
-              geo $ mapcat
-                range $ + 1 size
-                fn (i)
-                  map
-                    range $ + 1 size
-                    fn (j) ([] i 0 j)
-              arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3
-                  * (+ 1 size) (+ 1 size)
-                :indices $ let
-                    grid $ mapcat (range size)
-                      fn (i)
-                        map (range size)
-                          fn (j) ([] i j)
-                  -> grid
-                    mapcat $ fn (point)
-                      let-sugar
-                            [] i j
-                            , point
-                          from $ + j
-                            * (+ 1 size) i
-                        concat
-                          [] from (+ from 1)
-                            + from $ + 2 size
-                          [] from
-                            + from $ + 2 size
-                            + from $ + 1 size
-                    to-js-data
-            ; println geo
-            write-at-position! (.-position arrays) 0 $ map geo
-              fn (point)
-                -> point
-                  map $ fn (p) (* p 600)
-                  update 1 $ fn (y) (- y 1000)
-                  update 2 $ fn (z) (- z 1000)
-            ; js/console.log "\"arrays" arrays
+        |&v+ $ quote
+          defn &v+ (a b)
+            let[] (x y z) a $ let[] (x2 y2 z2) b
+              [] (&+ x x2) (&+ y y2) (&+ z z2)
+        |&v- $ quote
+          defn &v- (a b)
+            let[] (x y z) a $ let[] (x2 y2 z2) b
+              [] (&- x x2) (&- y y2) (&- z z2)
+        |square $ quote
+          defn square (x) (&* x x)
+        |sum-squares $ quote
+          defn sum-squares (a b)
+            &+ (&* a a) (&* b b)
+        |transform-3d $ quote
+          defn transform-3d (p0)
             let
-                vs $ inline-shader "\"bg.vert"
-                fs $ inline-shader "\"bg.frag"
-                program-info $ twgl/createProgramInfo gl (js-array vs fs)
-                buffer-info $ twgl/createBufferInfoFromArrays gl arrays
-              reset! *bg-shader-object $ {} (:program program-info) (:buffer buffer-info)
-        |create-cube-object $ quote
-          defn create-cube-object () $ let
-              gl @*gl-context
-              geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
-              index-order $ js-array 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
-              arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3 32
-                :indices $ .!concat index-order
-                  .!map index-order $ fn (x & _a) (+ x 8)
-                  .!map index-order $ fn (x & _a) (+ x 16)
-                  .!map index-order $ fn (x & _a) (+ x 24)
-              points $ -> geo (map move-point)
-              p2s $ -> geo (map move-point-2)
-              p3s $ -> geo (map move-point-3)
-              p4s $ -> geo (map move-point-4)
-            write-at-position! (.-position arrays) 0 points
-            write-at-position! (.-position arrays) 8 p2s
-            write-at-position! (.-position arrays) 16 p3s
-            write-at-position! (.-position arrays) 24 p4s
-            ; js/console.log "\"position" $ .-position arrays
-            let
-                vs $ inline-shader "\"shape.vert"
-                fs $ inline-shader "\"shape.frag"
-                program-info $ twgl/createProgramInfo gl (js-array vs fs)
-                buffer-info $ twgl/createBufferInfoFromArrays gl arrays
-              reset! *shader-object $ {} (:program program-info) (:buffer buffer-info)
-        |create-gl-program $ quote
-          defn create-gl-program () (create-cube-object) (create-bg-object)
-        |move-point $ quote
-          defn move-point (p)
-            -> p
-              map $ fn (i) (* i 400)
-              update 1 $ fn (y) (+ y 0)
-              update 2 $ fn (z) (- z 1200)
-        |move-point-2 $ quote
-          defn move-point-2 (p)
-            -> p
-              map $ fn (i) (* i 400)
-              update 0 $ fn (x) (+ x 600)
-              update 1 $ fn (y) (+ y 0)
-              update 2 $ fn (z) (- z 1200)
-        |move-point-3 $ quote
-          defn move-point-3 (p)
-            -> p
-              map $ fn (i) (* i 200)
-              update 1 $ fn (y) (+ y 400)
-              update 2 $ fn (z) (- z 1200)
-        |move-point-4 $ quote
-          defn move-point-4 (p)
-            -> p
-              map $ fn (i) (* i 800)
-              update 0 $ fn (x) (- x 800)
-              update 1 $ fn (y) (- y 800)
-              update 2 $ fn (z) (- z 1600)
-        |render-canvas $ quote
-          defn render-canvas () $ let
-              gl @*gl-context
-              program-info @*program-info
-              buffer-info @*buffer-info
-            ; println "\"console.log" "\"demo."
-            let
-                offsets $ js-array 0 0 0 1
-                uniforms $ js-object (:offsets offsets)
-                  :lookPoint $ to-js-data (new-lookat-point)
-                  :cameraPosition $ to-js-data @*viewer-position
-                  :coneBackScale 2
-                  :viewportRatio $ / js/window.innerHeight js/window.innerWidth
-              twgl/resizeCanvasToDisplaySize $ .-canvas gl
-              .!viewport gl 0 0.0 (-> gl .-canvas .-width)
-                -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
-              .!enable gl $ .-DEPTH_TEST gl
-              .!depthFunc gl $ .-LESS gl
-              ; .!depthFunc gl $ .-GREATER gl
-              .!depthMask gl true
-              ; .!depthFunc gl $ .-GREATER gl
-              ; .!depthFunc gl $ .-ALWAYS gl
-              ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
-              ; .!enable gl $ .-BLEND gl
-              ; .!enable gl $ .-CULL_FACE gl
-              ; .!cullFace gl $ .-BACK gl
-              ; .!cullFace gl $ .-FRONT_AND_BACK gl
-              .!clearColor gl 0 0 0 1
-              .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
-              let
-                  object @*shader-object
-                  program-info $ :program object
-                  buffer-info $ :buffer object
-                .!useProgram gl $ .-program program-info
-                twgl/setBuffersAndAttributes gl program-info buffer-info
-                twgl/setUniforms program-info uniforms
-                twgl/drawBufferInfo gl buffer-info $ .-LINES gl
-              let
-                  object @*bg-shader-object
-                  program-info $ :program object
-                  buffer-info $ :buffer object
-                .!useProgram gl $ .-program program-info
-                twgl/setBuffersAndAttributes gl program-info buffer-info
-                twgl/setUniforms program-info uniforms
-                twgl/drawBufferInfo gl buffer-info $ .-TRIANGLES gl
-                ; twgl/drawBufferInfo gl buffer-info $ .-LINES gl
-        |write-at-position! $ quote
-          defn write-at-position! (position-array from points)
-            loop
-                idx from
-                xs points
-              ; println idx
-              if
-                not $ empty? xs
-                let
-                    p $ first xs
-                  aset position-array
-                    + 0 $ * 3 idx
-                    nth p 0
-                  aset position-array
-                    + 1 $ * 3 idx
-                    nth p 1
-                  aset position-array
-                    + 2 $ * 3 idx
-                    nth p 2
-                  recur (+ idx 1) (rest xs)
+                point $ &v- p0 @*viewer-position
+                look-distance $ wo-log (new-lookat-point)
+                s $ noted "\"back size of light cone?" 2
+                x $ nth point 0
+                y $ nth point 1
+                z $ nth point 2
+                a $ nth look-distance 0
+                b $ nth look-distance 1
+                c $ nth look-distance 2
+                r $ /
+                  + (* a x) (* b y) (* c z)
+                  + (square a) (square b) (square c)
+                q $ / (+ s 1) (+ r s)
+                L1 $ sqrt
+                  + (* a a b b)
+                    square $ sum-squares a c
+                    * b b c c
+                y' $ *
+                  /
+                    + (* q y) (* b q s) (* -1 b s) (* -1 b)
+                    sum-squares a c
+                  , L1
+                x' $ *
+                  /
+                    -
+                      + (* q x) (* a q s) (* -1 s a) (* -1 a)
+                      * y' $ / (* -1 a b) L1
+                    , c -1
+                  sqrt $ sum-squares a c
+                z' $ negate r
+              ; println $ [] x' y' z'
+              -> ([] x' y' z')
+                update 1 $ fn (v)
+                  -> v (/ js/window.innerHeight) (* js/window.innerWidth)
+                map $ fn (p) p
       :ns $ quote
-        ns triadica.render $ :require ("\"twgl.js" :as twgl)
-          triadica.3d :refer $ transform-3d
-          triadica.config :refer $ inline-shader
-          triadica.global :refer $ *gl-context *program-info *buffer-info *viewer-position *shader-object *bg-shader-object
-          triadica.core :refer $ new-lookat-point
+        ns triadica.math $ :require
+          triadica.core :refer $ new-lookat-point &v- &v+
+          triadica.hud :refer $ hud-display
+          triadica.global :refer $ *viewer-position
