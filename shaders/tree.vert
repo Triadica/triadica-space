@@ -6,11 +6,13 @@ uniform float viewportRatio;
 uniform vec3 cameraPosition;
 
 attribute vec3 a_position;
+attribute float a_radius_bound;
 
 varying float v_r;
 varying float v_s;
 varying float z_color;
 varying vec3 original_position;
+varying float v_radius_bound;
 
 float square(float a) {
   return a * a;
@@ -147,6 +149,7 @@ void main() {
 
   v_r = result.r;
   v_s = result.s;
+  v_radius_bound = a_radius_bound;
 
   // if (result.r > 0.0) {
     gl_Position = vec4(pos_next * 0.001, 1.0);

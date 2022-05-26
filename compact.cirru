@@ -130,33 +130,39 @@
               update 2 $ fn (z) (- z 1600)
         |tree-object $ quote
           defn tree-object () $ let
-              vs $ range 0 800
-              dt 0.1
-              dr 2
-              dy 2
-              dpy 1.6
+              vs $ range 0 400
+              dt 0.08
+              dr 0.6
+              dy 1.5
+              dpy 0.8
               geo $ -> vs
                 mapcat $ fn (i)
                   let
                       ri $ + 40 (* dr i)
-                      rs $ * 0.6 (- ri 100)
+                      rs $ * 0.4 (- ri 20)
                     []
                       []
                         * rs $ cos
-                          + 0.2 $ * i dt
+                          + 0.3 $ * i dt
                         * i dpy
                         * rs $ sin
-                          + 0.2 $ * i dt
+                          + 0.3 $ * i dt
                       []
-                        * ri $ cos (* i dt)
+                        * (pow ri 1.4) 0.2 $ cos (* i dt)
                         * i dy 1
-                        * ri $ sin (* i dt)
+                        * (pow ri 1.4) 0.2 $ sin (* i dt)
                 prepend $ [] 0 0 0
-              indices $ &list:flatten
-                map vs $ fn (i)
+              indices $ -> vs
+                map  $ fn (i)
                   let
                       v $ * i 2
                     [] v (+ v 1) (+ v 2)
+                &list:flatten
+              radius-bounds $ -> vs
+                map $ fn (i)
+                  let
+                      v $ + 40 (* dr i)
+                    [] v v v
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"tree.vert"
               :fragment-shader $ inline-shader "\"tree.frag"
@@ -164,6 +170,7 @@
                 fn (p)
                   update p 2 $ fn (z) (- z 200)
               :indices indices
+              :attributes $ {} (:radius_bound radius-bounds)
       :ns $ quote
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
@@ -181,6 +188,39 @@
     |triadica.core $ {}
       :defs $ {}
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |create-attribute-array $ quote
+          defn create-attribute-array (points)
+            let
+                p0 $ first points
+              cond
+                  list? p0
+                  let
+                      pps $ &list:flatten points
+                      num $ count p0
+                      position-array $ .!createAugmentedTypedArray twgl/primitives num (count pps)
+                    loop
+                        idx 0
+                        xs pps
+                      if
+                        not $ empty? xs
+                        do
+                          aset position-array idx $ first xs
+                          recur (inc idx) (rest xs)
+                    , position-array
+                (number? p0)
+                  let
+                      position-array $ .!createAugmentedTypedArray twgl/primitives 1 (count points)
+                    loop
+                        idx 0
+                        xs points
+                      if
+                        not $ empty? xs
+                        do
+                          aset position-array idx $ first xs
+                          recur (inc idx) (rest xs)
+                    , position-array
+                true $ do (js/console.error "\"unknown attributes data:" points)
+                  .!createAugmentedTypedArray twgl/primitives 1 $ count points
         |flatten-objects $ quote
           defn flatten-objects (tree)
             case-default (:type tree)
@@ -198,23 +238,20 @@
                     vs $ :vertex-shader obj
                     fs $ :fragment-shader obj
                     arrays $ let
-                        points $ :points obj
-                        pps $ &list:flatten points
-                        num $ count (first points)
-                        position-array $ .!createAugmentedTypedArray twgl/primitives num (count pps)
-                      loop
-                          idx 0
-                          xs pps
-                        if
-                          not $ empty? xs
-                          do
-                            aset position-array idx $ first xs
-                            recur (inc idx) (rest xs)
-                      js-object (:position position-array)
-                        :indices $ if-let
-                          ys $ :indices obj
-                          js-array & ys
-                          , js/undefined
+                        ret $ js-object
+                          :position $ create-attribute-array (:points obj)
+                          :indices $ if-let
+                            ys $ :indices obj
+                            js-array & ys
+                            , js/undefined
+                        attrs $ :attributes obj
+                      if-not (empty? attrs)
+                        &doseq
+                          entry $ .to-list attrs
+                          aset ret
+                            turn-string $ nth entry 0
+                            create-attribute-array $ nth entry 1
+                      w-js-log ret
                     program-info $ twgl/createProgramInfo gl (js-array vs fs)
                     buffer-info $ twgl/createBufferInfoFromArrays gl arrays
                   swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
@@ -333,7 +370,7 @@
                   twgl/setUniforms program-info uniforms
                   case-default (:draw-mode object)
                     do
-                      js/console.log "\"unknown draw mode" $ :draw-mode object
+                      js/console.warn "\"unknown draw mode" $ :draw-mode object
                       twgl/drawBufferInfo gl buffer-info $ .-LINES gl
                     :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
