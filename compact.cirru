@@ -55,70 +55,51 @@
         |bg-object $ quote
           defn bg-object () $ let
               size 50
-              geo $ mapcat
+              geo $ ->
                 range $ + 1 size
-                fn (i)
+                mapcat $ fn (i)
                   map
                     range $ + 1 size
-                    fn (j) ([] i 0 j)
-              arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3
-                  * (+ 1 size) (+ 1 size)
-                :indices $ let
-                    grid $ mapcat (range size)
-                      fn (i)
-                        map (range size)
-                          fn (j) ([] i j)
-                  -> grid
-                    mapcat $ fn (point)
-                      let-sugar
-                            [] i j
-                            , point
-                          from $ + j
-                            * (+ 1 size) i
-                        concat
-                          [] from (+ from 1)
-                            + from $ + 2 size
-                          [] from
-                            + from $ + 2 size
-                            + from $ + 1 size
-                    to-js-data
+                    fn (j)
+                      -> ([] i 0 j)
+                        map $ fn (p) (* p 600)
+                        update 1 $ fn (y) (- y 1000)
+                        update 2 $ fn (z) (- z 1000)
+              indices $ -> (range size)
+                mapcat $ fn (i)
+                  map (range size)
+                    fn (j) ([] i j)
+                mapcat $ fn (point)
+                  let-sugar
+                        [] i j
+                        , point
+                      from $ + j
+                        * (+ 1 size) i
+                    concat
+                      [] from (+ from 1)
+                        + from $ + 2 size
+                      [] from
+                        + from $ + 2 size
+                        + from $ + 1 size
             ; println geo
-            write-at-position! (.-position arrays) 0 $ map geo
-              fn (point)
-                -> point
-                  map $ fn (p) (* p 600)
-                  update 1 $ fn (y) (- y 1000)
-                  update 2 $ fn (z) (- z 1000)
-            ; js/console.log "\"arrays" arrays
-            {} (:type :object)
+            object $ {}
               :vertex-shader $ inline-shader "\"bg.vert"
               :fragment-shader $ inline-shader "\"bg.frag"
-              :arrays arrays
               :draw-mode :triangles
+              :points geo
+              :indices indices
         |cubes-object $ quote
           defn cubes-object () $ let
               geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
-              index-order $ js-array 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
-              arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3 32
-                :indices $ .!concat index-order
-                  .!map index-order $ fn (x & _a) (+ x 8)
-                  .!map index-order $ fn (x & _a) (+ x 16)
-                  .!map index-order $ fn (x & _a) (+ x 24)
-              points $ -> geo (map move-point)
-              p2s $ -> geo (map move-point-2)
-              p3s $ -> geo (map move-point-3)
-              p4s $ -> geo (map move-point-4)
-            write-at-position! (.-position arrays) 0 points
-            write-at-position! (.-position arrays) 8 p2s
-            write-at-position! (.-position arrays) 16 p3s
-            write-at-position! (.-position arrays) 24 p4s
-            ; js/console.log "\"position" $ .-position arrays
-            {} (:type :object) (:draw-mode :lines)
+              indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
+            object $ {} (:draw-mode :lines)
               :vertex-shader $ inline-shader "\"shape.vert"
               :fragment-shader $ inline-shader "\"shape.frag"
-              :arrays arrays
+              :points $ concat (map geo move-point) (map geo move-point-2) (map geo move-point-3) (map geo move-point-4)
+              :indices $ concat indices
+                map indices $ fn (x) (+ x 8)
+                map indices $ fn (x) (+ x 16)
+                map indices $ fn (x) (+ x 24)
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -145,29 +126,10 @@
               update 0 $ fn (x) (- x 800)
               update 1 $ fn (y) (- y 800)
               update 2 $ fn (z) (- z 1600)
-        |write-at-position! $ quote
-          defn write-at-position! (position-array from points)
-            loop
-                idx from
-                xs points
-              ; println idx
-              if
-                not $ empty? xs
-                let
-                    p $ first xs
-                  aset position-array
-                    + 0 $ * 3 idx
-                    nth p 0
-                  aset position-array
-                    + 1 $ * 3 idx
-                    nth p 1
-                  aset position-array
-                    + 2 $ * 3 idx
-                    nth p 2
-                  recur (+ idx 1) (rest xs)
       :ns $ quote
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
+          triadica.alias :refer $ object
     |triadica.config $ {}
       :defs $ {}
         |dev? $ quote
@@ -197,7 +159,14 @@
                 let
                     vs $ :vertex-shader obj
                     fs $ :fragment-shader obj
-                    arrays $ :arrays obj
+                    arrays $ let
+                        points $ :points obj
+                        num $ count (first points)
+                        position-array $ .!createAugmentedTypedArray twgl/primitives num
+                          * num $ count points
+                      write-at-array-position! position-array 0 points
+                      js-object (:position position-array)
+                        :indices $ js-array & (:indices obj)
                     program-info $ twgl/createProgramInfo gl (js-array vs fs)
                     buffer-info $ twgl/createBufferInfoFromArrays gl arrays
                   swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
@@ -363,6 +332,26 @@
                     * $ js/Math.sin angle
                     negate
               -> from-x (&v+ from-y) (&v+ from-z)
+        |write-at-array-position! $ quote
+          defn write-at-array-position! (position-array from points)
+            loop
+                idx from
+                xs points
+              ; println idx
+              if
+                not $ empty? xs
+                let
+                    p $ first xs
+                  aset position-array
+                    + 0 $ * 3 idx
+                    nth p 0
+                  aset position-array
+                    + 1 $ * 3 idx
+                    nth p 1
+                  aset position-array
+                    + 2 $ * 3 idx
+                    nth p 2
+                  recur (+ idx 1) (rest xs)
       :ns $ quote
         ns quatrefoil.core $ :require
           touch-control.core :refer $ render-control!
