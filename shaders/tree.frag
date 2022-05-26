@@ -98,11 +98,12 @@ void main() {
   // gl_FragColor = vec4(1.0-vv, 1.0-vv, vv, 1.0);
 
   vec3 p = original_position / vec3(600., 600., 600.);
+  float lightness = 1.;
 
   gl_FragColor = vec4(
-    0.3 + snoise(vec2(p.z, p.y)) * 0.6,
-    0.3 + snoise(vec2(p.z, p.x + 1.0)) + 0.6,
-    0.3 + snoise(vec2(p.x * 2., p.y)) + 0.6,
+    0.9 + snoise(vec2(p.y, p.y)) * 0.3,
+    0.9 + snoise(vec2(p.y * 3., p.y + 1.0)) * 0.3,
+    0.9 + snoise(vec2(p.y * 2., p.y)) * 0.3,
     1.0);
 
 }

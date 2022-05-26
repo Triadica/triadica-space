@@ -130,29 +130,33 @@
               update 2 $ fn (z) (- z 1600)
         |tree-object $ quote
           defn tree-object () $ let
-              vs $ range 0 200
-              dt 0.2
-              dr 4
-              dy 8
-              dpy 4
-              geo $ w-js-log
-                -> vs
-                  mapcat $ fn (i)
-                    let
-                        ri $ + 40 (* dr i)
+              vs $ range 0 800
+              dt 0.1
+              dr 2
+              dy 2
+              dpy 1.6
+              geo $ -> vs
+                mapcat $ fn (i)
+                  let
+                      ri $ + 40 (* dr i)
+                      rs $ * 0.6 (- ri 100)
+                    []
                       []
-                        [] 0 (* i dpy) 0
-                        []
-                          * ri $ cos (* i dt)
-                          * i dy 1
-                          * ri $ sin (* i dt)
-                  prepend $ [] 0 0 0
-              indices $ w-js-log
-                &list:flatten $ map vs
-                  fn (i)
-                    let
-                        v $ * i 2
-                      [] v (+ v 1) (+ v 2)
+                        * rs $ cos
+                          + 0.2 $ * i dt
+                        * i dpy
+                        * rs $ sin
+                          + 0.2 $ * i dt
+                      []
+                        * ri $ cos (* i dt)
+                        * i dy 1
+                        * ri $ sin (* i dt)
+                prepend $ [] 0 0 0
+              indices $ &list:flatten
+                map vs $ fn (i)
+                  let
+                      v $ * i 2
+                    [] v (+ v 1) (+ v 2)
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"tree.vert"
               :fragment-shader $ inline-shader "\"tree.frag"
