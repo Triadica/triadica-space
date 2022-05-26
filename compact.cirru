@@ -31,14 +31,16 @@
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
-            js/window.addEventListener "\"resize" $ fn (event) (handle-size! canvas) (render-app!)
+            set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (render-app!) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
+            do (render-app!) (replace-control-loop! 10 on-control-event)
+              set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+              hud! "\"ok~" "\"OK"
             hud! "\"error" build-errors
         |render-app! $ quote
           defn render-app! ()
-            load-objects! $ group ({}) (bg-object) (cubes-object)
+            load-objects! $ group ({}) (; bg-object) (; cubes-object) (tree-object)
             render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
@@ -48,7 +50,7 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas!
           triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
@@ -126,6 +128,38 @@
               update 0 $ fn (x) (- x 800)
               update 1 $ fn (y) (- y 800)
               update 2 $ fn (z) (- z 1600)
+        |tree-object $ quote
+          defn tree-object () $ let
+              vs $ range 0 200
+              dt 0.2
+              dr 4
+              dy 8
+              dpy 4
+              geo $ w-js-log
+                -> vs
+                  mapcat $ fn (i)
+                    let
+                        ri $ + 40 (* dr i)
+                      []
+                        [] 0 (* i dpy) 0
+                        []
+                          * ri $ cos (* i dt)
+                          * i dy 1
+                          * ri $ sin (* i dt)
+                  prepend $ [] 0 0 0
+              indices $ w-js-log
+                &list:flatten $ map vs
+                  fn (i)
+                    let
+                        v $ * i 2
+                      [] v (+ v 1) (+ v 2)
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"tree.vert"
+              :fragment-shader $ inline-shader "\"tree.frag"
+              :points $ map geo
+                fn (p)
+                  update p 2 $ fn (z) (- z 200)
+              :indices indices
       :ns $ quote
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
@@ -161,12 +195,22 @@
                     fs $ :fragment-shader obj
                     arrays $ let
                         points $ :points obj
+                        pps $ &list:flatten points
                         num $ count (first points)
-                        position-array $ .!createAugmentedTypedArray twgl/primitives num
-                          * num $ count points
-                      write-at-array-position! position-array 0 points
+                        position-array $ .!createAugmentedTypedArray twgl/primitives num (count pps)
+                      loop
+                          idx 0
+                          xs pps
+                        if
+                          not $ empty? xs
+                          do
+                            aset position-array idx $ first xs
+                            recur (inc idx) (rest xs)
                       js-object (:position position-array)
-                        :indices $ js-array & (:indices obj)
+                        :indices $ if-let
+                          ys $ :indices obj
+                          js-array & ys
+                          , js/undefined
                     program-info $ twgl/createProgramInfo gl (js-array vs fs)
                     buffer-info $ twgl/createBufferInfoFromArrays gl arrays
                   swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
@@ -289,6 +333,7 @@
                       twgl/drawBufferInfo gl buffer-info $ .-LINES gl
                     :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
+                    :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
         |rotate-viewer-by! $ quote
           defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
         |shift-viewer-by! $ quote
@@ -332,26 +377,6 @@
                     * $ js/Math.sin angle
                     negate
               -> from-x (&v+ from-y) (&v+ from-z)
-        |write-at-array-position! $ quote
-          defn write-at-array-position! (position-array from points)
-            loop
-                idx from
-                xs points
-              ; println idx
-              if
-                not $ empty? xs
-                let
-                    p $ first xs
-                  aset position-array
-                    + 0 $ * 3 idx
-                    nth p 0
-                  aset position-array
-                    + 1 $ * 3 idx
-                    nth p 1
-                  aset position-array
-                    + 2 $ * 3 idx
-                    nth p 2
-                  recur (+ idx 1) (rest xs)
       :ns $ quote
         ns quatrefoil.core $ :require
           touch-control.core :refer $ render-control!
