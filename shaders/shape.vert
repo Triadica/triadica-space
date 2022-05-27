@@ -55,7 +55,7 @@ PointResult transform_perspective(vec3 p) {
   float x_next = (((q*x + a*q*s - a*s - a) - (y_next * (-a * b) / l1)) / -c) * sqrt(sumSquares2(a,c));;
   float z_next = r;
 
-  return PointResult(vec3(x_next, y_next / viewportRatio, -z_next), r, s);
+  return PointResult(vec3(x_next, y_next / viewportRatio, z_next), r, s);
 }
 
 void main() {

@@ -31,14 +31,16 @@
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
-            js/window.addEventListener "\"resize" $ fn (event) (handle-size! canvas) (render-app!)
+            set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (render-app!) (replace-control-loop! 10 on-control-event) (hud! "\"ok~" "\"OK")
+            do (render-app!) (replace-control-loop! 10 on-control-event)
+              set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+              hud! "\"ok~" "\"OK"
             hud! "\"error" build-errors
         |render-app! $ quote
           defn render-app! ()
-            load-objects! $ group ({}) (bg-object) (cubes-object)
+            load-objects! $ group ({}) (; bg-object) (; cubes-object) (tree-object)
             render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
@@ -48,77 +50,58 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas!
           triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
         |bg-object $ quote
           defn bg-object () $ let
               size 50
-              geo $ mapcat
+              geo $ ->
                 range $ + 1 size
-                fn (i)
+                mapcat $ fn (i)
                   map
                     range $ + 1 size
-                    fn (j) ([] i 0 j)
-              arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3
-                  * (+ 1 size) (+ 1 size)
-                :indices $ let
-                    grid $ mapcat (range size)
-                      fn (i)
-                        map (range size)
-                          fn (j) ([] i j)
-                  -> grid
-                    mapcat $ fn (point)
-                      let-sugar
-                            [] i j
-                            , point
-                          from $ + j
-                            * (+ 1 size) i
-                        concat
-                          [] from (+ from 1)
-                            + from $ + 2 size
-                          [] from
-                            + from $ + 2 size
-                            + from $ + 1 size
-                    to-js-data
+                    fn (j)
+                      -> ([] i 0 j)
+                        map $ fn (p) (* p 600)
+                        update 1 $ fn (y) (- y 1000)
+                        update 2 $ fn (z) (- z 1000)
+              indices $ -> (range size)
+                mapcat $ fn (i)
+                  map (range size)
+                    fn (j) ([] i j)
+                mapcat $ fn (point)
+                  let-sugar
+                        [] i j
+                        , point
+                      from $ + j
+                        * (+ 1 size) i
+                    concat
+                      [] from (+ from 1)
+                        + from $ + 2 size
+                      [] from
+                        + from $ + 2 size
+                        + from $ + 1 size
             ; println geo
-            write-at-position! (.-position arrays) 0 $ map geo
-              fn (point)
-                -> point
-                  map $ fn (p) (* p 600)
-                  update 1 $ fn (y) (- y 1000)
-                  update 2 $ fn (z) (- z 1000)
-            ; js/console.log "\"arrays" arrays
-            {} (:type :object)
+            object $ {}
               :vertex-shader $ inline-shader "\"bg.vert"
               :fragment-shader $ inline-shader "\"bg.frag"
-              :arrays arrays
               :draw-mode :triangles
+              :points geo
+              :indices indices
         |cubes-object $ quote
           defn cubes-object () $ let
               geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
-              index-order $ js-array 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
-              arrays $ js-object
-                :position $ .!createAugmentedTypedArray twgl/primitives 3 32
-                :indices $ .!concat index-order
-                  .!map index-order $ fn (x & _a) (+ x 8)
-                  .!map index-order $ fn (x & _a) (+ x 16)
-                  .!map index-order $ fn (x & _a) (+ x 24)
-              points $ -> geo (map move-point)
-              p2s $ -> geo (map move-point-2)
-              p3s $ -> geo (map move-point-3)
-              p4s $ -> geo (map move-point-4)
-            write-at-position! (.-position arrays) 0 points
-            write-at-position! (.-position arrays) 8 p2s
-            write-at-position! (.-position arrays) 16 p3s
-            write-at-position! (.-position arrays) 24 p4s
-            ; js/console.log "\"position" $ .-position arrays
-            {} (:type :object) (:draw-mode :lines)
+              indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
+            object $ {} (:draw-mode :lines)
               :vertex-shader $ inline-shader "\"shape.vert"
               :fragment-shader $ inline-shader "\"shape.frag"
-              :arrays arrays
+              :points $ concat (map geo move-point) (map geo move-point-2) (map geo move-point-3) (map geo move-point-4)
+              :indices $ concat indices
+                map indices $ fn (x) (+ x 8)
+                map indices $ fn (x) (+ x 16)
+                map indices $ fn (x) (+ x 24)
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -145,29 +128,53 @@
               update 0 $ fn (x) (- x 800)
               update 1 $ fn (y) (- y 800)
               update 2 $ fn (z) (- z 1600)
-        |write-at-position! $ quote
-          defn write-at-position! (position-array from points)
-            loop
-                idx from
-                xs points
-              ; println idx
-              if
-                not $ empty? xs
-                let
-                    p $ first xs
-                  aset position-array
-                    + 0 $ * 3 idx
-                    nth p 0
-                  aset position-array
-                    + 1 $ * 3 idx
-                    nth p 1
-                  aset position-array
-                    + 2 $ * 3 idx
-                    nth p 2
-                  recur (+ idx 1) (rest xs)
+        |tree-object $ quote
+          defn tree-object () $ let
+              vs $ range 0 400
+              dt 0.08
+              dr 0.6
+              dy 1.5
+              dpy 0.8
+              geo $ -> vs
+                mapcat $ fn (i)
+                  let
+                      ri $ + 40 (* dr i)
+                      rs $ * 0.4 (- ri 20)
+                    []
+                      []
+                        * rs $ cos
+                          + 0.3 $ * i dt
+                        * i dpy
+                        * rs $ sin
+                          + 0.3 $ * i dt
+                      []
+                        * (pow ri 1.4) 0.2 $ cos (* i dt)
+                        * i dy 1
+                        * (pow ri 1.4) 0.2 $ sin (* i dt)
+                prepend $ [] 0 0 0
+              indices $ -> vs
+                map  $ fn (i)
+                  let
+                      v $ * i 2
+                    [] v (+ v 1) (+ v 2)
+                &list:flatten
+              radius-bounds $ -> vs
+                map $ fn (i)
+                  let
+                      v $ + 40 (* dr i)
+                    [] v v v
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"tree.vert"
+              :fragment-shader $ inline-shader "\"tree.frag"
+              :points $ map geo
+                fn (p)
+                  update p 2 $ fn (z) (- z 200)
+              :indices indices
+              :attributes $ {} (:radius_bound radius-bounds)
       :ns $ quote
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
+          triadica.alias :refer $ object
     |triadica.config $ {}
       :defs $ {}
         |dev? $ quote
@@ -181,6 +188,39 @@
     |triadica.core $ {}
       :defs $ {}
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |create-attribute-array $ quote
+          defn create-attribute-array (points)
+            let
+                p0 $ first points
+              cond
+                  list? p0
+                  let
+                      pps $ &list:flatten points
+                      num $ count p0
+                      position-array $ .!createAugmentedTypedArray twgl/primitives num (count pps)
+                    loop
+                        idx 0
+                        xs pps
+                      if
+                        not $ empty? xs
+                        do
+                          aset position-array idx $ first xs
+                          recur (inc idx) (rest xs)
+                    , position-array
+                (number? p0)
+                  let
+                      position-array $ .!createAugmentedTypedArray twgl/primitives 1 (count points)
+                    loop
+                        idx 0
+                        xs points
+                      if
+                        not $ empty? xs
+                        do
+                          aset position-array idx $ first xs
+                          recur (inc idx) (rest xs)
+                    , position-array
+                true $ do (js/console.error "\"unknown attributes data:" points)
+                  .!createAugmentedTypedArray twgl/primitives 1 $ count points
         |flatten-objects $ quote
           defn flatten-objects (tree)
             case-default (:type tree)
@@ -197,7 +237,21 @@
                 let
                     vs $ :vertex-shader obj
                     fs $ :fragment-shader obj
-                    arrays $ :arrays obj
+                    arrays $ let
+                        ret $ js-object
+                          :position $ create-attribute-array (:points obj)
+                          :indices $ if-let
+                            ys $ :indices obj
+                            js-array & ys
+                            , js/undefined
+                        attrs $ :attributes obj
+                      if-not (empty? attrs)
+                        &doseq
+                          entry $ .to-list attrs
+                          aset ret
+                            turn-string $ nth entry 0
+                            create-attribute-array $ nth entry 1
+                      w-js-log ret
                     program-info $ twgl/createProgramInfo gl (js-array vs fs)
                     buffer-info $ twgl/createBufferInfoFromArrays gl arrays
                   swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
@@ -316,10 +370,11 @@
                   twgl/setUniforms program-info uniforms
                   case-default (:draw-mode object)
                     do
-                      js/console.log "\"unknown draw mode" $ :draw-mode object
+                      js/console.warn "\"unknown draw mode" $ :draw-mode object
                       twgl/drawBufferInfo gl buffer-info $ .-LINES gl
                     :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
+                    :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
         |rotate-viewer-by! $ quote
           defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
         |shift-viewer-by! $ quote
