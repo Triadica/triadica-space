@@ -4,6 +4,35 @@
 
 - Live Demo https://r.tiye.me/Quatrefoil-GL/triadica-space/
 
+### Object definition
+
+For example:
+
+```cirru
+object $ {} (:draw-mode :lines)
+  :vertex-shader $ inline-shader "\"shape.vert"
+  :fragment-shader $ inline-shader "\"shape.frag"
+  :points $ map geo
+    fn (p)
+      -> p
+        map $ fn (i)
+          * i 40
+        &v+  $ [] 400 300 -1200
+  :indices indices
+  :hit-region $ {}
+    :position $ [] 400 300 -1200
+    :radius 20
+    :on-hit $ fn (e d!)
+      js/alert "\"hit on cube"
+```
+
+- `:draw-mode` supports `:lines`, `:triangles`, `:line-strip`
+- `*-shader` is a text of shader string
+- `:points`
+- `:indices`, optional, list of numbers
+- `:attributes`, a list of points or floats
+- `:hit-region`, enables click detection
+
 ### Math
 
 TODO: diagram.

@@ -15,8 +15,18 @@
         ns triadica.alias $ :require
     |triadica.app.main $ {}
       :defs $ {}
+        |*store $ quote
+          defatom *store $ {} (:v 0)
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
+        |dispatch! $ quote
+          defn dispatch! (op data) (js/console.log "\"Dispatch:" op data)
+            let
+                store @*store
+                next $ case-default op
+                  do (js/console.warn "\"unknown op" op) nil
+                  :cube-right $ update store :v inc
+              if (some? next) (reset! *store next)
         |handle-size! $ quote
           defn handle-size! (canvas)
             -> canvas .-width $ set! js/window.innerWidth
@@ -31,26 +41,35 @@
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
+            add-watch *store :change $ fn (v _p) (render-app!)
             set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+            set! (.-onclick canvas) handle-screen-click!
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (render-app!) (replace-control-loop! 10 on-control-event)
+            do (remove-watch *store :change)
+              add-watch *store :change $ fn (v _p) (render-app!)
+              replace-control-loop! 10 on-control-event
               set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+              set! (.-onclick canvas) handle-screen-click!
+              render-app!
               hud! "\"ok~" "\"OK"
             hud! "\"error" build-errors
         |render-app! $ quote
           defn render-app! ()
-            load-objects! $ group ({}) (; bg-object) (; cubes-object) (tree-object)
+            load-objects!
+              group ({}) (; bg-object) (; cubes-object) (tree-object)
+                tiny-cube-object $ :v @*store
+              , dispatch!
             render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
           triadica.config :refer $ dev?
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
-          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas!
+          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click!
           triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
@@ -128,6 +147,25 @@
               update 0 $ fn (x) (- x 800)
               update 1 $ fn (y) (- y 800)
               update 2 $ fn (z) (- z 1600)
+        |tiny-cube-object $ quote
+          defn tiny-cube-object (v)
+            let
+                geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
+                indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
+                position $ []
+                  + 400 $ * v 10
+                  , 300 -1200
+              object $ {} (:draw-mode :lines)
+                :vertex-shader $ inline-shader "\"shape.vert"
+                :fragment-shader $ inline-shader "\"shape.frag"
+                :points $ map geo
+                  fn (p)
+                    -> p
+                      map $ fn (i) (* i 40)
+                      &v+ position
+                :indices indices
+                :hit-region $ {} (:position position) (:radius 20)
+                  :on-hit $ fn (e d!) (d! :cube-right 0)
         |tree-object $ quote
           defn tree-object () $ let
               vs $ range 0 400
@@ -175,6 +213,7 @@
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object
+          triadica.math :refer $ &v+
     |triadica.config $ {}
       :defs $ {}
         |dev? $ quote
@@ -184,7 +223,10 @@
         |inline-shader $ quote
           defmacro inline-shader (name)
             read-file $ str "\"shaders/" name
-      :ns $ quote (ns triadica.config)
+        |mobile? $ quote
+          def mobile? $ .!mobile (new mobile-detect js/window.navigator.userAgent)
+      :ns $ quote
+        ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
     |triadica.core $ {}
       :defs $ {}
         |*tmp-changes $ quote (defatom *tmp-changes nil)
@@ -227,12 +269,42 @@
               do (js/console.log "\"unknown type in:" tree) ([])
               :group $ mapcat (:children tree) flatten-objects
               :object $ [] tree
+        |handle-screen-click! $ quote
+          defn handle-screen-click! (event)
+            let
+                x $ &- (.-clientX event) (* 0.5 js/window.innerWidth)
+                y $ negate
+                  &- (.-clientY event) (* 0.5 js/window.innerHeight)
+                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
+                touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
+                back-cone-scale 2
+              &doseq (obj @*objects-list)
+                if-let
+                  region $ :hit-region obj
+                  let
+                      mapped-position $ transform-3d (:position region)
+                      screen-position $ map mapped-position
+                        fn (p) (&* p scale-radio)
+                      r $ nth mapped-position 2
+                      mapped-radius $ * scale-radio (:radius region)
+                        &/ back-cone-scale $ &+ r back-cone-scale
+                      distance $ c-distance screen-position ([] x y)
+                    ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
+                    if
+                      and
+                        <= distance $ &max touch-deviation mapped-radius
+                        noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
+                      let
+                          on-hit $ :on-hit region
+                        on-hit event @*proxied-dispatch
         |load-objects! $ quote
-          defn load-objects! (tree)
+          defn load-objects! (tree dispatch!)
             let
                 objects $ flatten-objects tree
                 gl @*gl-context
+              reset! *objects-list objects
               reset! *objects-buffer $ []
+              reset! *proxied-dispatch dispatch!
               &doseq (obj objects) (; js/console.log obj)
                 let
                     vs $ :vertex-shader obj
@@ -251,7 +323,7 @@
                           aset ret
                             turn-string $ nth entry 0
                             create-attribute-array $ nth entry 1
-                      w-js-log ret
+                      wo-js-log ret
                     program-info $ twgl/createProgramInfo gl (js-array vs fs)
                     buffer-info $ twgl/createBufferInfoFromArrays gl arrays
                   swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
@@ -421,19 +493,21 @@
       :ns $ quote
         ns quatrefoil.core $ :require
           touch-control.core :refer $ render-control!
-          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context
+          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context *objects-list *proxied-dispatch
           triadica.render :refer $ render-canvas!
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
-          triadica.math :refer $ &v+ &v-
-          triadica.config :refer $ half-pi
+          triadica.math :refer $ &v+ &v- transform-3d c-distance
+          triadica.config :refer $ half-pi mobile?
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
         |*objects-buffer $ quote
           defatom *objects-buffer $ []
-        |*shader-object $ quote
-          defatom *shader-object $ {} (:program nil) (:buffer nil)
+        |*objects-list $ quote
+          defatom *objects-list $ noted "\"store flattened object from render tree" ([])
+        |*proxied-dispatch $ quote
+          defatom *proxied-dispatch $ fn (op data) (js/console.log "\"not rendered yet")
         |*viewer-angle $ quote
           defatom *viewer-angle $ &/ &PI 2
         |*viewer-position $ quote
@@ -474,6 +548,15 @@
           defn &v- (a b)
             let[] (x y z) a $ let[] (x2 y2 z2) b
               [] (&- x x2) (&- y y2) (&- z z2)
+        |c-distance $ quote
+          defn c-distance (p1 p2)
+            let-sugar
+                  [] x y
+                  , p1
+                ([] a b) p2
+              sqrt $ +
+                pow (- x a) 2
+                pow (- y b) 2
         |square $ quote
           defn square (x) (&* x x)
         |sum-squares $ quote
@@ -481,16 +564,12 @@
             &+ (&* a a) (&* b b)
         |transform-3d $ quote
           defn transform-3d (p0)
-            let
+            let-sugar
                 point $ &v- p0 @*viewer-position
                 look-distance $ wo-log (new-lookat-point)
-                s $ noted "\"back size of light cone?" 2
-                x $ nth point 0
-                y $ nth point 1
-                z $ nth point 2
-                a $ nth look-distance 0
-                b $ nth look-distance 1
-                c $ nth look-distance 2
+                s $ noted "\"size factor of light cone in negative direction" 2
+                ([] x y z) point
+                ([] a b c) look-distance
                 r $ /
                   + (* a x) (* b y) (* c z)
                   + (square a) (square b) (square c)
@@ -511,12 +590,13 @@
                       * y' $ / (* -1 a b) L1
                     , c -1
                   sqrt $ sum-squares a c
-                z' $ negate r
+                z' r
               ; println $ [] x' y' z'
-              -> ([] x' y' z')
+              ; -> ([] x' y' z')
                 update 1 $ fn (v)
                   -> v (/ js/window.innerHeight) (* js/window.innerWidth)
                 map $ fn (p) p
+              [] x' y' z'
       :ns $ quote
         ns triadica.math $ :require
           triadica.core :refer $ new-lookat-point &v- &v+
