@@ -125,25 +125,30 @@
         |curve-ball $ quote
           defn curve-ball () $ let
               r 320
-              size 4000
+              size 3000
               radians $ -> size range
                 map $ fn (t)
                   * 2 &PI t $ / size
-              geo $ -> radians
-                mapcat $ fn (t)
+              geo $ -> size range
+                mapcat $ fn (i)
                   let
+                      t $ &/ (* 2 &PI i) size
+                      t' $ &/
+                        * 2 &PI $ inc i
+                        , size
                       p $ []
                         * r $ cos t
                         * r $ sin t
                         , -100
-                    [] p
-                      &v+ p $ [] 3 0 0
-                      &v+ p $ [] 3 3 0
-                      , p
-                        &v+ p $ [] 0 3 0
-                        &v+ p $ [] 3 3 0
+                      p' $ []
+                        * r $ cos t'
+                        * r $ sin t'
+                        , -100
+                      p+d $ &v+ p ([] 4 4 0)
+                      p'+d $ &v+ p' ([] 4 4 0)
+                    [] p p' p'+d p p+d p'+d
               position $ [] 0 0 0
-            object $ {} (:draw-mode :triangles)
+            object $ {} (:draw-mode :triangles) (; :draw-mode :line-strip)
               :vertex-shader $ inline-shader "\"curve-ball.vert"
               :fragment-shader $ inline-shader "\"curve-ball.frag"
               :points $ wo-log geo
