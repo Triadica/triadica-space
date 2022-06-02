@@ -58,7 +58,7 @@
           defn render-app! ()
             load-objects!
               group ({}) (; bg-object) (; cubes-object) (; tree-object)
-                tiny-cube-object $ :v @*store
+                ; tiny-cube-object $ :v @*store
                 curve-ball
               , dispatch!
             render-canvas!
@@ -125,22 +125,31 @@
         |curve-ball $ quote
           defn curve-ball () $ let
               r 320
-              size 2000
+              size 4000
               radians $ -> size range
                 map $ fn (t)
                   * 2 &PI t $ / size
               geo $ -> radians
-                map $ fn (t)
-                  []
-                    * r $ cos t
-                    * r $ sin t
-                    , -100
+                mapcat $ fn (t)
+                  let
+                      p $ []
+                        * r $ cos t
+                        * r $ sin t
+                        , -100
+                    [] p
+                      &v+ p $ [] 3 0 0
+                      &v+ p $ [] 3 3 0
+                      , p
+                        &v+ p $ [] 0 3 0
+                        &v+ p $ [] 3 3 0
               position $ [] 0 0 0
-            object $ {} (:draw-mode :line-loop)
+            object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"curve-ball.vert"
               :fragment-shader $ inline-shader "\"curve-ball.frag"
               :points $ wo-log geo
-              :attributes $ {} (:radian radians)
+              :attributes $ {}
+                :radian $ -> radians
+                  mapcat $ fn (i) ([] i i i i i i)
         |move-point $ quote
           defn move-point (p)
             -> p

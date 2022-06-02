@@ -99,12 +99,13 @@ vec3 spin(vec3 v, vec3 axis, float rotation, float sigma) {
 
 void main() {
   vec3 p = a_position;
-  p = spin(p, vec3(440.0, 1.0, 2.0), 4.8, 900.0);
-  p = spin(p, vec3(10.0, 99.0, 226.0), 2.8, 600.0);
-  p = spin(p, vec3(-110.0, 200.0, 2.0), -2.4, 800.0);
-  p = spin(p, vec3(90.0, 30.0, 202.0), 1.4, 800.0);
-  p = spin(p, vec3(100.0, 160.0, -92.0), 2.1, 600.0);
-  p = spin(p, vec3(500.0, 6.0, 92.0), 1.4, 1000.0);
+  p = spin(p, vec3(440.0, 1.0, 2.0), 10.8, 900.0);
+  p = spin(p, vec3(20.0, 629.0, 86.0), 2.8, 1000.0);
+  p = spin(p, vec3(-110.0, 20.0, 822.0), -2.4, 800.0);
+  // p = spin(p, vec3(500.0, 300.0, 102.0), 1.4, 800.0);
+  // p = spin(p, vec3(90.0, 600.0, 402.0), 1.4, 700.0);
+  // p = spin(p, vec3(410.0, 60.0, -292.0), 2.1, 600.0);
+  // p = spin(p, vec3(400.0, 236.0, 92.0), 1.4, 600.0);
   PointResult result = transform_perspective(p);
   vec3 pos_next = result.point;
 
