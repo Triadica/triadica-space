@@ -24,6 +24,9 @@ object $ {} (:draw-mode :lines)
     :radius 20
     :on-hit $ fn (e d!)
       js/alert "\"hit on cube"
+    :on-mousedown $ fn (e d!)
+    :on-mousemove $ fn (e d!)
+    :on-mouseup $ fn (e d!)
 ```
 
 - `:draw-mode` supports `:lines`, `:triangles`, `:line-strip`
