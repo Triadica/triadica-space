@@ -10,7 +10,7 @@
     "vite": "^2.9.9"
   },
   "dependencies": {
-    "@calcit/procs": "^0.5.44",
+    "@calcit/procs": "^0.5.45",
     "@quamolit/touch-control": "^0.0.8",
     "mobile-detect": "^1.4.5",
     "twgl.js": "^4.22.1"

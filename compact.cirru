@@ -57,8 +57,9 @@
         |render-app! $ quote
           defn render-app! ()
             load-objects!
-              group ({}) (; bg-object) (; cubes-object) (tree-object)
+              group ({}) (; bg-object) (; cubes-object) (; tree-object)
                 tiny-cube-object $ :v @*store
+                curve-ball
               , dispatch!
             render-canvas!
       :ns $ quote
@@ -69,7 +70,7 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click!
           triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
@@ -121,6 +122,25 @@
                 map indices $ fn (x) (+ x 8)
                 map indices $ fn (x) (+ x 16)
                 map indices $ fn (x) (+ x 24)
+        |curve-ball $ quote
+          defn curve-ball () $ let
+              r 320
+              size 2000
+              radians $ -> size range
+                map $ fn (t)
+                  * 2 &PI t $ / size
+              geo $ -> radians
+                map $ fn (t)
+                  []
+                    * r $ cos t
+                    * r $ sin t
+                    , -100
+              position $ [] 0 0 0
+            object $ {} (:draw-mode :line-loop)
+              :vertex-shader $ inline-shader "\"curve-ball.vert"
+              :fragment-shader $ inline-shader "\"curve-ball.frag"
+              :points $ wo-log geo
+              :attributes $ {} (:radian radians)
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -239,7 +259,7 @@
                   let
                       pps $ &list:flatten points
                       num $ count p0
-                      position-array $ .!createAugmentedTypedArray twgl/primitives num (count pps)
+                      position-array $ .!createAugmentedTypedArray twgl/primitives num (count points)
                     loop
                         idx 0
                         xs pps
@@ -447,6 +467,7 @@
                     :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
+                    :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
         |rotate-viewer-by! $ quote
           defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
         |shift-viewer-by! $ quote

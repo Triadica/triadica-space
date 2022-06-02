@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@calcit/procs@^0.5.44":
-  version "0.5.44"
-  resolved "https://registry.yarnpkg.com/@calcit/procs/-/procs-0.5.44.tgz#bdb3e76758d7521be8862c39d278c1f719eab6af"
-  integrity sha512-7Hc3fS5pmXSFRu5wbjw8MQE5rvTrdQMFFjgxroOVw6OA0wu75HAlorJH10xEHzX9rBvCq13na5tIY/9k+LtrQg==
+"@calcit/procs@^0.5.45":
+  version "0.5.45"
+  resolved "https://registry.yarnpkg.com/@calcit/procs/-/procs-0.5.45.tgz#680076180e602192f6bb079acbb9d79bbf4a1cdb"
+  integrity sha512-1h7CjyrnllVOhFz/hzD7H7/k3AYq5SNW0nxYy8e/66O1Lgr/9H0ECJ1k9dIGJSwoE5ana1OxM6xnWJ/IgSPiHw==
   dependencies:
     "@calcit/ternary-tree" "0.0.19"
     "@cirru/parser.ts" "^0.0.5"
@@ -281,7 +281,7 @@ postcss@^8.4.13:
 process@^0.11.10:
   version "0.11.10"
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
-  integrity sha1-czIwDoQBYb2j5podHZGn1LwW8YI=
+  integrity sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==
 
 resolve@^1.22.0:
   version "1.22.0"
@@ -293,9 +293,9 @@ resolve@^1.22.0:
     supports-preserve-symlinks-flag "^1.0.0"
 
 rollup@^2.59.0:
-  version "2.75.4"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.75.4.tgz#c3518c326c98e508b628a93015a03a276c331f22"
-  integrity sha512-JgZiJMJkKImMZJ8ZY1zU80Z2bA/TvrL/7D9qcBCrfl2bP+HUaIw0QHUroB4E3gBpFl6CRFM1YxGbuYGtdAswbQ==
+  version "2.75.5"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.75.5.tgz#7985c1962483235dd07966f09fdad5c5f89f16d0"
+  integrity sha512-JzNlJZDison3o2mOxVmb44Oz7t74EfSd1SQrplQk0wSaXV7uLQXtVdHbxlcT3w+8tZ1TL4r/eLfc7nAbz38BBA==
   optionalDependencies:
     fsevents "~2.3.2"
 
