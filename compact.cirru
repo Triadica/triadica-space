@@ -58,8 +58,9 @@
           defn render-app! ()
             load-objects!
               group ({}) (; bg-object) (; cubes-object) (; tree-object)
-                tiny-cube-object $ :v @*store
+                ; tiny-cube-object $ :v @*store
                 ; curve-ball
+                spin-city
               , dispatch!
             render-canvas!
       :ns $ quote
@@ -70,7 +71,7 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
           triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
@@ -181,6 +182,34 @@
               update 0 $ fn (x) (- x 800)
               update 1 $ fn (y) (- y 800)
               update 2 $ fn (z) (- z 1600)
+        |spin-city $ quote
+          defn spin-city () $ let
+              seed $ [] ([] 4 1) ([] 5 1) ([] 6 2) ([] 8 1) ([] 9 3) ([] 12 1) ([] 13 1) ([] 14 2) ([] 16 2)
+              units 20
+              data $ -> seed
+                mapcat $ fn (pair)
+                  -> (range units)
+                    map $ fn (idx)
+                      {}
+                        :radius $ nth pair 0
+                        :depth $ nth pair 1
+                        :angle $ * 2 &PI (/ idx units)
+                    mapcat $ fn (info)
+                      -> (range 24)
+                        map $ fn (idx) (assoc info :index idx)
+            ; js/console.log "\"data" data
+            object $ {} (:draw-mode :lines)
+              :vertex-shader $ inline-shader "\"spin-city.vert"
+              :fragment-shader $ inline-shader "\"spin-city.frag"
+              :attributes $ {}
+                :radius $ map data
+                  fn (info) (&map:get info :radius)
+                :depth $ map data
+                  fn (info) (&map:get info :depth)
+                :angle $ map data
+                  fn (info) (&map:get info :angle)
+                :index $ map data
+                  fn (info) (&map:get info :index)
         |tiny-cube-object $ quote
           defn tiny-cube-object (v)
             let
@@ -380,7 +409,7 @@
                         on-move $ get-in node ([] :hit-region :on-mousemove)
                         on-move event @*proxied-dispatch
         |handle-screen-mouseup! $ quote
-          defn handle-screen-mouseup! (event) (println "\"mouse up" @*mouse-holding-paths)
+          defn handle-screen-mouseup! (event) (; println "\"mouse up" @*mouse-holding-paths)
             let
                 paths @*mouse-holding-paths
               if-not (empty? paths)
@@ -407,12 +436,15 @@
                       vs $ :vertex-shader obj
                       fs $ :fragment-shader obj
                       arrays $ let
-                          ret $ js-object
-                            :position $ create-attribute-array (:points obj)
-                            :indices $ if-let
+                          ret $ let
+                              ret $ js-object
+                            if-let
+                              points $ :points obj
+                              set! (.-position ret) (create-attribute-array points)
+                            if-let
                               ys $ :indices obj
-                              js-array & ys
-                              , js/undefined
+                              set! (.-indices ret) (js-array & ys)
+                            , ret
                           attrs $ :attributes obj
                         if-not (empty? attrs)
                           &doseq

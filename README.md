@@ -69,6 +69,10 @@ z_color = r;
 gl_Position = vec4(pos_next * 0.0002, 1.0);
 ```
 
+### Inspirations
+
+- Spin City demo https://twitter.com/MAKIO135/status/1525347172861939713
+
 ### License
 
 MIT
