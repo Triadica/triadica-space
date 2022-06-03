@@ -151,25 +151,25 @@ void main() {
   vec3 d_y = vec3(0.0, y, 0.0);
   vec3 d_h = vec3(0.0, 0.0, (h ) * 600.0);
 
-  if (index == 0 || index == 7 || index == 16) { // 0
+  if (index == 0 || index == 3 || index == 22 || index == 30 || index == 33) { // 0
     // use position
-  } else if (index == 1 || index == 2 || index == 18) { // 1
+  } else if (index == 1 || index == 20 || index == 23 || index == 24 || index == 27) { // 1
     position += d_h;
-  } else if (index == 3 || index == 4 || index == 20) { // 2
+  } else if (index == 2 || index == 5 || index == 7 || index == 28) { // 2
     position += d_h;
     position += d_x;
-  } else if (index == 5 || index == 6 || index == 22) { // 3
+  } else if (index == 4 || index == 6 || index == 9 || index == 34) { // 3
     position += d_x;
-  } else if (index == 8 || index == 15 || index == 17) { // 4
+  } else if (index == 16 || index == 18 || index == 21 || index == 31) { // 4
     position += d_y;
-  } else if (index == 9 || index == 10 || index == 19) { // 5
+  } else if (index == 14 || index == 17 || index == 19 || index == 25) { // 5
     position += d_y;
     position += d_h;
-  } else if (index == 11 || index == 12 || index == 21) { // 6
+  } else if (index == 8 || index == 11 || index == 13 || index == 26 || index == 29) { // 6
     position += d_y;
     position += d_x;
     position += d_h;
-  } else if (index == 13 || index == 14 || index == 23) { // 7
+  } else if (index == 10 || index == 12 || index == 15 || index == 32 || index == 35) { // 7
     position += d_y;
     position += d_x;
   } else {

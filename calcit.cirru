@@ -1557,7 +1557,7 @@
                                                       |b $ {} (:at 1654260289715) (:by |u0) (:type :expr)
                                                         :data $ {}
                                                           |T $ {} (:at 1654260290346) (:by |u0) (:text |range) (:type :leaf)
-                                                          |b $ {} (:at 1654262311278) (:by |u0) (:text |24) (:type :leaf)
+                                                          |b $ {} (:at 1654264550109) (:by |u0) (:text |36) (:type :leaf)
                                                       |h $ {} (:at 1654260292635) (:by |u0) (:type :expr)
                                                         :data $ {}
                                                           |T $ {} (:at 1654260294281) (:by |u0) (:text |map) (:type :leaf)
@@ -1588,7 +1588,7 @@
                           |b $ {} (:at 1654258285145) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1654258285145) (:by |u0) (:text |:draw-mode) (:type :leaf)
-                              |b $ {} (:at 1654261250854) (:by |u0) (:text |:lines) (:type :leaf)
+                              |b $ {} (:at 1654264271069) (:by |u0) (:text |:triangles) (:type :leaf)
                           |h $ {} (:at 1654258285145) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1654258285145) (:by |u0) (:text |:vertex-shader) (:type :leaf)

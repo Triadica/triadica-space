@@ -195,10 +195,10 @@
                         :depth $ nth pair 1
                         :angle $ * 2 &PI (/ idx units)
                     mapcat $ fn (info)
-                      -> (range 24)
+                      -> (range 36)
                         map $ fn (idx) (assoc info :index idx)
             ; js/console.log "\"data" data
-            object $ {} (:draw-mode :lines)
+            object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"spin-city.vert"
               :fragment-shader $ inline-shader "\"spin-city.frag"
               :attributes $ {}
