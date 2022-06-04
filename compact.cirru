@@ -268,7 +268,7 @@
                         * (pow ri 1.4) 0.2 $ sin (* i dt)
                 prepend $ [] 0 0 0
               indices $ -> vs
-                map  $ fn (i)
+                map $ fn (i)
                   let
                       v $ * i 2
                     [] v (+ v 1) (+ v 2)
@@ -278,6 +278,7 @@
                   let
                       v $ + 40 (* dr i)
                     [] v v v
+                &list:flatten
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"tree.vert"
               :fragment-shader $ inline-shader "\"tree.frag"
