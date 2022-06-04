@@ -71,7 +71,15 @@ gl_Position = vec4(pos_next * 0.0002, 1.0);
 
 ### Inspirations
 
-- Spin City demo https://twitter.com/MAKIO135/status/1525347172861939713
+- Project encouraged by https://github.com/doodlewind/beam
+- Curly Ball demo inspired by https://twitter.com/scdollins/status/1531690190439215104
+- Spin City demo inspired by https://twitter.com/MAKIO135/status/1525347172861939713
+
+### Naming
+
+The name project form can from:
+
+![triadica](./assets/triadica.jpg)
 
 ### License
 
