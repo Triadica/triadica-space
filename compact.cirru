@@ -21,12 +21,17 @@
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
           defn dispatch! (op data) (js/console.log "\"Dispatch:" op data)
-            let
-                store @*store
-                next $ case-default op
-                  do (js/console.warn "\"unknown op" op) nil
-                  :cube-right $ update store :v inc
-              if (some? next) (reset! *store next)
+            if (= op :city-spin)
+              do
+                swap! *uniform-data update :spin-city $ fn (x)
+                  + x $ * 0.01 data
+                render-canvas!
+              let
+                  store @*store
+                  next $ case-default op
+                    do (js/console.warn "\"unknown op" op) nil
+                    :cube-right $ update store :v inc
+                if (some? next) (reset! *store next)
         |handle-size! $ quote
           defn handle-size! (canvas)
             -> canvas .-width $ set! js/window.innerWidth
@@ -57,8 +62,8 @@
         |render-app! $ quote
           defn render-app! ()
             load-objects!
-              group ({}) (; bg-object) (; cubes-object) (; tree-object)
-                ; tiny-cube-object $ :v @*store
+              group ({}) (; cubes-object) (; bg-object) (; tree-object)
+                tiny-cube-object $ :v @*store
                 ; curve-ball
                 spin-city
               , dispatch!
@@ -69,12 +74,13 @@
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
-          triadica.global :refer $ *gl-context
+          triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
           triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
+        |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
         |bg-object $ quote
           defn bg-object () $ let
               size 50
@@ -217,7 +223,7 @@
                 indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
                 position $ []
                   + 400 $ * v 10
-                  , 300 -1200
+                  , 400 -1200
               object $ {} (:draw-mode :lines)
                 :vertex-shader $ inline-shader "\"shape.vert"
                 :fragment-shader $ inline-shader "\"shape.frag"
@@ -230,7 +236,12 @@
                 :hit-region $ {} (:position position) (:radius 20)
                   :on-hit $ fn (e d!) (d! :cube-right 0)
                   :on-mousedown $ fn (e d!) (js/console.log "\"mouse down" e)
+                    reset! *prev-mouse-x $ .-clientX e
                   :on-mousemove $ fn (e d!) (js/console.log "\"mouse move" e)
+                    let
+                        x $ .-clientX e
+                      d! :city-spin $ - x @*prev-mouse-x
+                      reset! *prev-mouse-x x
                   :on-mouseup $ fn (e d!) (js/console.log "\"mouseup" e)
         |tree-object $ quote
           defn tree-object () $ let
@@ -553,6 +564,7 @@
                   :cameraPosition $ js-array & @*viewer-position
                   :coneBackScale 2
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
+                  :citySpin $ wo-log (:spin-city @*uniform-data)
               twgl/resizeCanvasToDisplaySize $ .-canvas gl
               .!viewport gl 0 0.0 (-> gl .-canvas .-width)
                 -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
@@ -589,10 +601,10 @@
         |setup-mouse-events! $ quote
           defn setup-mouse-events! (canvas)
             set! (.-onclick canvas) handle-screen-click!
-            set! (.-onmousedown canvas) handle-screen-mousedown!
-            set! (.-onmousemove canvas) handle-screen-mousemove!
-            set! (.-onmouseup canvas) handle-screen-mouseup!
-            set! (.-onmouseleave canvas) handle-screen-mouseup!
+            set! (.-onpointerdown canvas) handle-screen-mousedown!
+            set! (.-onpointermove canvas) handle-screen-mousemove!
+            set! (.-onpointerup canvas) handle-screen-mouseup!
+            set! (.-onpointerleave canvas) handle-screen-mouseup!
         |shift-viewer-by! $ quote
           defn shift-viewer-by! (x)
             if (= x false) (reset! *viewer-y-shift 0)
@@ -647,7 +659,7 @@
       :ns $ quote
         ns quatrefoil.core $ :require
           touch-control.core :refer $ render-control!
-          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths
+          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths *uniform-data
           triadica.render :refer $ render-canvas!
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
@@ -664,6 +676,8 @@
           defatom *objects-tree $ noted "\"tree for rendering and events" nil
         |*proxied-dispatch $ quote
           defatom *proxied-dispatch $ fn (op data) (js/console.log "\"not rendered yet")
+        |*uniform-data $ quote
+          defatom *uniform-data $ {} (:spin-city 0)
         |*viewer-angle $ quote
           defatom *viewer-angle $ &/ &PI 2
         |*viewer-position $ quote

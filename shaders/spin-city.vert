@@ -4,6 +4,7 @@ uniform float coneBackScale;
 uniform vec3 lookPoint;
 uniform float viewportRatio;
 uniform vec3 cameraPosition;
+uniform float citySpin;
 
 // attribute vec3 a_position;
 attribute float a_radius;
@@ -144,6 +145,8 @@ void main() {
 
   highp int index = int(a_index); // 0~5 currently
 
+  float angle = a_angle + citySpin;
+
   float h = square(snoise(vec2(x, a_angle)));
 
   vec3 position = vec3(x, 0.0, 0.0);
@@ -177,9 +180,9 @@ void main() {
   }
 
   position = vec3(
-    position.x * cos(a_angle) - position.y * sin(a_angle),
+    position.x * cos(angle) - position.y * sin(angle),
     position.z,
-    position.x * sin(a_angle) + position.y * cos(a_angle)
+    position.x * sin(angle) + position.y * cos(angle)
   );
 
   PointResult result = transform_perspective(position);
