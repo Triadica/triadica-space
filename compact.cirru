@@ -15,8 +15,23 @@
         ns triadica.alias $ :require
     |triadica.app.main $ {}
       :defs $ {}
+        |*store $ quote
+          defatom *store $ {} (:v 0)
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
+        |dispatch! $ quote
+          defn dispatch! (op data) (js/console.log "\"Dispatch:" op data)
+            if (= op :city-spin)
+              do
+                swap! *uniform-data update :spin-city $ fn (x)
+                  + x $ * 0.01 data
+                render-canvas!
+              let
+                  store @*store
+                  next $ case-default op
+                    do (js/console.warn "\"unknown op" op) nil
+                    :cube-right $ update store :v inc
+                if (some? next) (reset! *store next)
         |handle-size! $ quote
           defn handle-size! (canvas)
             -> canvas .-width $ set! js/window.innerWidth
@@ -31,29 +46,41 @@
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
+            add-watch *store :change $ fn (v _p) (render-app!)
             set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+            setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (render-app!) (replace-control-loop! 10 on-control-event)
+            do (remove-watch *store :change)
+              add-watch *store :change $ fn (v _p) (render-app!)
+              replace-control-loop! 10 on-control-event
               set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+              setup-mouse-events! canvas
+              render-app!
               hud! "\"ok~" "\"OK"
             hud! "\"error" build-errors
         |render-app! $ quote
           defn render-app! ()
-            load-objects! $ group ({}) (; bg-object) (; cubes-object) (tree-object)
+            load-objects!
+              group ({}) (; cubes-object) (; bg-object) (; tree-object)
+                tiny-cube-object $ :v @*store
+                ; curve-ball
+                spin-city
+              , dispatch!
             render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
           triadica.config :refer $ dev?
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
-          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas!
-          triadica.global :refer $ *gl-context
+          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
+          triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
+        |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
         |bg-object $ quote
           defn bg-object () $ let
               size 50
@@ -102,6 +129,39 @@
                 map indices $ fn (x) (+ x 8)
                 map indices $ fn (x) (+ x 16)
                 map indices $ fn (x) (+ x 24)
+        |curve-ball $ quote
+          defn curve-ball () $ let
+              r 320
+              size 3000
+              radians $ -> size range
+                map $ fn (t)
+                  * 2 &PI t $ / size
+              geo $ -> size range
+                mapcat $ fn (i)
+                  let
+                      t $ &/ (* 2 &PI i) size
+                      t' $ &/
+                        * 2 &PI $ inc i
+                        , size
+                      p $ []
+                        * r $ cos t
+                        * r $ sin t
+                        , -100
+                      p' $ []
+                        * r $ cos t'
+                        * r $ sin t'
+                        , -100
+                      p+d $ &v+ p ([] 4 4 0)
+                      p'+d $ &v+ p' ([] 4 4 0)
+                    [] p p' p'+d p p+d p'+d
+              position $ [] 0 0 0
+            object $ {} (:draw-mode :triangles) (; :draw-mode :line-strip)
+              :vertex-shader $ inline-shader "\"curve-ball.vert"
+              :fragment-shader $ inline-shader "\"curve-ball.frag"
+              :points $ wo-log geo
+              :attributes $ {}
+                :radian $ -> radians
+                  mapcat $ fn (i) ([] i i i i i i)
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -128,6 +188,61 @@
               update 0 $ fn (x) (- x 800)
               update 1 $ fn (y) (- y 800)
               update 2 $ fn (z) (- z 1600)
+        |spin-city $ quote
+          defn spin-city () $ let
+              seed $ [] ([] 4 1) ([] 5 1) ([] 6 2) ([] 8 1) ([] 9 3) ([] 12 1) ([] 13 1) ([] 14 2) ([] 16 2)
+              units 20
+              data $ -> seed
+                mapcat $ fn (pair)
+                  -> (range units)
+                    map $ fn (idx)
+                      {}
+                        :radius $ nth pair 0
+                        :depth $ nth pair 1
+                        :angle $ * 2 &PI (/ idx units)
+                    mapcat $ fn (info)
+                      -> (range 36)
+                        map $ fn (idx) (assoc info :index idx)
+            ; js/console.log "\"data" data
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"spin-city.vert"
+              :fragment-shader $ inline-shader "\"spin-city.frag"
+              :attributes $ {}
+                :radius $ map data
+                  fn (info) (&map:get info :radius)
+                :depth $ map data
+                  fn (info) (&map:get info :depth)
+                :angle $ map data
+                  fn (info) (&map:get info :angle)
+                :index $ map data
+                  fn (info) (&map:get info :index)
+        |tiny-cube-object $ quote
+          defn tiny-cube-object (v)
+            let
+                geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
+                indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
+                position $ []
+                  + 400 $ * v 10
+                  , 400 -1200
+              object $ {} (:draw-mode :lines)
+                :vertex-shader $ inline-shader "\"shape.vert"
+                :fragment-shader $ inline-shader "\"shape.frag"
+                :points $ map geo
+                  fn (p)
+                    -> p
+                      map $ fn (i) (* i 40)
+                      &v+ position
+                :indices indices
+                :hit-region $ {} (:position position) (:radius 20)
+                  :on-hit $ fn (e d!) (d! :cube-right 0)
+                  :on-mousedown $ fn (e d!) (js/console.log "\"mouse down" e)
+                    reset! *prev-mouse-x $ .-clientX e
+                  :on-mousemove $ fn (e d!) (js/console.log "\"mouse move" e)
+                    let
+                        x $ .-clientX e
+                      d! :city-spin $ - x @*prev-mouse-x
+                      reset! *prev-mouse-x x
+                  :on-mouseup $ fn (e d!) (js/console.log "\"mouseup" e)
         |tree-object $ quote
           defn tree-object () $ let
               vs $ range 0 400
@@ -153,7 +268,7 @@
                         * (pow ri 1.4) 0.2 $ sin (* i dt)
                 prepend $ [] 0 0 0
               indices $ -> vs
-                map  $ fn (i)
+                map $ fn (i)
                   let
                       v $ * i 2
                     [] v (+ v 1) (+ v 2)
@@ -163,6 +278,7 @@
                   let
                       v $ + 40 (* dr i)
                     [] v v v
+                &list:flatten
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"tree.vert"
               :fragment-shader $ inline-shader "\"tree.frag"
@@ -175,6 +291,7 @@
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object
+          triadica.math :refer $ &v+
     |triadica.config $ {}
       :defs $ {}
         |dev? $ quote
@@ -184,7 +301,10 @@
         |inline-shader $ quote
           defmacro inline-shader (name)
             read-file $ str "\"shaders/" name
-      :ns $ quote (ns triadica.config)
+        |mobile? $ quote
+          def mobile? $ .!mobile (new mobile-detect js/window.navigator.userAgent)
+      :ns $ quote
+        ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
     |triadica.core $ {}
       :defs $ {}
         |*tmp-changes $ quote (defatom *tmp-changes nil)
@@ -197,7 +317,7 @@
                   let
                       pps $ &list:flatten points
                       num $ count p0
-                      position-array $ .!createAugmentedTypedArray twgl/primitives num (count pps)
+                      position-array $ .!createAugmentedTypedArray twgl/primitives num (count points)
                     loop
                         idx 0
                         xs pps
@@ -227,35 +347,135 @@
               do (js/console.log "\"unknown type in:" tree) ([])
               :group $ mapcat (:children tree) flatten-objects
               :object $ [] tree
-        |load-objects! $ quote
-          defn load-objects! (tree)
+        |handle-screen-click! $ quote
+          defn handle-screen-click! (event)
             let
-                objects $ flatten-objects tree
+                x $ &- (.-clientX event) (* 0.5 js/window.innerWidth)
+                y $ negate
+                  &- (.-clientY event) (* 0.5 js/window.innerHeight)
+                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
+                touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
+                back-cone-scale 2
+              traverse-tree @*objects-tree ([])
+                fn (obj coord)
+                  if-let
+                    region $ :hit-region obj
+                    let
+                        mapped-position $ transform-3d (:position region)
+                        screen-position $ map mapped-position
+                          fn (p) (&* p scale-radio)
+                        r $ nth mapped-position 2
+                        mapped-radius $ * scale-radio (:radius region)
+                          &/ back-cone-scale $ &+ r back-cone-scale
+                        distance $ c-distance screen-position ([] x y)
+                      ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
+                      if
+                        and
+                          <= distance $ &max touch-deviation mapped-radius
+                          noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
+                        let
+                            on-hit $ :on-hit region
+                          on-hit event @*proxied-dispatch
+        |handle-screen-mousedown! $ quote
+          defn handle-screen-mousedown! (event)
+            let
+                x $ &- (.-clientX event) (* 0.5 js/window.innerWidth)
+                y $ negate
+                  &- (.-clientY event) (* 0.5 js/window.innerHeight)
+                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
+                touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
+                back-cone-scale 2
+              traverse-tree @*objects-tree ([])
+                fn (obj coord)
+                  if-let
+                    region $ :hit-region obj
+                    let
+                        mapped-position $ transform-3d (:position region)
+                        screen-position $ map mapped-position
+                          fn (p) (&* p scale-radio)
+                        r $ nth mapped-position 2
+                        mapped-radius $ * scale-radio (:radius region)
+                          &/ back-cone-scale $ &+ r back-cone-scale
+                        distance $ c-distance screen-position ([] x y)
+                      ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
+                      if
+                        and
+                          <= distance $ &max touch-deviation mapped-radius
+                          noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
+                        let
+                            on-mousedown $ :on-mousedown region
+                          on-mousedown event @*proxied-dispatch
+                          swap! *mouse-holding-paths conj coord
+        |handle-screen-mousemove! $ quote
+          defn handle-screen-mousemove! (event)
+            let
+                paths @*mouse-holding-paths
+              if
+                not $ empty? paths
+                &doseq (p paths)
+                  if-let
+                    node $ load-tree-node @*objects-tree p
+                    if
+                      = :object $ :type node
+                      if-let
+                        on-move $ get-in node ([] :hit-region :on-mousemove)
+                        on-move event @*proxied-dispatch
+        |handle-screen-mouseup! $ quote
+          defn handle-screen-mouseup! (event) (; println "\"mouse up" @*mouse-holding-paths)
+            let
+                paths @*mouse-holding-paths
+              if-not (empty? paths)
+                do
+                  &doseq (p paths)
+                    if-let
+                      node $ load-tree-node @*objects-tree p
+                      if
+                        = :object $ :type node
+                        if-let
+                          on-up $ get-in node ([] :hit-region :on-mouseup)
+                          on-up event @*proxied-dispatch
+                  reset! *mouse-holding-paths $ []
+        |load-objects! $ quote
+          defn load-objects! (tree dispatch!)
+            let
                 gl @*gl-context
+              reset! *objects-tree tree
               reset! *objects-buffer $ []
-              &doseq (obj objects) (; js/console.log obj)
-                let
-                    vs $ :vertex-shader obj
-                    fs $ :fragment-shader obj
-                    arrays $ let
-                        ret $ js-object
-                          :position $ create-attribute-array (:points obj)
-                          :indices $ if-let
-                            ys $ :indices obj
-                            js-array & ys
-                            , js/undefined
-                        attrs $ :attributes obj
-                      if-not (empty? attrs)
-                        &doseq
-                          entry $ .to-list attrs
-                          aset ret
-                            turn-string $ nth entry 0
-                            create-attribute-array $ nth entry 1
-                      w-js-log ret
-                    program-info $ twgl/createProgramInfo gl (js-array vs fs)
-                    buffer-info $ twgl/createBufferInfoFromArrays gl arrays
-                  swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
-                    :draw-mode $ :draw-mode obj
+              reset! *proxied-dispatch dispatch!
+              traverse-tree tree ([])
+                fn (obj coord) (; js/console.log obj)
+                  let
+                      vs $ :vertex-shader obj
+                      fs $ :fragment-shader obj
+                      arrays $ let
+                          ret $ let
+                              ret $ js-object
+                            if-let
+                              points $ :points obj
+                              set! (.-position ret) (create-attribute-array points)
+                            if-let
+                              ys $ :indices obj
+                              set! (.-indices ret) (js-array & ys)
+                            , ret
+                          attrs $ :attributes obj
+                        if-not (empty? attrs)
+                          &doseq
+                            entry $ .to-list attrs
+                            aset ret
+                              turn-string $ nth entry 0
+                              create-attribute-array $ nth entry 1
+                        wo-js-log ret
+                      program-info $ twgl/createProgramInfo gl (js-array vs fs)
+                      buffer-info $ twgl/createBufferInfoFromArrays gl arrays
+                    swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
+                      :draw-mode $ :draw-mode obj
+        |load-tree-node $ quote
+          defn load-tree-node (tree path)
+            if (empty? path) tree $ if-let
+              children $ :children tree
+              recur
+                nth children $ first path
+                rest path
         |move-viewer-by! $ quote
           defn move-viewer-by! (x0 y0 z0)
             let-sugar
@@ -345,6 +565,7 @@
                   :cameraPosition $ js-array & @*viewer-position
                   :coneBackScale 2
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
+                  :citySpin $ wo-log (:spin-city @*uniform-data)
               twgl/resizeCanvasToDisplaySize $ .-canvas gl
               .!viewport gl 0 0.0 (-> gl .-canvas .-width)
                 -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
@@ -375,8 +596,16 @@
                     :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
+                    :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
         |rotate-viewer-by! $ quote
           defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
+        |setup-mouse-events! $ quote
+          defn setup-mouse-events! (canvas)
+            set! (.-onclick canvas) handle-screen-click!
+            set! (.-onpointerdown canvas) handle-screen-mousedown!
+            set! (.-onpointermove canvas) handle-screen-mousemove!
+            set! (.-onpointerup canvas) handle-screen-mouseup!
+            set! (.-onpointerleave canvas) handle-screen-mouseup!
         |shift-viewer-by! $ quote
           defn shift-viewer-by! (x)
             if (= x false) (reset! *viewer-y-shift 0)
@@ -418,22 +647,38 @@
                     * $ js/Math.sin angle
                     negate
               -> from-x (&v+ from-y) (&v+ from-z)
+        |traverse-tree $ quote
+          defn traverse-tree (tree coord cb)
+            when (some? tree)
+              if
+                = :object $ :type tree
+                cb (dissoc tree :children) coord
+              if-let
+                children $ :children tree
+                map-indexed children $ fn (idx child)
+                  traverse-tree child (conj coord idx) cb
       :ns $ quote
         ns quatrefoil.core $ :require
           touch-control.core :refer $ render-control!
-          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context
+          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths *uniform-data
           triadica.render :refer $ render-canvas!
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
-          triadica.math :refer $ &v+ &v-
-          triadica.config :refer $ half-pi
+          triadica.math :refer $ &v+ &v- transform-3d c-distance
+          triadica.config :refer $ half-pi mobile?
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
+        |*mouse-holding-paths $ quote
+          defatom *mouse-holding-paths $ noted "\"handling move events" ([])
         |*objects-buffer $ quote
           defatom *objects-buffer $ []
-        |*shader-object $ quote
-          defatom *shader-object $ {} (:program nil) (:buffer nil)
+        |*objects-tree $ quote
+          defatom *objects-tree $ noted "\"tree for rendering and events" nil
+        |*proxied-dispatch $ quote
+          defatom *proxied-dispatch $ fn (op data) (js/console.log "\"not rendered yet")
+        |*uniform-data $ quote
+          defatom *uniform-data $ {} (:spin-city 0)
         |*viewer-angle $ quote
           defatom *viewer-angle $ &/ &PI 2
         |*viewer-position $ quote
@@ -474,6 +719,15 @@
           defn &v- (a b)
             let[] (x y z) a $ let[] (x2 y2 z2) b
               [] (&- x x2) (&- y y2) (&- z z2)
+        |c-distance $ quote
+          defn c-distance (p1 p2)
+            let-sugar
+                  [] x y
+                  , p1
+                ([] a b) p2
+              sqrt $ +
+                pow (- x a) 2
+                pow (- y b) 2
         |square $ quote
           defn square (x) (&* x x)
         |sum-squares $ quote
@@ -481,16 +735,12 @@
             &+ (&* a a) (&* b b)
         |transform-3d $ quote
           defn transform-3d (p0)
-            let
+            let-sugar
                 point $ &v- p0 @*viewer-position
                 look-distance $ wo-log (new-lookat-point)
-                s $ noted "\"back size of light cone?" 2
-                x $ nth point 0
-                y $ nth point 1
-                z $ nth point 2
-                a $ nth look-distance 0
-                b $ nth look-distance 1
-                c $ nth look-distance 2
+                s $ noted "\"size factor of light cone in negative direction" 2
+                ([] x y z) point
+                ([] a b c) look-distance
                 r $ /
                   + (* a x) (* b y) (* c z)
                   + (square a) (square b) (square c)
@@ -511,12 +761,13 @@
                       * y' $ / (* -1 a b) L1
                     , c -1
                   sqrt $ sum-squares a c
-                z' $ negate r
+                z' r
               ; println $ [] x' y' z'
-              -> ([] x' y' z')
+              ; -> ([] x' y' z')
                 update 1 $ fn (v)
                   -> v (/ js/window.innerHeight) (* js/window.innerWidth)
                 map $ fn (p) p
+              [] x' y' z'
       :ns $ quote
         ns triadica.math $ :require
           triadica.core :refer $ new-lookat-point &v- &v+
