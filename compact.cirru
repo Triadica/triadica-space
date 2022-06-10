@@ -62,10 +62,11 @@
         |render-app! $ quote
           defn render-app! ()
             load-objects!
-              group ({}) (; cubes-object) (; bg-object) (; tree-object)
-                tiny-cube-object $ :v @*store
+              group ({}) (axis-object) (; cubes-object) (; bg-object) (; tree-object)
+                ; tiny-cube-object $ :v @*store
                 ; curve-ball
-                spin-city
+                ; spin-city
+                fiber-bending
               , dispatch!
             render-canvas!
       :ns $ quote
@@ -76,11 +77,17 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
         |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
+        |axis-object $ quote
+          defn axis-object () $ object
+            {} (:draw-mode :lines)
+              :vertex-shader $ inline-shader "\"shape.vert"
+              :fragment-shader $ inline-shader "\"shape.frag"
+              :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
         |bg-object $ quote
           defn bg-object () $ let
               size 50
@@ -162,6 +169,47 @@
               :attributes $ {}
                 :radian $ -> radians
                   mapcat $ fn (i) ([] i i i i i i)
+        |fiber-bending $ quote
+          defn fiber-bending () $ let
+              size 60
+              radius 200
+              segments $ -> (range size)
+                mapcat $ fn (i)
+                  let
+                      ri $ &/ i size
+                      angle $ * &PI ri
+                      rw $ &* radius (sin angle)
+                      rh $ &* radius (cos angle)
+                      point-size $ &+ 10 (pow rw 1)
+                    -> (range point-size)
+                      mapcat $ fn (j)
+                        let
+                            rj $ &/ j point-size
+                            rj+1 $ &/ (inc j) point-size
+                          []
+                            {}
+                              :x $ &* rw
+                                cos (* rj 2 &PI) 
+                              :z $ &* rw
+                                sin (* rj 2 &PI) 
+                              :y rh
+                              :i i
+                            {}
+                              :x $ &* rw
+                                cos $ * rj+1 2 &PI
+                              :z $ &* rw
+                                sin $ * rj+1 2 &PI
+                              :y rh
+                              :i i
+            object $ {} (:draw-mode :lines)
+              :vertex-shader $ inline-shader "\"fiber-bending.vert"
+              :fragment-shader $ inline-shader "\"fiber-bending.frag"
+              :points $ map segments
+                fn (info)
+                  [] (:x info) (:y info) (:z info)
+              :attributes $ {}
+                :i $ map segments
+                  fn (info) (:i info)
         |move-point $ quote
           defn move-point (p)
             -> p
