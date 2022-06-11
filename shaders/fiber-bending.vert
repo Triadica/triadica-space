@@ -6,7 +6,6 @@ uniform float viewportRatio;
 uniform vec3 cameraPosition;
 
 attribute vec3 a_position;
-attribute float a_i;
 
 varying float v_r;
 varying float v_s;
@@ -66,8 +65,8 @@ void main() {
 
   v_s = result.s;
   v_r = result.r;
-  v_i = a_i;
+  v_i = atan(length(vec2(a_position.x, a_position.z)), a_position.y);
 
-  gl_Position = vec4(pos_next * 0.001, 1.0);
+  gl_Position = vec4(pos_next * 0.002, 1.0);
   // gl_Position = vec4(a_position/10000.0, 1.0);
 }

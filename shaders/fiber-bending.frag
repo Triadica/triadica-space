@@ -47,6 +47,8 @@ vec3 hsl2rgb(float h, float s, float l) {
     return hsl2rgb(vec3(h, s, l));
 }
 
+const float PI = 3.14159265358979323846;
+
 void main() {
   if (v_r > (-0.8 * v_s)) {
     // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
@@ -61,8 +63,14 @@ void main() {
   }
 
   // float vv = 1.0/z;
-  vec3 color = hsl2rgb(v_i / 60.0, 0.9, 0.7);
-  gl_FragColor = vec4(color, 1.0);
+  vec3 color = hsl2rgb(v_i / PI, 0.9, 0.7);
+  float br = fract(v_i * 40.0);
+  if (br > 0.2) {
+    br = 1.0;
+  } else {
+    br = 0.0;
+  }
+  gl_FragColor = vec4(color * br, 1.0);
   // gl_FragColor = vec4(vv, vv, vv, 1.0);
 
 }
