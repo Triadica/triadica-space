@@ -174,8 +174,9 @@
                   mapcat $ fn (i) ([] i i i i i i)
         |fiber-bending $ quote
           defn fiber-bending () $ let
-              size 80
+              size 300
               radius 200
+              seg-size 300
               segments $ -> (range size)
                 map $ fn (i)
                   let
@@ -183,7 +184,6 @@
                       angle $ * &PI ri
                       rw $ &* radius (sin angle)
                       rh $ &* radius (cos angle)
-                      seg-size 80
                       ; point-size $ noted
                         &+ 1 $ pow rw 0.5
                         , 20
@@ -221,7 +221,7 @@
               :vertex-shader $ inline-shader "\"fiber-bending.vert"
               :fragment-shader $ inline-shader "\"fiber-bending.frag"
               :points $ %{} %nested-attribute
-                :length $ * 18 80 (count segments)
+                :length $ * 18 seg-size (count segments)
                 :augment 3
                 :data segments
         |move-point $ quote

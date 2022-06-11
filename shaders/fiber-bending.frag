@@ -63,14 +63,18 @@ void main() {
   }
 
   // float vv = 1.0/z;
-  vec3 color = hsl2rgb(v_i / PI, 0.9, 0.7);
-  float br = fract(v_i * 40.0);
-  if (br > 0.2) {
-    br = 1.0;
+  float h = v_i / PI;
+
+  if (fract(h * 8.0) > 0.22) {
+    gl_FragColor = vec4(hsl2rgb(h * 0.2 + 0.6, 0.6, 0.8), 1.0);
+    // gl_FragColor = vec4(0.6, 0.4, 0.9, 1.0);
   } else {
-    br = 0.0;
+    gl_FragColor = vec4(hsl2rgb(h * 0.22 + 0.6, 0.9, 0.76), 1.0);
+    // gl_FragColor = vec4(0.96, 0.96, 0.50, 1.0);
   }
-  gl_FragColor = vec4(color * br, 1.0);
+
+//   vec3 color = hsl2rgb(sin(h * 40.0 * 2.0 * PI) * 0.5 + 0.5, 0.6, 0.7);
+//   gl_FragColor = vec4(color, 1.0);
   // gl_FragColor = vec4(vv, vv, vv, 1.0);
 
 }

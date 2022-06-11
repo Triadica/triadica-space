@@ -1345,11 +1345,15 @@
                       |D $ {} (:at 1654889201274) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1654889202611) (:by |u0) (:text |size) (:type :leaf)
-                          |b $ {} (:at 1654956103367) (:by |u0) (:text |80) (:type :leaf)
+                          |b $ {} (:at 1654958514762) (:by |u0) (:text |300) (:type :leaf)
                       |L $ {} (:at 1654889244482) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1654889246088) (:by |u0) (:text |radius) (:type :leaf)
-                          |b $ {} (:at 1654890894407) (:by |u0) (:text |200) (:type :leaf)
+                          |b $ {} (:at 1654958516595) (:by |u0) (:text |200) (:type :leaf)
+                      |P $ {} (:at 1654957266200) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1654957266200) (:by |u0) (:text |seg-size) (:type :leaf)
+                          |b $ {} (:at 1654958519004) (:by |u0) (:text |300) (:type :leaf)
                       |T $ {} (:at 1654888950190) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1654889180103) (:by |u0) (:text |segments) (:type :leaf)
@@ -1412,10 +1416,6 @@
                                                         :data $ {}
                                                           |T $ {} (:at 1654889558419) (:by |u0) (:text |cos) (:type :leaf)
                                                           |b $ {} (:at 1654889581590) (:by |u0) (:text |angle) (:type :leaf)
-                                              |j $ {} (:at 1654949277001) (:by |u0) (:type :expr)
-                                                :data $ {}
-                                                  |T $ {} (:at 1654949280929) (:by |u0) (:text |seg-size) (:type :leaf)
-                                                  |b $ {} (:at 1654949340659) (:by |u0) (:text |80) (:type :leaf)
                                               |l $ {} (:at 1654889609155) (:by |u0) (:type :expr)
                                                 :data $ {}
                                                   |D $ {} (:at 1654949291438) (:by |u0) (:text |;) (:type :leaf)
@@ -1704,7 +1704,7 @@
                                         :data $ {}
                                           |T $ {} (:at 1654955732208) (:by |u0) (:text |*) (:type :leaf)
                                           |b $ {} (:at 1654955733921) (:by |u0) (:text |18) (:type :leaf)
-                                          |e $ {} (:at 1654956017772) (:by |u0) (:text |80) (:type :leaf)
+                                          |e $ {} (:at 1654957272704) (:by |u0) (:text |seg-size) (:type :leaf)
                                           |h $ {} (:at 1654955734567) (:by |u0) (:type :expr)
                                             :data $ {}
                                               |T $ {} (:at 1654955735271) (:by |u0) (:text |count) (:type :leaf)
