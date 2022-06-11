@@ -34,8 +34,10 @@
                 if (some? next) (reset! *store next)
         |handle-size! $ quote
           defn handle-size! (canvas)
-            -> canvas .-width $ set! js/window.innerWidth
-            -> canvas .-height $ set! js/window.innerHeight
+            ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
+            ; -> canvas .-height $ set! (&* dpr js/window.innerHeight)
+            -> canvas .-style .-width $ set! (str js/window.innerWidth "\"px")
+            -> canvas .-style .-height $ set! (str js/window.innerHeight "\"px")
         |main! $ quote
           defn main! ()
             if dev? $ load-console-formatter!
@@ -43,6 +45,7 @@
             inject-hud!
             handle-size! canvas
             reset! *gl-context $ .!getContext canvas "\"webgl"
+              js-object $ :antialias true
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
@@ -62,7 +65,7 @@
         |render-app! $ quote
           defn render-app! ()
             load-objects!
-              group ({}) (axis-object) (; cubes-object) (; bg-object) (; tree-object)
+              group ({}) (; axis-object) (; cubes-object) (; bg-object) (; tree-object)
                 ; tiny-cube-object $ :v @*store
                 ; curve-ball
                 ; spin-city
@@ -71,7 +74,7 @@
             render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
-          triadica.config :refer $ dev?
+          triadica.config :refer $ dev? dpr
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
@@ -171,7 +174,7 @@
                   mapcat $ fn (i) ([] i i i i i i)
         |fiber-bending $ quote
           defn fiber-bending () $ let
-              size 60
+              size 40
               radius 200
               segments $ -> (range size)
                 mapcat $ fn (i)
@@ -344,6 +347,7 @@
       :defs $ {}
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
+        |dpr $ quote (def dpr js/window.devicePixelRatio)
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
         |inline-shader $ quote
@@ -614,9 +618,8 @@
                   :coneBackScale 2
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
                   :citySpin $ wo-log (:spin-city @*uniform-data)
-              twgl/resizeCanvasToDisplaySize $ .-canvas gl
-              .!viewport gl 0 0.0 (-> gl .-canvas .-width)
-                -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
+              twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
+              .!viewport gl 0 0.0 (* dpr js/window.innerWidth) (* dpr js/window.innerHeight) (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
               ; .!depthFunc gl $ .-GREATER gl
@@ -713,7 +716,7 @@
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- transform-3d c-distance
-          triadica.config :refer $ half-pi mobile?
+          triadica.config :refer $ half-pi mobile? dpr
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
