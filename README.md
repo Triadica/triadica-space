@@ -77,7 +77,7 @@ gl_Position = vec4(pos_next * 0.0002, 1.0);
 
 ### Naming
 
-The name project form can from:
+The name project named with "Triadica sebifera":
 
 ![triadica](./assets/triadica.jpg)
 

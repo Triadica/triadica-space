@@ -143,11 +143,11 @@
           defn curve-ball () $ let
               r 320
               size 3000
-              radians $ -> size range
+              radians $ -> (range size)
                 map $ fn (t)
                   * 2 &PI t $ / size
-              geo $ -> size range
-                mapcat $ fn (i)
+              geo $ -> (range size)
+                map $ fn (i)
                   let
                       t $ &/ (* 2 &PI i) size
                       t' $ &/
@@ -168,10 +168,14 @@
             object $ {} (:draw-mode :triangles) (; :draw-mode :line-strip)
               :vertex-shader $ inline-shader "\"curve-ball.vert"
               :fragment-shader $ inline-shader "\"curve-ball.frag"
-              :points $ wo-log geo
+              :points $ %{} %nested-attribute (:augment 3)
+                :length $ * 6 size
+                :data geo
               :attributes $ {}
-                :radian $ -> radians
-                  mapcat $ fn (i) ([] i i i i i i)
+                :radian $ %{} %nested-attribute (:augment 1)
+                  :length $ * 6 size
+                  :data $ -> radians
+                    map $ fn (i) ([] i i i i i i)
         |fiber-bending $ quote
           defn fiber-bending () $ let
               size 300
@@ -221,7 +225,7 @@
               :vertex-shader $ inline-shader "\"fiber-bending.vert"
               :fragment-shader $ inline-shader "\"fiber-bending.frag"
               :points $ %{} %nested-attribute
-                :length $ * 18 seg-size (count segments)
+                :length $ * 6 seg-size (count segments)
                 :augment 3
                 :data segments
         |move-point $ quote
@@ -357,7 +361,7 @@
           triadica.core :refer $ %nested-attribute
     |triadica.config $ {}
       :defs $ {}
-        |back-cone-scale $ quote (def back-cone-scale 2)
+        |back-cone-scale $ quote (def back-cone-scale 1)
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
         |dpr $ quote (def dpr js/window.devicePixelRatio)
@@ -383,15 +387,18 @@
                   augment $ :augment points
                   length $ :length points
                   data $ :data points
+                  total $ * augment length
                   position-array $ .!createAugmentedTypedArray twgl/primitives augment length
                   write-array! $ fn (v)
                     let
                         i @*local-array-counter
-                      if (>= i length) (raise "\"too large index to write for augmented array")
+                      if (>= i total)
+                        raise $ str "\"too large index to write for augmented array:" i "\" >= " total
                       aset position-array i v
                     swap! *local-array-counter inc
                 reset! *local-array-counter 0
                 mutably-write-array! data write-array!
+                if (not= @*local-array-counter total) (js/console.warn "\"expected size" @*local-array-counter "\"written to array with size" total)
                 , position-array
               let
                   p0 $ first points
@@ -436,7 +443,7 @@
                 x $ &- (.-clientX event) (* 0.5 js/window.innerWidth)
                 y $ negate
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
-                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.002 0.5 js/window.innerWidth)
+                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
               traverse-tree @*objects-tree ([])
                 fn (obj coord)

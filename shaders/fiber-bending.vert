@@ -101,7 +101,7 @@ void main() {
   vec3 p = a_position;
   // p = spin(p, vec3(0.0, 320.0, 0.0), 26000.8, 320.0);
   p = spin(p, vec3(0.0, 0.0, 320.0), 6000.8, 320.0);
-  p = spin(p, vec3(320.0, 0.0, 0.0), 16000.8, 320.0);
+  p = spin(p, vec3(320.0, 0.0, 0.0), 8000.8, 320.0);
   p = spin(p, vec3(400.0, 0.0, 0.0), 1020.8, 180.0);
   p = spin(p, vec3(-110.0, 20.0, 222.0), -4000.4, 180.0);
   // p = spin(p, vec3(200.0, 300.0, 102.0), 2300.4, 280.0);
@@ -117,6 +117,6 @@ void main() {
   v_r = result.r;
   v_i = atan(length(vec2(a_position.x, a_position.z)), a_position.y);
 
-  gl_Position = vec4(pos_next * 0.002, 1.0);
+  gl_Position = vec4(pos_next * 0.001, 1.0);
   // gl_Position = vec4(a_position/10000.0, 1.0);
 }
