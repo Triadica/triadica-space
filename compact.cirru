@@ -69,7 +69,8 @@
                 ; tiny-cube-object $ :v @*store
                 ; curve-ball
                 ; spin-city
-                fiber-bending
+                ; fiber-bending
+                plate-bending
               , dispatch!
             render-canvas!
       :ns $ quote
@@ -80,7 +81,7 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
@@ -254,6 +255,54 @@
               update 0 $ fn (x) (- x 800)
               update 1 $ fn (y) (- y 800)
               update 2 $ fn (z) (- z 1600)
+        |plate-bending $ quote
+          defn plate-bending () $ let
+              size 600
+              radius 400
+              seg-size 600
+              segments $ -> (range size)
+                map $ fn (i)
+                  let
+                      ri $ &/ i size
+                      rw $ &* radius ri
+                      ; point-size $ noted
+                        &+ 1 $ pow rw 0.5
+                        , 20
+                      ri+1 $ &/ (inc i) size
+                      rw-next $ &* radius ri+1
+                    -> (range seg-size)
+                      map $ fn (j)
+                        let
+                            rj $ &/ j seg-size
+                            rj+1 $ &/ (inc j) seg-size
+                            rj-next $ &/ j seg-size
+                            rj+1-next $ &/ (inc j) seg-size
+                            p0 $ []
+                              &* rw $ cos (* rj 2 &PI)
+                              , 0
+                                &* rw $ sin (* rj 2 &PI)
+                            p4 $ []
+                              &* rw-next $ cos (* rj+1-next 2 &PI)
+                              , 0
+                                &* rw-next $ sin (* rj+1-next 2 &PI)
+                          [] p0
+                            []
+                              &* rw $ cos (* rj+1 2 &PI)
+                              , 0 $ &* rw
+                                sin $ * rj+1 2 &PI
+                            , p4 p0
+                              []
+                                &* rw-next $ cos (* rj-next 2 &PI)
+                                , 0 $ &* rw-next
+                                  sin $ * rj-next 2 &PI
+                              , p4
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"plate-bending.vert"
+              :fragment-shader $ inline-shader "\"plate-bending.frag"
+              :points $ %{} %nested-attribute
+                :length $ * 6 seg-size (count segments)
+                :augment 3
+                :data segments
         |spin-city $ quote
           defn spin-city () $ let
               seed $ [] ([] 4 1) ([] 5 1) ([] 6 2) ([] 8 1) ([] 9 3) ([] 12 1) ([] 13 1) ([] 14 2) ([] 16 2)
