@@ -34,8 +34,10 @@
                 if (some? next) (reset! *store next)
         |handle-size! $ quote
           defn handle-size! (canvas)
-            -> canvas .-width $ set! js/window.innerWidth
-            -> canvas .-height $ set! js/window.innerHeight
+            ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
+            ; -> canvas .-height $ set! (&* dpr js/window.innerHeight)
+            -> canvas .-style .-width $ set! (str js/window.innerWidth "\"px")
+            -> canvas .-style .-height $ set! (str js/window.innerHeight "\"px")
         |main! $ quote
           defn main! ()
             if dev? $ load-console-formatter!
@@ -43,6 +45,7 @@
             inject-hud!
             handle-size! canvas
             reset! *gl-context $ .!getContext canvas "\"webgl"
+              js-object $ :antialias true
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
@@ -62,25 +65,34 @@
         |render-app! $ quote
           defn render-app! ()
             load-objects!
-              group ({}) (; cubes-object) (; bg-object) (; tree-object)
-                tiny-cube-object $ :v @*store
+              group ({}) (; axis-object) (; cubes-object) (; bg-object) (; tree-object)
+                ; tiny-cube-object $ :v @*store
                 ; curve-ball
-                spin-city
+                ; spin-city
+                ; fiber-bending
+                ; plate-bending
+                mushroom-object
               , dispatch!
             render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
-          triadica.config :refer $ dev?
+          triadica.config :refer $ dev? dpr
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
         |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
+        |axis-object $ quote
+          defn axis-object () $ object
+            {} (:draw-mode :lines)
+              :vertex-shader $ inline-shader "\"shape.vert"
+              :fragment-shader $ inline-shader "\"shape.frag"
+              :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
         |bg-object $ quote
           defn bg-object () $ let
               size 50
@@ -133,11 +145,11 @@
           defn curve-ball () $ let
               r 320
               size 3000
-              radians $ -> size range
+              radians $ -> (range size)
                 map $ fn (t)
                   * 2 &PI t $ / size
-              geo $ -> size range
-                mapcat $ fn (i)
+              geo $ -> (range size)
+                map $ fn (i)
                   let
                       t $ &/ (* 2 &PI i) size
                       t' $ &/
@@ -158,10 +170,66 @@
             object $ {} (:draw-mode :triangles) (; :draw-mode :line-strip)
               :vertex-shader $ inline-shader "\"curve-ball.vert"
               :fragment-shader $ inline-shader "\"curve-ball.frag"
-              :points $ wo-log geo
+              :points $ %{} %nested-attribute (:augment 3)
+                :length $ * 6 size
+                :data geo
               :attributes $ {}
-                :radian $ -> radians
-                  mapcat $ fn (i) ([] i i i i i i)
+                :radian $ %{} %nested-attribute (:augment 1)
+                  :length $ * 6 size
+                  :data $ -> radians
+                    map $ fn (i) ([] i i i i i i)
+        |fiber-bending $ quote
+          defn fiber-bending () $ let
+              size 300
+              radius 200
+              seg-size 300
+              segments $ -> (range size)
+                map $ fn (i)
+                  let
+                      ri $ &/ i size
+                      angle $ * &PI ri
+                      rw $ &* radius (sin angle)
+                      rh $ &* radius (cos angle)
+                      ; point-size $ noted
+                        &+ 1 $ pow rw 0.5
+                        , 20
+                      ri+1 $ &/ (inc i) size
+                      angle-next $ * &PI ri+1
+                      rw-next $ &* radius (sin angle-next)
+                      rh-next $ &* radius (cos angle-next)
+                    -> (range seg-size)
+                      map $ fn (j)
+                        let
+                            rj $ &/ j seg-size
+                            rj+1 $ &/ (inc j) seg-size
+                            rj-next $ &/ j seg-size
+                            rj+1-next $ &/ (inc j) seg-size
+                            p0 $ []
+                              &* rw $ cos (* rj 2 &PI)
+                              , rh
+                                &* rw $ sin (* rj 2 &PI)
+                            p4 $ []
+                              &* rw-next $ cos (* rj+1-next 2 &PI)
+                              , rh-next
+                                &* rw-next $ sin (* rj+1-next 2 &PI)
+                          [] p0
+                            []
+                              &* rw $ cos (* rj+1 2 &PI)
+                              , rh $ &* rw
+                                sin $ * rj+1 2 &PI
+                            , p4 p0
+                              []
+                                &* rw-next $ cos (* rj-next 2 &PI)
+                                , rh-next $ &* rw-next
+                                  sin $ * rj-next 2 &PI
+                              , p4
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"fiber-bending.vert"
+              :fragment-shader $ inline-shader "\"fiber-bending.frag"
+              :points $ %{} %nested-attribute
+                :length $ * 6 seg-size (count segments)
+                :augment 3
+                :data segments
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -188,6 +256,110 @@
               update 0 $ fn (x) (- x 800)
               update 1 $ fn (y) (- y 800)
               update 2 $ fn (z) (- z 1600)
+        |mushroom-object $ quote
+          defn mushroom-object () $ let
+              size 200
+              radius 400
+              seg-size 1200
+              segments $ -> (range size)
+                map $ fn (i)
+                  let
+                      ri $ &/ i size
+                      rw $ &* radius ri
+                      ; point-size $ noted
+                        &+ 1 $ pow rw 0.5
+                        , 20
+                      ri+1 $ &/ (inc i) size
+                      rw-next $ &* radius ri+1
+                    -> (range seg-size)
+                      map $ fn (j)
+                        let
+                            rj $ &/ j seg-size
+                            rj+1 $ &/ (inc j) seg-size
+                            rj-next $ &/ j seg-size
+                            rj+1-next $ &/ (inc j) seg-size
+                            p0 $ []
+                              &* rw $ cos (* rj 2 &PI)
+                              , 0
+                                &* rw $ sin (* rj 2 &PI)
+                            p4 $ []
+                              &* rw-next $ cos (* rj+1-next 2 &PI)
+                              , 0
+                                &* rw-next $ sin (* rj+1-next 2 &PI)
+                          [] p0
+                            []
+                              &* rw $ cos (* rj+1 2 &PI)
+                              , 0 $ &* rw
+                                sin $ * rj+1 2 &PI
+                            , p4 p0
+                              []
+                                &* rw-next $ cos (* rj-next 2 &PI)
+                                , 0 $ &* rw-next
+                                  sin $ * rj-next 2 &PI
+                              , p4
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"mushroom.vert"
+              :fragment-shader $ inline-shader "\"mushroom.frag"
+              :points $ %{} %nested-attribute
+                :length $ * 6 seg-size (count segments)
+                :augment 3
+                :data segments
+              ; :attributes $ {}
+                :number $ %{} %nested-attribute
+                  :length $ * 3 6 seg-size (count segments)
+                  :augment 1
+                  :data $ []
+                    repeat 0 $ * 6 seg-size (count segments)
+                    repeat 1 $ * 6 seg-size (count segments)
+                    repeat 2 $ * 6 seg-size (count segments)
+        |plate-bending $ quote
+          defn plate-bending () $ let
+              size 600
+              radius 400
+              seg-size 600
+              segments $ -> (range size)
+                map $ fn (i)
+                  let
+                      ri $ &/ i size
+                      rw $ &* radius ri
+                      ; point-size $ noted
+                        &+ 1 $ pow rw 0.5
+                        , 20
+                      ri+1 $ &/ (inc i) size
+                      rw-next $ &* radius ri+1
+                    -> (range seg-size)
+                      map $ fn (j)
+                        let
+                            rj $ &/ j seg-size
+                            rj+1 $ &/ (inc j) seg-size
+                            rj-next $ &/ j seg-size
+                            rj+1-next $ &/ (inc j) seg-size
+                            p0 $ []
+                              &* rw $ cos (* rj 2 &PI)
+                              , 0
+                                &* rw $ sin (* rj 2 &PI)
+                            p4 $ []
+                              &* rw-next $ cos (* rj+1-next 2 &PI)
+                              , 0
+                                &* rw-next $ sin (* rj+1-next 2 &PI)
+                          [] p0
+                            []
+                              &* rw $ cos (* rj+1 2 &PI)
+                              , 0 $ &* rw
+                                sin $ * rj+1 2 &PI
+                            , p4 p0
+                              []
+                                &* rw-next $ cos (* rj-next 2 &PI)
+                                , 0 $ &* rw-next
+                                  sin $ * rj-next 2 &PI
+                              , p4
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"plate-bending.vert"
+              :fragment-shader $ inline-shader "\"plate-bending.frag"
+              :points $ %{} %nested-attribute
+                :length $ * 6 seg-size (count segments)
+                :augment 3
+                :data segments
         |spin-city $ quote
           defn spin-city () $ let
               seed $ [] ([] 4 1) ([] 5 1) ([] 6 2) ([] 8 1) ([] 9 3) ([] 12 1) ([] 13 1) ([] 14 2) ([] 16 2)
@@ -292,10 +464,13 @@
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object
           triadica.math :refer $ &v+
+          triadica.core :refer $ %nested-attribute
     |triadica.config $ {}
       :defs $ {}
+        |back-cone-scale $ quote (def back-cone-scale 1)
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
+        |dpr $ quote (def dpr js/window.devicePixelRatio)
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
         |inline-shader $ quote
@@ -307,40 +482,61 @@
         ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
     |triadica.core $ {}
       :defs $ {}
+        |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
+        |*local-array-counter $ quote (defatom *local-array-counter 0)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
         |create-attribute-array $ quote
           defn create-attribute-array (points)
-            let
-                p0 $ first points
-              cond
-                  list? p0
-                  let
-                      pps $ &list:flatten points
-                      num $ count p0
-                      position-array $ .!createAugmentedTypedArray twgl/primitives num (count points)
-                    loop
-                        idx 0
-                        xs pps
-                      if
-                        not $ empty? xs
-                        do
-                          aset position-array idx $ first xs
-                          recur (inc idx) (rest xs)
-                    , position-array
-                (number? p0)
-                  let
-                      position-array $ .!createAugmentedTypedArray twgl/primitives 1 (count points)
-                    loop
-                        idx 0
-                        xs points
-                      if
-                        not $ empty? xs
-                        do
-                          aset position-array idx $ first xs
-                          recur (inc idx) (rest xs)
-                    , position-array
-                true $ do (js/console.error "\"unknown attributes data:" points)
-                  .!createAugmentedTypedArray twgl/primitives 1 $ count points
+            if
+              and (record? points) (&record:matches? %nested-attribute points)
+              let
+                  augment $ :augment points
+                  length $ :length points
+                  data $ :data points
+                  total $ * augment length
+                  position-array $ .!createAugmentedTypedArray twgl/primitives augment length
+                  write-array! $ fn (v)
+                    let
+                        i @*local-array-counter
+                      if (>= i total)
+                        raise $ str "\"too large index to write for augmented array:" i "\" >= " total
+                      aset position-array i v
+                    swap! *local-array-counter inc
+                reset! *local-array-counter 0
+                mutably-write-array! data write-array!
+                if (not= @*local-array-counter total) (js/console.warn "\"expected size" @*local-array-counter "\"written to array with size" total)
+                , position-array
+              let
+                  p0 $ first points
+                cond
+                    list? p0
+                    let
+                        pps $ &list:flatten points
+                        num $ count p0
+                        position-array $ .!createAugmentedTypedArray twgl/primitives num (count points)
+                      loop
+                          idx 0
+                          xs pps
+                        if
+                          not $ empty? xs
+                          do
+                            aset position-array idx $ first xs
+                            recur (inc idx) (rest xs)
+                      , position-array
+                  (number? p0)
+                    let
+                        position-array $ .!createAugmentedTypedArray twgl/primitives 1 (count points)
+                      loop
+                          idx 0
+                          xs points
+                        if
+                          not $ empty? xs
+                          do
+                            aset position-array idx $ first xs
+                            recur (inc idx) (rest xs)
+                      , position-array
+                  true $ do (js/console.error "\"unknown attributes data:" points)
+                    .!createAugmentedTypedArray twgl/primitives 1 $ count points
         |flatten-objects $ quote
           defn flatten-objects (tree)
             case-default (:type tree)
@@ -355,7 +551,6 @@
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
                 scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
-                back-cone-scale 2
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   if-let
@@ -384,7 +579,6 @@
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
                 scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
-                back-cone-scale 2
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   if-let
@@ -488,6 +682,13 @@
               reset! *viewer-position $ [] x y z
               ; println ([] x0 y0 z0) |=> $ [] dx dy dz
               ; render-canvas
+        |mutably-write-array! $ quote
+          defn mutably-write-array! (data write-array!)
+            cond
+                list? data
+                &doseq (child data) (mutably-write-array! child write-array!)
+              (number? data) (write-array! data)
+              true $ raise "\"unknown data to write to augmented array"
         |new-lookat-point $ quote
           defn new-lookat-point () (; println "\"lookat" @*viewer-position @*viewer-angle)
             let-sugar
@@ -519,7 +720,7 @@
                   * 2 elapsed $ nth l-move 1
               when
                 not= 0 $ nth l-move 0
-                rotate-viewer-by! $ * -0.01 elapsed (nth l-move 0)
+                rotate-viewer-by! $ * -0.005 elapsed (nth l-move 0)
               when
                 and (not left-a?) (not left-b?)
                   not= ([] 0 0) r-move
@@ -563,12 +764,11 @@
                 uniforms $ js-object (:offsets offsets)
                   :lookPoint $ js-array & (new-lookat-point)
                   :cameraPosition $ js-array & @*viewer-position
-                  :coneBackScale 2
+                  :coneBackScale back-cone-scale
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
                   :citySpin $ wo-log (:spin-city @*uniform-data)
-              twgl/resizeCanvasToDisplaySize $ .-canvas gl
-              .!viewport gl 0 0.0 (-> gl .-canvas .-width)
-                -> gl .-canvas .-height (; / js/window.innerHeight) (; * js/window.innerWidth)
+              twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
+              .!viewport gl 0 0.0 (* dpr js/window.innerWidth) (* dpr js/window.innerHeight) (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
               ; .!depthFunc gl $ .-GREATER gl
@@ -665,7 +865,7 @@
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- transform-3d c-distance
-          triadica.config :refer $ half-pi mobile?
+          triadica.config :refer $ half-pi mobile? dpr back-cone-scale
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
@@ -738,7 +938,7 @@
             let-sugar
                 point $ &v- p0 @*viewer-position
                 look-distance $ wo-log (new-lookat-point)
-                s $ noted "\"size factor of light cone in negative direction" 2
+                s $ noted "\"size factor of light cone in negative direction" back-cone-scale
                 ([] x y z) point
                 ([] a b c) look-distance
                 r $ /
@@ -773,3 +973,4 @@
           triadica.core :refer $ new-lookat-point &v- &v+
           triadica.hud :refer $ hud-display
           triadica.global :refer $ *viewer-position
+          triadica.config :refer $ back-cone-scale
