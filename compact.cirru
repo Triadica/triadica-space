@@ -670,18 +670,6 @@
               recur
                 nth children $ first path
                 rest path
-        |move-viewer-by! $ quote
-          defn move-viewer-by! (x0 y0 z0)
-            let-sugar
-                  [] dx dy dz
-                  to-viewer-axis x0 y0 z0
-                position @*viewer-position
-                x $ &+ (nth position 0) dx
-                y $ &+ (nth position 1) dy
-                z $ &+ (nth position 2) dz
-              reset! *viewer-position $ [] x y z
-              ; println ([] x0 y0 z0) |=> $ [] dx dy dz
-              ; render-canvas
         |mutably-write-array! $ quote
           defn mutably-write-array! (data write-array!)
             cond
@@ -689,20 +677,6 @@
                 &doseq (child data) (mutably-write-array! child write-array!)
               (number? data) (write-array! data)
               true $ raise "\"unknown data to write to augmented array"
-        |new-lookat-point $ quote
-          defn new-lookat-point () (; println "\"lookat" @*viewer-position @*viewer-angle)
-            let-sugar
-                x2 $ &* 400 (cos @*viewer-angle)
-                z2 $ &* -400 (sin @*viewer-angle)
-                y2 $ &* 20 @*viewer-y-shift
-                l $ sqrt
-                  + (* x2 x2) (* y2 y2) (* z2 z2)
-              ; hud-display "\"angle" @*viewer-angle
-              ; hud-display "\"viewer-position" $ map @*viewer-position round
-              ; hud-display "\"y-shift" @*viewer-y-shift
-              map ([] x2 y2 z2)
-                fn (v)
-                  -> v (/ l) (* 600)
         |on-control-event $ quote
           defn on-control-event (elapsed states delta)
             let
@@ -797,8 +771,6 @@
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
-        |rotate-viewer-by! $ quote
-          defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
         |setup-mouse-events! $ quote
           defn setup-mouse-events! (canvas)
             set! (.-onclick canvas) handle-screen-click!
@@ -810,43 +782,6 @@
           defn shift-viewer-by! (x)
             if (= x false) (reset! *viewer-y-shift 0)
               swap! *viewer-y-shift &+ $ * 2 x
-        |to-viewer-axis $ quote
-          defn to-viewer-axis (x y z)
-            let
-                length $ sqrt
-                  + (pow x 2) (pow y 2) (pow z 2)
-                angle @*viewer-angle
-                project-distance 20
-                shift @*viewer-y-shift
-                v-angle $ js/Math.atan (/ shift project-distance)
-                from-y $ []
-                  -> y
-                    * $ js/Math.cos (+ v-angle half-pi)
-                    * $ js/Math.cos angle
-                  -> y $ *
-                    js/Math.sin $ + v-angle half-pi
-                  -> y
-                    * $ js/Math.cos (+ v-angle half-pi)
-                    * $ js/Math.sin angle
-                    negate
-                from-x $ wo-log
-                  []
-                    -> x $ *
-                      js/Math.cos $ - angle half-pi
-                    , 0 $ -> x
-                      * $ js/Math.sin (- angle half-pi)
-                      negate
-                from-z $ []
-                  -> z (negate)
-                    * $ js/Math.cos v-angle
-                    * $ js/Math.cos angle
-                  -> z (negate)
-                    * $ js/Math.sin v-angle
-                  -> z (negate)
-                    * $ js/Math.cos v-angle
-                    * $ js/Math.sin angle
-                    negate
-              -> from-x (&v+ from-y) (&v+ from-z)
         |traverse-tree $ quote
           defn traverse-tree (tree coord cb)
             when (some? tree)
@@ -860,11 +795,12 @@
       :ns $ quote
         ns quatrefoil.core $ :require
           touch-control.core :refer $ render-control!
-          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths *uniform-data
+          triadica.global :refer $ *viewer-angle *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths *uniform-data
+          triadica.perspective :refer $ *viewer-y-shift *viewer-position transform-3d new-lookat-point move-viewer-by! rotate-viewer-by!
           triadica.render :refer $ render-canvas!
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
-          triadica.math :refer $ &v+ &v- transform-3d c-distance
+          triadica.math :refer $ &v+ &v- c-distance
           triadica.config :refer $ half-pi mobile? dpr back-cone-scale
     |triadica.global $ {}
       :defs $ {}
@@ -879,11 +815,6 @@
           defatom *proxied-dispatch $ fn (op data) (js/console.log "\"not rendered yet")
         |*uniform-data $ quote
           defatom *uniform-data $ {} (:spin-city 0)
-        |*viewer-angle $ quote
-          defatom *viewer-angle $ &/ &PI 2
-        |*viewer-position $ quote
-          defatom *viewer-position $ [] 0 200 0
-        |*viewer-y-shift $ quote (defatom *viewer-y-shift 0)
       :ns $ quote (ns triadica.global)
     |triadica.hud $ {}
       :defs $ {}
@@ -933,6 +864,84 @@
         |sum-squares $ quote
           defn sum-squares (a b)
             &+ (&* a a) (&* b b)
+      :ns $ quote
+        ns triadica.math $ :require
+          triadica.core :refer $ new-lookat-point &v- &v+
+          triadica.hud :refer $ hud-display
+          triadica.global :refer $ *viewer-position
+          triadica.config :refer $ back-cone-scale
+    |triadica.perspective $ {}
+      :defs $ {}
+        |*viewer-angle $ quote
+          defatom *viewer-angle $ &/ &PI 2
+        |*viewer-position $ quote
+          defatom *viewer-position $ [] 0 200 0
+        |*viewer-y-shift $ quote (defatom *viewer-y-shift 0)
+        |move-viewer-by! $ quote
+          defn move-viewer-by! (x0 y0 z0)
+            let-sugar
+                  [] dx dy dz
+                  to-viewer-axis x0 y0 z0
+                position @*viewer-position
+                x $ &+ (nth position 0) dx
+                y $ &+ (nth position 1) dy
+                z $ &+ (nth position 2) dz
+              reset! *viewer-position $ [] x y z
+              ; println ([] x0 y0 z0) |=> $ [] dx dy dz
+              ; render-canvas
+        |new-lookat-point $ quote
+          defn new-lookat-point () (; println "\"lookat" @*viewer-position @*viewer-angle)
+            let-sugar
+                x2 $ &* 400 (cos @*viewer-angle)
+                z2 $ &* -400 (sin @*viewer-angle)
+                y2 $ &* 20 @*viewer-y-shift
+                l $ sqrt
+                  + (* x2 x2) (* y2 y2) (* z2 z2)
+              ; hud-display "\"angle" @*viewer-angle
+              ; hud-display "\"viewer-position" $ map @*viewer-position round
+              ; hud-display "\"y-shift" @*viewer-y-shift
+              map ([] x2 y2 z2)
+                fn (v)
+                  -> v (/ l) (* 600)
+        |rotate-viewer-by! $ quote
+          defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
+        |to-viewer-axis $ quote
+          defn to-viewer-axis (x y z)
+            let
+                length $ sqrt
+                  + (pow x 2) (pow y 2) (pow z 2)
+                angle @*viewer-angle
+                project-distance 20
+                shift @*viewer-y-shift
+                v-angle $ js/Math.atan (/ shift project-distance)
+                from-y $ []
+                  -> y
+                    * $ js/Math.cos (+ v-angle half-pi)
+                    * $ js/Math.cos angle
+                  -> y $ *
+                    js/Math.sin $ + v-angle half-pi
+                  -> y
+                    * $ js/Math.cos (+ v-angle half-pi)
+                    * $ js/Math.sin angle
+                    negate
+                from-x $ wo-log
+                  []
+                    -> x $ *
+                      js/Math.cos $ - angle half-pi
+                    , 0 $ -> x
+                      * $ js/Math.sin (- angle half-pi)
+                      negate
+                from-z $ []
+                  -> z (negate)
+                    * $ js/Math.cos v-angle
+                    * $ js/Math.cos angle
+                  -> z (negate)
+                    * $ js/Math.sin v-angle
+                  -> z (negate)
+                    * $ js/Math.cos v-angle
+                    * $ js/Math.sin angle
+                    negate
+              -> from-x (&v+ from-y) (&v+ from-z)
         |transform-3d $ quote
           defn transform-3d (p0)
             let-sugar
@@ -969,8 +978,6 @@
                 map $ fn (p) p
               [] x' y' z'
       :ns $ quote
-        ns triadica.math $ :require
-          triadica.core :refer $ new-lookat-point &v- &v+
-          triadica.hud :refer $ hud-display
-          triadica.global :refer $ *viewer-position
-          triadica.config :refer $ back-cone-scale
+        ns triadica.perspective $ :require
+          triadica.math :refer $ square sum-squares &v- &v+
+          triadica.config :refer $ back-cone-scale half-pi
