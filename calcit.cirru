@@ -421,10 +421,10 @@
                           |T $ {} (:at 1653325206317) (:by |u0) (:text |cubes-object) (:type :leaf)
                       |tT $ {} (:at 1654332204301) (:by |u0) (:type :expr)
                         :data $ {}
+                          |D $ {} (:at 1655982385545) (:by |u0) (:text |;) (:type :leaf)
                           |T $ {} (:at 1654332207887) (:by |u0) (:text |bg-object) (:type :leaf)
                       |u $ {} (:at 1653567647603) (:by |u0) (:type :expr)
                         :data $ {}
-                          |D $ {} (:at 1655977676797) (:by |u0) (:text |;) (:type :leaf)
                           |T $ {} (:at 1653567661676) (:by |u0) (:text |tree-object) (:type :leaf)
                       |v $ {} (:at 1654075411705) (:by |u0) (:type :expr)
                         :data $ {}
@@ -5226,7 +5226,7 @@
                           |b $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1651658419548) (:by |u0) (:text |*) (:type :leaf)
-                              |b $ {} (:at 1655975958856) (:by |u0) (:text |-0.1) (:type :leaf)
+                              |b $ {} (:at 1655981964967) (:by |u0) (:text |-0.05) (:type :leaf)
                               |h $ {} (:at 1651658419548) (:by |u0) (:text |elapsed) (:type :leaf)
                               |l $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                                 :data $ {}
@@ -5304,7 +5304,7 @@
                           |b $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1651658419548) (:by |u0) (:text |*) (:type :leaf)
-                              |b $ {} (:at 1655975975665) (:by |u0) (:text |0.1) (:type :leaf)
+                              |b $ {} (:at 1655981432813) (:by |u0) (:text |0.05) (:type :leaf)
                               |h $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1651658419548) (:by |u0) (:text |nth) (:type :leaf)
@@ -5333,17 +5333,13 @@
                           |b $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1651658419548) (:by |u0) (:text |*) (:type :leaf)
-                              |b $ {} (:at 1651658419548) (:by |u0) (:text |-0.1) (:type :leaf)
+                              |b $ {} (:at 1655981969201) (:by |u0) (:text |-0.05) (:type :leaf)
                               |h $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1651658419548) (:by |u0) (:text |nth) (:type :leaf)
                                   |b $ {} (:at 1655973306728) (:by |u0) (:text |r-move) (:type :leaf)
                                   |h $ {} (:at 1651658419548) (:by |u0) (:text |0) (:type :leaf)
                               |l $ {} (:at 1651658419548) (:by |u0) (:text |elapsed) (:type :leaf)
-                  |u $ {} (:at 1655959598637) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1655959599346) (:by |u0) (:text |;) (:type :leaf)
-                      |b $ {} (:at 1655959622452) (:by |u0) (:text "|\"TODO reset upward direction") (:type :leaf)
                   |v $ {} (:at 1651663756614) (:by |u0) (:type :expr)
                     :data $ {}
                       |T $ {} (:at 1651663756614) (:by |u0) (:text |when) (:type :leaf)

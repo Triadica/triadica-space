@@ -65,7 +65,7 @@
         |render-app! $ quote
           defn render-app! ()
             load-objects!
-              group ({}) (; axis-object) (; cubes-object) (bg-object) (; tree-object)
+              group ({}) (; axis-object) (; cubes-object) (; bg-object) (tree-object)
                 ; tiny-cube-object $ :v @*store
                 ; curve-ball
                 ; spin-city
@@ -695,7 +695,7 @@
               when
                 not= 0 $ nth l-move 0
                 rotate-glance-by!
-                  * -0.1 elapsed $ nth l-move 0
+                  * -0.05 elapsed $ nth l-move 0
                   , 0
               when
                 and (not left-a?) (not left-b?)
@@ -706,11 +706,10 @@
                   , 0
               when
                 and left-a? $ not= 0 (nth r-move 1)
-                rotate-glance-by! 0 $ * 0.1 (nth r-move 1) elapsed
+                rotate-glance-by! 0 $ * 0.05 (nth r-move 1) elapsed
               when
                 and left-a? $ not= 0 (nth r-move 0)
-                spin-glance-by! $ * -0.1 (nth r-move 0) elapsed
-              ; "\"TODO reset upward direction"
+                spin-glance-by! $ * -0.05 (nth r-move 0) elapsed
               when
                 or
                   not= l-move $ [] 0 0
