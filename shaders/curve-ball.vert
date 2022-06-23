@@ -1,7 +1,8 @@
 uniform vec4 u_offsets;
 
 uniform float coneBackScale;
-uniform vec3 lookPoint;
+uniform vec3 lookPoint; // direction in front, transformed into a specific length
+uniform vec3 upwardDirection; // direction up over head, better unit vectoruniform float viewportRatio;
 uniform float viewportRatio;
 uniform vec3 cameraPosition;
 
@@ -32,32 +33,27 @@ struct PointResult {
 
 PointResult transform_perspective(vec3 p) {
   vec3 moved_point = p - cameraPosition;
+  // trying to get right direction at length 1
+  vec3 rightward = cross(upwardDirection, lookPoint) / 600.0;
 
   float s = coneBackScale;
 
-  float x = moved_point.x;
-  float y = moved_point.y;
-  float z = moved_point.z;
-
-  float a = lookPoint.x;
-  float b = lookPoint.y;
-  float c = lookPoint.z;
-
-  float r = (a*x + b*y + c*z) / sumSquares3(a, b, c);
+  float r = dot(moved_point, lookPoint) / square(length(lookPoint));
 
   if (r < (s * -0.8)) {
     // make it disappear with depth test since it's probably behind the camera
     return PointResult(vec3(0.0, 0.0, 10000.), r, s);
   }
 
-  float q = (s + 1.0) / (r + s);
-  float l1 = sqrt((a*a*b*b) + square(sumSquares2(a,c)) + (b*b*c*c));
-
-  float y_next = (q*y + b*q*s - b*s - b) / sumSquares2(a, c) * l1;
-  float x_next = (((q*x + a*q*s - a*s - a) - (y_next * (-a * b) / l1)) / -c) * sqrt(sumSquares2(a,c));;
+  float screen_scale = (s + 1.0) / (r + s);
+  float y_next = dot(moved_point, upwardDirection) * screen_scale;
+  float x_next = - dot(moved_point, rightward) * screen_scale;
   float z_next = r;
 
-  return PointResult(vec3(x_next, y_next / viewportRatio, z_next), r, s);
+  return PointResult(
+    vec3(x_next, y_next / viewportRatio, z_next),
+    r, s
+  );
 }
 
 const float PI = 3.14159265358979323846;
