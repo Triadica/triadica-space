@@ -165,69 +165,6 @@
                               |T $ {} (:at 1654079116935) (:by |u0) (:text |reset!) (:type :leaf)
                               |b $ {} (:at 1654079120250) (:by |u0) (:text |*store) (:type :leaf)
                               |h $ {} (:at 1654079118507) (:by |u0) (:text |next) (:type :leaf)
-          |handle-size! $ {} (:at 1653326723833) (:by |u0) (:type :expr)
-            :data $ {}
-              |T $ {} (:at 1653326723833) (:by |u0) (:text |defn) (:type :leaf)
-              |b $ {} (:at 1653326723833) (:by |u0) (:text |handle-size!) (:type :leaf)
-              |h $ {} (:at 1653326723833) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1653326723833) (:by |u0) (:text |canvas) (:type :leaf)
-              |j $ {} (:at 1653326733944) (:by |u0) (:type :expr)
-                :data $ {}
-                  |D $ {} (:at 1654918863889) (:by |u0) (:text |;) (:type :leaf)
-                  |T $ {} (:at 1653326733944) (:by |u0) (:text |->) (:type :leaf)
-                  |b $ {} (:at 1653326733944) (:by |u0) (:text |canvas) (:type :leaf)
-                  |h $ {} (:at 1653326733944) (:by |u0) (:text |.-width) (:type :leaf)
-                  |l $ {} (:at 1653326733944) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1653326733944) (:by |u0) (:text |set!) (:type :leaf)
-                      |b $ {} (:at 1654918090744) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |D $ {} (:at 1654918093601) (:by |u0) (:text |&*) (:type :leaf)
-                          |L $ {} (:at 1654918104701) (:by |u0) (:text |dpr) (:type :leaf)
-                          |T $ {} (:at 1653326733944) (:by |u0) (:text |js/window.innerWidth) (:type :leaf)
-              |l $ {} (:at 1653326729851) (:by |u0) (:type :expr)
-                :data $ {}
-                  |D $ {} (:at 1654918863304) (:by |u0) (:text |;) (:type :leaf)
-                  |T $ {} (:at 1653326729851) (:by |u0) (:text |->) (:type :leaf)
-                  |b $ {} (:at 1653326729851) (:by |u0) (:text |canvas) (:type :leaf)
-                  |h $ {} (:at 1653326729851) (:by |u0) (:text |.-height) (:type :leaf)
-                  |l $ {} (:at 1653326729851) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1653326729851) (:by |u0) (:text |set!) (:type :leaf)
-                      |b $ {} (:at 1654918106769) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |D $ {} (:at 1654918107881) (:by |u0) (:text |&*) (:type :leaf)
-                          |L $ {} (:at 1654918109319) (:by |u0) (:text |dpr) (:type :leaf)
-                          |T $ {} (:at 1653326729851) (:by |u0) (:text |js/window.innerHeight) (:type :leaf)
-              |o $ {} (:at 1654918344691) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1654918346403) (:by |u0) (:text |->) (:type :leaf)
-                  |b $ {} (:at 1654918349171) (:by |u0) (:text |canvas) (:type :leaf)
-                  |h $ {} (:at 1654918351213) (:by |u0) (:text |.-style) (:type :leaf)
-                  |l $ {} (:at 1654918353257) (:by |u0) (:text |.-width) (:type :leaf)
-                  |o $ {} (:at 1654918354024) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1654918354742) (:by |u0) (:text |set!) (:type :leaf)
-                      |b $ {} (:at 1654918490053) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |D $ {} (:at 1654918490935) (:by |u0) (:text |str) (:type :leaf)
-                          |T $ {} (:at 1654918357483) (:by |u0) (:text |js/window.innerWidth) (:type :leaf)
-                          |b $ {} (:at 1654918492036) (:by |u0) (:text "|\"px") (:type :leaf)
-              |q $ {} (:at 1654918344691) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1654918346403) (:by |u0) (:text |->) (:type :leaf)
-                  |b $ {} (:at 1654918349171) (:by |u0) (:text |canvas) (:type :leaf)
-                  |h $ {} (:at 1654918351213) (:by |u0) (:text |.-style) (:type :leaf)
-                  |l $ {} (:at 1654918361366) (:by |u0) (:text |.-height) (:type :leaf)
-                  |o $ {} (:at 1654918354024) (:by |u0) (:type :expr)
-                    :data $ {}
-                      |T $ {} (:at 1654918354742) (:by |u0) (:text |set!) (:type :leaf)
-                      |b $ {} (:at 1654918493100) (:by |u0) (:type :expr)
-                        :data $ {}
-                          |D $ {} (:at 1654918493882) (:by |u0) (:text |str) (:type :leaf)
-                          |T $ {} (:at 1654918364928) (:by |u0) (:text |js/window.innerHeight) (:type :leaf)
-                          |b $ {} (:at 1654918495791) (:by |u0) (:text "|\"px") (:type :leaf)
           |main! $ {} (:at 1651655491789) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1651655491789) (:by |u0) (:text |defn) (:type :leaf)
@@ -256,7 +193,7 @@
                   |T $ {} (:at 1651667885766) (:by |u0) (:text |inject-hud!) (:type :leaf)
               |hN $ {} (:at 1653326710204) (:by |u0) (:type :expr)
                 :data $ {}
-                  |T $ {} (:at 1653326713414) (:by |u0) (:text |handle-size!) (:type :leaf)
+                  |T $ {} (:at 1656008702549) (:by |u0) (:text |reset-canvas-size!) (:type :leaf)
                   |b $ {} (:at 1653326715098) (:by |u0) (:text |canvas) (:type :leaf)
               |hT $ {} (:at 1653326767585) (:by |u0) (:type :expr)
                 :data $ {}
@@ -312,7 +249,7 @@
                           |T $ {} (:at 1653568825786) (:by |u0) (:text |event) (:type :leaf)
                       |h $ {} (:at 1653568825786) (:by |u0) (:type :expr)
                         :data $ {}
-                          |T $ {} (:at 1653568825786) (:by |u0) (:text |handle-size!) (:type :leaf)
+                          |T $ {} (:at 1656008704216) (:by |u0) (:text |reset-canvas-size!) (:type :leaf)
                           |b $ {} (:at 1653568825786) (:by |u0) (:text |canvas) (:type :leaf)
                       |l $ {} (:at 1653568825786) (:by |u0) (:type :expr)
                         :data $ {}
@@ -374,7 +311,7 @@
                                   |T $ {} (:at 1653568802909) (:by |u0) (:text |event) (:type :leaf)
                               |h $ {} (:at 1653568802909) (:by |u0) (:type :expr)
                                 :data $ {}
-                                  |T $ {} (:at 1653568802909) (:by |u0) (:text |handle-size!) (:type :leaf)
+                                  |T $ {} (:at 1656008707121) (:by |u0) (:text |reset-canvas-size!) (:type :leaf)
                                   |b $ {} (:at 1653568802909) (:by |u0) (:text |canvas) (:type :leaf)
                               |l $ {} (:at 1653568802909) (:by |u0) (:type :expr)
                                 :data $ {}
@@ -513,6 +450,7 @@
                         |l $ {} (:at 1653326355435) (:by |u0) (:text |render-canvas!) (:type :leaf)
                         |o $ {} (:at 1654074721872) (:by |u0) (:text |handle-screen-click!) (:type :leaf)
                         |q $ {} (:at 1654197926305) (:by |u0) (:text |setup-mouse-events!) (:type :leaf)
+                        |s $ {} (:at 1656008718290) (:by |u0) (:text |reset-canvas-size!) (:type :leaf)
                 |v $ {} (:at 1651662835087) (:by |u0) (:type :expr)
                   :data $ {}
                     |T $ {} (:at 1651662836992) (:by |u0) (:text |triadica.global) (:type :leaf)
@@ -5836,6 +5774,69 @@
                                             :data $ {}
                                               |T $ {} (:at 1654135057282) (:by |u0) (:text |.-LINE_LOOP) (:type :leaf)
                                               |b $ {} (:at 1653323283334) (:by |u0) (:text |gl) (:type :leaf)
+          |reset-canvas-size! $ {} (:at 1653326723833) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1653326723833) (:by |u0) (:text |defn) (:type :leaf)
+              |b $ {} (:at 1656008697725) (:by |u0) (:text |reset-canvas-size!) (:type :leaf)
+              |h $ {} (:at 1653326723833) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1653326723833) (:by |u0) (:text |canvas) (:type :leaf)
+              |j $ {} (:at 1653326733944) (:by |u0) (:type :expr)
+                :data $ {}
+                  |D $ {} (:at 1654918863889) (:by |u0) (:text |;) (:type :leaf)
+                  |T $ {} (:at 1653326733944) (:by |u0) (:text |->) (:type :leaf)
+                  |b $ {} (:at 1653326733944) (:by |u0) (:text |canvas) (:type :leaf)
+                  |h $ {} (:at 1653326733944) (:by |u0) (:text |.-width) (:type :leaf)
+                  |l $ {} (:at 1653326733944) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1653326733944) (:by |u0) (:text |set!) (:type :leaf)
+                      |b $ {} (:at 1654918090744) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |D $ {} (:at 1654918093601) (:by |u0) (:text |&*) (:type :leaf)
+                          |L $ {} (:at 1654918104701) (:by |u0) (:text |dpr) (:type :leaf)
+                          |T $ {} (:at 1653326733944) (:by |u0) (:text |js/window.innerWidth) (:type :leaf)
+              |l $ {} (:at 1653326729851) (:by |u0) (:type :expr)
+                :data $ {}
+                  |D $ {} (:at 1654918863304) (:by |u0) (:text |;) (:type :leaf)
+                  |T $ {} (:at 1653326729851) (:by |u0) (:text |->) (:type :leaf)
+                  |b $ {} (:at 1653326729851) (:by |u0) (:text |canvas) (:type :leaf)
+                  |h $ {} (:at 1653326729851) (:by |u0) (:text |.-height) (:type :leaf)
+                  |l $ {} (:at 1653326729851) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1653326729851) (:by |u0) (:text |set!) (:type :leaf)
+                      |b $ {} (:at 1654918106769) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |D $ {} (:at 1654918107881) (:by |u0) (:text |&*) (:type :leaf)
+                          |L $ {} (:at 1654918109319) (:by |u0) (:text |dpr) (:type :leaf)
+                          |T $ {} (:at 1653326729851) (:by |u0) (:text |js/window.innerHeight) (:type :leaf)
+              |o $ {} (:at 1654918344691) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1654918346403) (:by |u0) (:text |->) (:type :leaf)
+                  |b $ {} (:at 1654918349171) (:by |u0) (:text |canvas) (:type :leaf)
+                  |h $ {} (:at 1654918351213) (:by |u0) (:text |.-style) (:type :leaf)
+                  |l $ {} (:at 1654918353257) (:by |u0) (:text |.-width) (:type :leaf)
+                  |o $ {} (:at 1654918354024) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1654918354742) (:by |u0) (:text |set!) (:type :leaf)
+                      |b $ {} (:at 1654918490053) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |D $ {} (:at 1654918490935) (:by |u0) (:text |str) (:type :leaf)
+                          |T $ {} (:at 1654918357483) (:by |u0) (:text |js/window.innerWidth) (:type :leaf)
+                          |b $ {} (:at 1654918492036) (:by |u0) (:text "|\"px") (:type :leaf)
+              |q $ {} (:at 1654918344691) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1654918346403) (:by |u0) (:text |->) (:type :leaf)
+                  |b $ {} (:at 1654918349171) (:by |u0) (:text |canvas) (:type :leaf)
+                  |h $ {} (:at 1654918351213) (:by |u0) (:text |.-style) (:type :leaf)
+                  |l $ {} (:at 1654918361366) (:by |u0) (:text |.-height) (:type :leaf)
+                  |o $ {} (:at 1654918354024) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1654918354742) (:by |u0) (:text |set!) (:type :leaf)
+                      |b $ {} (:at 1654918493100) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |D $ {} (:at 1654918493882) (:by |u0) (:text |str) (:type :leaf)
+                          |T $ {} (:at 1654918364928) (:by |u0) (:text |js/window.innerHeight) (:type :leaf)
+                          |b $ {} (:at 1654918495791) (:by |u0) (:text "|\"px") (:type :leaf)
           |setup-mouse-events! $ {} (:at 1654197926679) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1654197927903) (:by |u0) (:text |defn) (:type :leaf)

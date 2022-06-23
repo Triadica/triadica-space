@@ -32,32 +32,26 @@
                     do (js/console.warn "\"unknown op" op) nil
                     :cube-right $ update store :v inc
                 if (some? next) (reset! *store next)
-        |handle-size! $ quote
-          defn handle-size! (canvas)
-            ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
-            ; -> canvas .-height $ set! (&* dpr js/window.innerHeight)
-            -> canvas .-style .-width $ set! (str js/window.innerWidth "\"px")
-            -> canvas .-style .-height $ set! (str js/window.innerHeight "\"px")
         |main! $ quote
           defn main! ()
             if dev? $ load-console-formatter!
             twgl/setDefaults $ js-object (:attribPrefix "\"a_")
             inject-hud!
-            handle-size! canvas
+            reset-canvas-size! canvas
             reset! *gl-context $ .!getContext canvas "\"webgl"
               js-object $ :antialias true
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
             add-watch *store :change $ fn (v _p) (render-app!)
-            set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-app!)
             setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
             do (remove-watch *store :change)
               add-watch *store :change $ fn (v _p) (render-app!)
               replace-control-loop! 10 on-control-event
-              set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+              set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-app!)
               setup-mouse-events! canvas
               render-app!
               hud! "\"ok~" "\"OK"
@@ -80,7 +74,7 @@
           triadica.config :refer $ dev? dpr
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
-          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
+          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
           triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
@@ -772,6 +766,12 @@
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
+        |reset-canvas-size! $ quote
+          defn reset-canvas-size! (canvas)
+            ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
+            ; -> canvas .-height $ set! (&* dpr js/window.innerHeight)
+            -> canvas .-style .-width $ set! (str js/window.innerWidth "\"px")
+            -> canvas .-style .-height $ set! (str js/window.innerHeight "\"px")
         |setup-mouse-events! $ quote
           defn setup-mouse-events! (canvas)
             set! (.-onclick canvas) handle-screen-click!
