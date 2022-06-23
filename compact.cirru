@@ -65,13 +65,14 @@
         |render-app! $ quote
           defn render-app! ()
             load-objects!
-              group ({}) (; axis-object) (; cubes-object) (; bg-object) (tree-object)
+              group ({}) (; axis-object) (; cubes-object) (; bg-object) (; tree-object)
                 ; tiny-cube-object $ :v @*store
                 ; curve-ball
                 ; spin-city
                 ; fiber-bending
                 ; plate-bending
                 ; mushroom-object
+                line-wave
               , dispatch!
             render-canvas!
       :ns $ quote
@@ -82,7 +83,7 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
@@ -230,6 +231,13 @@
                 :length $ * 6 seg-size (count segments)
                 :augment 3
                 :data segments
+        |line-wave $ quote
+          defn line-wave () (; js/console.log "\"data" data)
+            object $ {} (:draw-mode :line-strip)
+              :vertex-shader $ inline-shader "\"line-wave.vert"
+              :fragment-shader $ inline-shader "\"line-wave.frag"
+              :attributes $ {}
+                :idx $ range 100000
         |move-point $ quote
           defn move-point (p)
             -> p

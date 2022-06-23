@@ -425,6 +425,7 @@
                           |T $ {} (:at 1654332207887) (:by |u0) (:text |bg-object) (:type :leaf)
                       |u $ {} (:at 1653567647603) (:by |u0) (:type :expr)
                         :data $ {}
+                          |D $ {} (:at 1655990473316) (:by |u0) (:text |;) (:type :leaf)
                           |T $ {} (:at 1653567661676) (:by |u0) (:text |tree-object) (:type :leaf)
                       |v $ {} (:at 1654075411705) (:by |u0) (:type :expr)
                         :data $ {}
@@ -454,6 +455,9 @@
                         :data $ {}
                           |D $ {} (:at 1655978629508) (:by |u0) (:text |;) (:type :leaf)
                           |T $ {} (:at 1655022416675) (:by |u0) (:text |mushroom-object) (:type :leaf)
+                      |zP $ {} (:at 1655990476079) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1655992647173) (:by |u0) (:text |line-wave) (:type :leaf)
                   |h $ {} (:at 1654078040543) (:by |u0) (:text |dispatch!) (:type :leaf)
               |o $ {} (:at 1653321474763) (:by |u0) (:type :expr)
                 :data $ {}
@@ -540,6 +544,7 @@
                         |t $ {} (:at 1654890674843) (:by |u0) (:text |axis-object) (:type :leaf)
                         |u $ {} (:at 1654999760036) (:by |u0) (:text |plate-bending) (:type :leaf)
                         |v $ {} (:at 1655022422342) (:by |u0) (:text |mushroom-object) (:type :leaf)
+                        |w $ {} (:at 1655992645128) (:by |u0) (:text |line-wave) (:type :leaf)
                 |zD $ {} (:at 1653326245485) (:by |u0) (:type :expr)
                   :data $ {}
                     |T $ {} (:at 1653326250295) (:by |u0) (:text |triadica.alias) (:type :leaf)
@@ -1766,6 +1771,55 @@
                                     :data $ {}
                                       |T $ {} (:at 1654955706106) (:by |u0) (:text |:data) (:type :leaf)
                                       |b $ {} (:at 1654955708626) (:by |u0) (:text |segments) (:type :leaf)
+          |line-wave $ {} (:at 1655990330108) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1655990330108) (:by |u0) (:text |defn) (:type :leaf)
+              |b $ {} (:at 1655992643008) (:by |u0) (:text |line-wave) (:type :leaf)
+              |e $ {} (:at 1655990340114) (:by |u0) (:type :expr)
+                :data $ {}
+              |h $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1655990339243) (:by |u0) (:text |;) (:type :leaf)
+                  |b $ {} (:at 1655990339243) (:by |u0) (:text |js/console.log) (:type :leaf)
+                  |h $ {} (:at 1655990339243) (:by |u0) (:text "|\"data") (:type :leaf)
+                  |l $ {} (:at 1655990339243) (:by |u0) (:text |data) (:type :leaf)
+              |l $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1655990339243) (:by |u0) (:text |object) (:type :leaf)
+                  |b $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1655990339243) (:by |u0) (:text |{}) (:type :leaf)
+                      |b $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1655990339243) (:by |u0) (:text |:draw-mode) (:type :leaf)
+                          |b $ {} (:at 1655990778250) (:by |u0) (:text |:line-strip) (:type :leaf)
+                      |h $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1655990339243) (:by |u0) (:text |:vertex-shader) (:type :leaf)
+                          |b $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1655990339243) (:by |u0) (:text |inline-shader) (:type :leaf)
+                              |b $ {} (:at 1655992653598) (:by |u0) (:text "|\"line-wave.vert") (:type :leaf)
+                      |l $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1655990339243) (:by |u0) (:text |:fragment-shader) (:type :leaf)
+                          |b $ {} (:at 1655990397664) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1655990397664) (:by |u0) (:text |inline-shader) (:type :leaf)
+                              |b $ {} (:at 1655992654591) (:by |u0) (:text "|\"line-wave.frag") (:type :leaf)
+                      |o $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1655990339243) (:by |u0) (:text |:attributes) (:type :leaf)
+                          |b $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1655990339243) (:by |u0) (:text |{}) (:type :leaf)
+                              |b $ {} (:at 1655990339243) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1655990513319) (:by |u0) (:text |:idx) (:type :leaf)
+                                  |b $ {} (:at 1655990383546) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1655990384363) (:by |u0) (:text |range) (:type :leaf)
+                                      |b $ {} (:at 1655990388107) (:by |u0) (:text |100000) (:type :leaf)
           |move-point $ {} (:at 1651661234026) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1651661234026) (:by |u0) (:text |defn) (:type :leaf)
