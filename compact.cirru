@@ -794,7 +794,7 @@
                 map-indexed children $ fn (idx child)
                   traverse-tree child (conj coord idx) cb
       :ns $ quote
-        ns quatrefoil.core $ :require
+        ns triadica.core $ :require
           touch-control.core :refer $ render-control!
           triadica.global :refer $ *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths *uniform-data
           triadica.perspective :refer $ *viewer-position *viewer-forward *viewer-upward transform-3d new-lookat-point move-viewer-by! rotate-glance-by! spin-glance-by!

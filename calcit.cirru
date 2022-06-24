@@ -5984,7 +5984,7 @@
         :ns $ {} (:at 1651658419548) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1651658419548) (:by |u0) (:text |ns) (:type :leaf)
-            |b $ {} (:at 1651658419548) (:by |u0) (:text |quatrefoil.core) (:type :leaf)
+            |b $ {} (:at 1656039759314) (:by |u0) (:text |triadica.core) (:type :leaf)
             |h $ {} (:at 1651658419548) (:by |u0) (:type :expr)
               :data $ {}
                 |T $ {} (:at 1651658419548) (:by |u0) (:text |:require) (:type :leaf)
