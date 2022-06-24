@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.1)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.2)
     :modules $ [] |touch-control/ |respo.calcit/
   :entries $ {}
   :ir $ {} (:package |triadica)
@@ -374,7 +374,7 @@
                               |T $ {} (:at 1654078973948) (:by |u0) (:text |@*store) (:type :leaf)
                       |w $ {} (:at 1654075411705) (:by |u0) (:type :expr)
                         :data $ {}
-                          |D $ {} (:at 1655979900824) (:by |u0) (:text |;) (:type :leaf)
+                          |D $ {} (:at 1656063687216) (:by |u0) (:text |;) (:type :leaf)
                           |T $ {} (:at 1654134922897) (:by |u0) (:text |curve-ball) (:type :leaf)
                       |x $ {} (:at 1654258258672) (:by |u0) (:type :expr)
                         :data $ {}
@@ -382,11 +382,11 @@
                           |T $ {} (:at 1654258261004) (:by |u0) (:text |spin-city) (:type :leaf)
                       |y $ {} (:at 1654888968547) (:by |u0) (:type :expr)
                         :data $ {}
-                          |D $ {} (:at 1655977981549) (:by |u0) (:text |;) (:type :leaf)
+                          |D $ {} (:at 1656063693356) (:by |u0) (:text |;) (:type :leaf)
                           |T $ {} (:at 1654888975160) (:by |u0) (:text |fiber-bending) (:type :leaf)
                       |z $ {} (:at 1654999750192) (:by |u0) (:type :expr)
                         :data $ {}
-                          |D $ {} (:at 1655978020652) (:by |u0) (:text |;) (:type :leaf)
+                          |D $ {} (:at 1656097427608) (:by |u0) (:text |;) (:type :leaf)
                           |T $ {} (:at 1654999755393) (:by |u0) (:text |plate-bending) (:type :leaf)
                       |zD $ {} (:at 1655022417034) (:by |u0) (:type :expr)
                         :data $ {}
@@ -3733,14 +3733,63 @@
               |h $ {} (:at 1651655901512) (:by |u0) (:type :expr)
                 :data $ {}
                   |T $ {} (:at 1651655906633) (:by |u0) (:text |name) (:type :leaf)
-              |l $ {} (:at 1651655907303) (:by |u0) (:type :expr)
+              |l $ {} (:at 1656097370408) (:by |u0) (:type :expr)
                 :data $ {}
-                  |T $ {} (:at 1651655908911) (:by |u0) (:text |read-file) (:type :leaf)
-                  |b $ {} (:at 1651655910660) (:by |u0) (:type :expr)
+                  |D $ {} (:at 1656097371094) (:by |u0) (:text |let) (:type :leaf)
+                  |L $ {} (:at 1656097371435) (:by |u0) (:type :expr)
                     :data $ {}
-                      |D $ {} (:at 1651655911550) (:by |u0) (:text |str) (:type :leaf)
-                      |T $ {} (:at 1651655913908) (:by |u0) (:text "|\"shaders/") (:type :leaf)
-                      |b $ {} (:at 1651655915802) (:by |u0) (:text |name) (:type :leaf)
+                      |T $ {} (:at 1656097371551) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1656097372483) (:by |u0) (:text |shader) (:type :leaf)
+                          |b $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1656097377172) (:by |u0) (:text |if) (:type :leaf)
+                              |b $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1656097377172) (:by |u0) (:text |blank?) (:type :leaf)
+                                  |b $ {} (:at 1656097377172) (:by |u0) (:text |calcit-dirname) (:type :leaf)
+                              |h $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1656097377172) (:by |u0) (:text |str) (:type :leaf)
+                                  |b $ {} (:at 1656097377172) (:by |u0) (:text "|\"shaders/") (:type :leaf)
+                                  |h $ {} (:at 1656097377172) (:by |u0) (:text |name) (:type :leaf)
+                              |l $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1656097377172) (:by |u0) (:text |let) (:type :leaf)
+                                  |b $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                        :data $ {}
+                                          |T $ {} (:at 1656097377172) (:by |u0) (:text |dir) (:type :leaf)
+                                          |b $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1656097377172) (:by |u0) (:text |if) (:type :leaf)
+                                              |b $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                                :data $ {}
+                                                  |T $ {} (:at 1656097377172) (:by |u0) (:text |.ends-with?) (:type :leaf)
+                                                  |b $ {} (:at 1656097377172) (:by |u0) (:text |calcit-dirname) (:type :leaf)
+                                                  |h $ {} (:at 1656097377172) (:by |u0) (:text "|\"/") (:type :leaf)
+                                              |h $ {} (:at 1656097377172) (:by |u0) (:text |calcit-dirname) (:type :leaf)
+                                              |l $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                                :data $ {}
+                                                  |T $ {} (:at 1656097377172) (:by |u0) (:text |str) (:type :leaf)
+                                                  |b $ {} (:at 1656097377172) (:by |u0) (:text |calcit-dirname) (:type :leaf)
+                                                  |h $ {} (:at 1656097377172) (:by |u0) (:text "|\"/") (:type :leaf)
+                                  |h $ {} (:at 1656097377172) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1656097377172) (:by |u0) (:text |str) (:type :leaf)
+                                      |b $ {} (:at 1656097377172) (:by |u0) (:text |dir) (:type :leaf)
+                                      |h $ {} (:at 1656097377172) (:by |u0) (:text "|\"shaders/") (:type :leaf)
+                                      |l $ {} (:at 1656097377172) (:by |u0) (:text |name) (:type :leaf)
+                  |Q $ {} (:at 1656097388962) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1656097391036) (:by |u0) (:text |println) (:type :leaf)
+                      |b $ {} (:at 1656097395727) (:by |u0) (:text "|\"reading shader file:") (:type :leaf)
+                      |h $ {} (:at 1656097396914) (:by |u0) (:text |name) (:type :leaf)
+                  |V $ {} (:at 1656097379394) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1656097381158) (:by |u0) (:text |read-file) (:type :leaf)
+                      |b $ {} (:at 1656097382296) (:by |u0) (:text |shader) (:type :leaf)
           |mobile? $ {} (:at 1654078443373) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1654078443373) (:by |u0) (:text |def) (:type :leaf)
@@ -3765,6 +3814,13 @@
                     |T $ {} (:at 1654078454707) (:by |u0) (:text "|\"mobile-detect") (:type :leaf)
                     |b $ {} (:at 1654078454707) (:by |u0) (:text |:default) (:type :leaf)
                     |h $ {} (:at 1654078454707) (:by |u0) (:text |mobile-detect) (:type :leaf)
+                |h $ {} (:at 1656096598822) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1656096605390) (:by |u0) (:text |triadica.$meta) (:type :leaf)
+                    |b $ {} (:at 1656096608329) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1656096608629) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1656096630480) (:by |u0) (:text |calcit-dirname) (:type :leaf)
       |triadica.core $ {}
         :defs $ {}
           |%nested-attribute $ {} (:at 1654955039707) (:by |u0) (:type :expr)

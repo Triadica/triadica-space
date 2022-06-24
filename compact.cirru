@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.1)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.2)
     :modules $ [] |touch-control/ |respo.calcit/
   :entries $ {}
   :files $ {}
@@ -477,11 +477,18 @@
           def half-pi $ * 0.5 &PI
         |inline-shader $ quote
           defmacro inline-shader (name)
-            read-file $ str "\"shaders/" name
+            let
+                shader $ if (blank? calcit-dirname) (str "\"shaders/" name)
+                  let
+                      dir $ if (.ends-with? calcit-dirname "\"/") calcit-dirname (str calcit-dirname "\"/")
+                    str dir "\"shaders/" name
+              println "\"reading shader file:" name
+              read-file shader
         |mobile? $ quote
           def mobile? $ .!mobile (new mobile-detect js/window.navigator.userAgent)
       :ns $ quote
         ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
+          triadica.$meta :refer $ calcit-dirname
     |triadica.core $ {}
       :defs $ {}
         |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
