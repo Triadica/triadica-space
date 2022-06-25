@@ -759,6 +759,7 @@
                 r-delta $ :right-move delta
                 l-delta $ :left-move delta
                 left-a? $ :left-a? states
+                right-a? $ :right-a? states
                 right-b? $ :right-b? states
                 left-b? $ :left-b? states
               ; println "\"L" l-move "\"R" r-move
@@ -772,23 +773,22 @@
                   * -0.05 elapsed $ nth l-move 0
                   , 0
               when
-                and (not left-a?) (not left-b?)
+                and (not right-a?)
                   not= ([] 0 0) r-move
                 move-viewer-by!
                   * 2 elapsed $ nth r-move 0
                   * 2 elapsed $ nth r-move 1
                   , 0
               when
-                and left-a? $ not= 0 (nth r-move 1)
+                and right-a? $ not= 0 (nth r-move 1)
                 rotate-glance-by! 0 $ * 0.05 (nth r-move 1) elapsed
               when
-                and left-a? $ not= 0 (nth r-move 0)
+                and right-a? $ not= 0 (nth r-move 0)
                 spin-glance-by! $ * -0.05 (nth r-move 0) elapsed
               when
                 or
                   not= l-move $ [] 0 0
                   not= r-move $ [] 0 0
-                  , left-b?
                 render-canvas!
         |refine-strength $ quote
           defn refine-strength (x)
