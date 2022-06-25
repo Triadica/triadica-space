@@ -26,7 +26,7 @@
                 :cubes $ cubes-object
                 :spin-city $ spin-city
                 :bg $ bg-object
-                :tree $ tree-object
+                :conch $ conch-object
                 :curve-ball $ curve-ball
                 :spin-city $ spin-city
                 :fiber-bending $ fiber-bending
@@ -43,7 +43,7 @@
                     :position $ [] -400 160 0
                   {} (:key :bg)
                     :position $ [] -400 120 0
-                  {} (:key :tree)
+                  {} (:key :conch)
                     :position $ [] -400 80 0
                   {} (:key :curve-ball)
                     :position $ [] -400 40 0
@@ -59,7 +59,7 @@
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
+          triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
@@ -122,8 +122,8 @@
         |axis-object $ quote
           defn axis-object () $ object
             {} (:draw-mode :lines)
-              :vertex-shader $ inline-shader "\"shape.vert"
-              :fragment-shader $ inline-shader "\"shape.frag"
+              :vertex-shader $ inline-shader "\"lines.vert"
+              :fragment-shader $ inline-shader "\"lines.frag"
               :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
         |bg-object $ quote
           defn bg-object () $ let
@@ -161,13 +161,57 @@
               :draw-mode :triangles
               :points geo
               :indices indices
+        |conch-object $ quote
+          defn conch-object () $ let
+              vs $ range 0 400
+              dt 0.08
+              dr 0.6
+              dy 1.5
+              dpy 0.8
+              geo $ -> vs
+                mapcat $ fn (i)
+                  let
+                      ri $ + 40 (* dr i)
+                      rs $ * 0.4 (- ri 20)
+                    []
+                      []
+                        * rs $ cos
+                          + 0.3 $ * i dt
+                        * i dpy
+                        * rs $ sin
+                          + 0.3 $ * i dt
+                      []
+                        * (pow ri 1.4) 0.2 $ cos (* i dt)
+                        * i dy 1
+                        * (pow ri 1.4) 0.2 $ sin (* i dt)
+                prepend $ [] 0 0 0
+              indices $ -> vs
+                map $ fn (i)
+                  let
+                      v $ * i 2
+                    [] v (+ v 1) (+ v 2)
+                &list:flatten
+              radius-bounds $ -> vs
+                map $ fn (i)
+                  let
+                      v $ + 40 (* dr i)
+                    [] v v v
+                &list:flatten
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"tree.vert"
+              :fragment-shader $ inline-shader "\"tree.frag"
+              :points $ map geo
+                fn (p)
+                  update p 2 $ fn (z) (- z 200)
+              :indices indices
+              :attributes $ {} (:radius_bound radius-bounds)
         |cubes-object $ quote
           defn cubes-object () $ let
               geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
               indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
             object $ {} (:draw-mode :lines)
-              :vertex-shader $ inline-shader "\"shape.vert"
-              :fragment-shader $ inline-shader "\"shape.frag"
+              :vertex-shader $ inline-shader "\"lines.vert"
+              :fragment-shader $ inline-shader "\"lines.frag"
               :points $ concat (map geo move-point) (map geo move-point-2) (map geo move-point-3) (map geo move-point-4)
               :indices $ concat indices
                 map indices $ fn (x) (+ x 8)
@@ -454,50 +498,6 @@
                       d! :city-spin $ - x @*prev-mouse-x
                       reset! *prev-mouse-x x
                   :on-mouseup $ fn (e d!) (js/console.log "\"mouseup" e)
-        |tree-object $ quote
-          defn tree-object () $ let
-              vs $ range 0 400
-              dt 0.08
-              dr 0.6
-              dy 1.5
-              dpy 0.8
-              geo $ -> vs
-                mapcat $ fn (i)
-                  let
-                      ri $ + 40 (* dr i)
-                      rs $ * 0.4 (- ri 20)
-                    []
-                      []
-                        * rs $ cos
-                          + 0.3 $ * i dt
-                        * i dpy
-                        * rs $ sin
-                          + 0.3 $ * i dt
-                      []
-                        * (pow ri 1.4) 0.2 $ cos (* i dt)
-                        * i dy 1
-                        * (pow ri 1.4) 0.2 $ sin (* i dt)
-                prepend $ [] 0 0 0
-              indices $ -> vs
-                map $ fn (i)
-                  let
-                      v $ * i 2
-                    [] v (+ v 1) (+ v 2)
-                &list:flatten
-              radius-bounds $ -> vs
-                map $ fn (i)
-                  let
-                      v $ + 40 (* dr i)
-                    [] v v v
-                &list:flatten
-            object $ {} (:draw-mode :triangles)
-              :vertex-shader $ inline-shader "\"tree.vert"
-              :fragment-shader $ inline-shader "\"tree.frag"
-              :points $ map geo
-                fn (p)
-                  update p 2 $ fn (z) (- z 200)
-              :indices indices
-              :attributes $ {} (:radius_bound radius-bounds)
       :ns $ quote
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
@@ -518,8 +518,8 @@
                       geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
                       indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
                     object $ {} (:draw-mode :lines)
-                      :vertex-shader $ inline-shader "\"shape.vert"
-                      :fragment-shader $ inline-shader "\"shape.frag"
+                      :vertex-shader $ inline-shader "\"lines.vert"
+                      :fragment-shader $ inline-shader "\"lines.frag"
                       :points $ map geo
                         fn (p)
                           -> p
