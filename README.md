@@ -75,6 +75,8 @@ gl_Position = vec4(pos_next * 0.0002, 1.0);
 - Curly Ball demo inspired by https://twitter.com/scdollins/status/1531690190439215104
 - Spin City demo inspired by https://twitter.com/MAKIO135/status/1525347172861939713
 
+Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da20be5fee7a4cb9 .
+
 ### Naming
 
 The name project named with "Triadica sebifera":

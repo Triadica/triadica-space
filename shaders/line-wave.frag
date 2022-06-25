@@ -1,29 +1,9 @@
-uniform vec4 u_offsets;
-
-uniform float coneBackScale;
-uniform vec3 lookPoint; // direction in front, transformed into a specific length
-uniform vec3 upwardDirection; // direction up over head, better unit vectoruniform float viewportRatio;
-uniform float viewportRatio;
-uniform vec3 cameraPosition;
-
-attribute vec3 a_position;
+precision mediump float;
 
 varying float v_r;
 varying float v_s;
-varying float z_color;
 varying vec3 original_position;
-
-float square(float a) {
-  return a * a;
-}
-
-float sumSquares2(float a, float b) {
-  return a * a + b * b;
-}
-
-float sumSquares3(float a, float b, float c) {
-  return a * a + b * b + c * c;
-}
+varying float v_radius_bound;
 
 // Simplex 2D noise
 //
@@ -55,7 +35,6 @@ float snoise(vec2 v){
   g.yz = a0.yz * x12.xz + h.yz * x12.yw;
   return 130.0 * dot(m, g);
 }
-
 
 float rand(vec2 c){
 	return fract(sin(dot(c.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -96,55 +75,36 @@ float pNoise(vec2 p, int res){
 	return nf*nf*nf*nf;
 }
 
-struct PointResult {
-  vec3 point;
-  float r;
-  float s;
-};
+float square(float a) {
+  return a * a;
+}
 
-PointResult transform_perspective(vec3 p) {
-  vec3 moved_point = p - cameraPosition;
-  // trying to get right direction at length 1
-  vec3 rightward = cross(upwardDirection, lookPoint) / 600.0;
-
-  float s = coneBackScale;
-
-  float r = dot(moved_point, lookPoint) / square(length(lookPoint));
-
-  if (r < (s * -0.8)) {
-    // make it disappear with depth test since it's probably behind the camera
-    return PointResult(vec3(0.0, 0.0, 10000.), r, s);
-  }
-
-  float screen_scale = (s + 1.0) / (r + s);
-  float y_next = dot(moved_point, upwardDirection) * screen_scale;
-  float x_next = - dot(moved_point, rightward) * screen_scale;
-  float z_next = r;
-
-  return PointResult(
-    vec3(x_next, y_next / viewportRatio, z_next),
-    r, s
-  );
+float sumSquares2(float a, float b) {
+  return a * a + b * b;
 }
 
 void main() {
+  if (v_r + v_s > 0.0) {
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    float factor = smoothstep(0.0, 0.7, 1.0-(v_r + v_s)/10.0);
 
-  vec3 popped = a_position;
-  popped.y += pNoise(a_position.xz*vec2(2., 2.), 10) * 6000.;
+    gl_FragColor = vec4(0.3 + factor, 0.3 + factor, 1.0 - factor, 1.0);
 
-  PointResult result = transform_perspective(popped);
-  vec3 pos_next = result.point;
+    float vv = (original_position.y + 400.0) / 2000.0;
+    gl_FragColor = vec4(0.0+vv, 0.2+vv/2.0, 0.05+vv, 1.0);
 
-  original_position = popped;
-
-  v_r = result.r;
-  v_s = result.s;
-
-  if (result.r > 0.0) {
-    gl_Position = vec4(pos_next * 0.001, 1.0);
+  // } else if (z_color > -0.0) {
+  //   gl_FragColor = vec4(0.6, 0.6, 1.0, 1.0);
   } else {
-    gl_Position = vec4(0.0, -100.0, -100.0, 0.0);
+    // gl_FragColor = vec4(0.1, 0.1, 0.2, 0.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
   }
 
-  // gl_Position = vec4(a_position/10000.0, 1.0);
+  // float v = pNoise(original_position.xz*vec2(9., 9.), 1);
+
+  // float vv = abs(original_position.y / 1800.0);
+  // gl_FragColor = vec4(1.0-vv, 1.0-vv, vv, 1.0);
+
+  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+
 }

@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.1)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.2)
     :modules $ [] |touch-control/ |respo.calcit/
   :entries $ {}
   :files $ {}
@@ -32,32 +32,26 @@
                     do (js/console.warn "\"unknown op" op) nil
                     :cube-right $ update store :v inc
                 if (some? next) (reset! *store next)
-        |handle-size! $ quote
-          defn handle-size! (canvas)
-            ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
-            ; -> canvas .-height $ set! (&* dpr js/window.innerHeight)
-            -> canvas .-style .-width $ set! (str js/window.innerWidth "\"px")
-            -> canvas .-style .-height $ set! (str js/window.innerHeight "\"px")
         |main! $ quote
           defn main! ()
             if dev? $ load-console-formatter!
             twgl/setDefaults $ js-object (:attribPrefix "\"a_")
             inject-hud!
-            handle-size! canvas
+            reset-canvas-size! canvas
             reset! *gl-context $ .!getContext canvas "\"webgl"
               js-object $ :antialias true
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
             add-watch *store :change $ fn (v _p) (render-app!)
-            set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-app!)
             setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
             do (remove-watch *store :change)
               add-watch *store :change $ fn (v _p) (render-app!)
               replace-control-loop! 10 on-control-event
-              set! js/window.onresize $ fn (event) (handle-size! canvas) (render-app!)
+              set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-app!)
               setup-mouse-events! canvas
               render-app!
               hud! "\"ok~" "\"OK"
@@ -71,7 +65,8 @@
                 ; spin-city
                 ; fiber-bending
                 ; plate-bending
-                mushroom-object
+                ; mushroom-object
+                line-wave
               , dispatch!
             render-canvas!
       :ns $ quote
@@ -79,10 +74,10 @@
           triadica.config :refer $ dev? dpr
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
-          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events!
+          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
           triadica.alias :refer $ group
     |triadica.app.shapes $ {}
       :defs $ {}
@@ -230,6 +225,13 @@
                 :length $ * 6 seg-size (count segments)
                 :augment 3
                 :data segments
+        |line-wave $ quote
+          defn line-wave () (; js/console.log "\"data" data)
+            object $ {} (:draw-mode :line-strip)
+              :vertex-shader $ inline-shader "\"line-wave.vert"
+              :fragment-shader $ inline-shader "\"line-wave.frag"
+              :attributes $ {}
+                :idx $ range 100000
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -475,11 +477,18 @@
           def half-pi $ * 0.5 &PI
         |inline-shader $ quote
           defmacro inline-shader (name)
-            read-file $ str "\"shaders/" name
+            let
+                shader $ if (blank? calcit-dirname) (str "\"shaders/" name)
+                  let
+                      dir $ if (.ends-with? calcit-dirname "\"/") calcit-dirname (str calcit-dirname "\"/")
+                    str dir "\"shaders/" name
+              println "\"reading shader file:" name
+              read-file shader
         |mobile? $ quote
           def mobile? $ .!mobile (new mobile-detect js/window.navigator.userAgent)
       :ns $ quote
         ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
+          triadica.$meta :refer $ calcit-dirname
     |triadica.core $ {}
       :defs $ {}
         |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
@@ -670,18 +679,6 @@
               recur
                 nth children $ first path
                 rest path
-        |move-viewer-by! $ quote
-          defn move-viewer-by! (x0 y0 z0)
-            let-sugar
-                  [] dx dy dz
-                  to-viewer-axis x0 y0 z0
-                position @*viewer-position
-                x $ &+ (nth position 0) dx
-                y $ &+ (nth position 1) dy
-                z $ &+ (nth position 2) dz
-              reset! *viewer-position $ [] x y z
-              ; println ([] x0 y0 z0) |=> $ [] dx dy dz
-              ; render-canvas
         |mutably-write-array! $ quote
           defn mutably-write-array! (data write-array!)
             cond
@@ -689,20 +686,6 @@
                 &doseq (child data) (mutably-write-array! child write-array!)
               (number? data) (write-array! data)
               true $ raise "\"unknown data to write to augmented array"
-        |new-lookat-point $ quote
-          defn new-lookat-point () (; println "\"lookat" @*viewer-position @*viewer-angle)
-            let-sugar
-                x2 $ &* 400 (cos @*viewer-angle)
-                z2 $ &* -400 (sin @*viewer-angle)
-                y2 $ &* 20 @*viewer-y-shift
-                l $ sqrt
-                  + (* x2 x2) (* y2 y2) (* z2 z2)
-              ; hud-display "\"angle" @*viewer-angle
-              ; hud-display "\"viewer-position" $ map @*viewer-position round
-              ; hud-display "\"y-shift" @*viewer-y-shift
-              map ([] x2 y2 z2)
-                fn (v)
-                  -> v (/ l) (* 600)
         |on-control-event $ quote
           defn on-control-event (elapsed states delta)
             let
@@ -720,7 +703,9 @@
                   * 2 elapsed $ nth l-move 1
               when
                 not= 0 $ nth l-move 0
-                rotate-viewer-by! $ * -0.005 elapsed (nth l-move 0)
+                rotate-glance-by!
+                  * -0.05 elapsed $ nth l-move 0
+                  , 0
               when
                 and (not left-a?) (not left-b?)
                   not= ([] 0 0) r-move
@@ -729,22 +714,11 @@
                   * 2 elapsed $ nth r-move 1
                   , 0
               when
-                and left-a? $ not= 0 (nth r-delta 1)
-                shift-viewer-by! $ * 1 (nth r-delta 1) elapsed
+                and left-a? $ not= 0 (nth r-move 1)
+                rotate-glance-by! 0 $ * 0.05 (nth r-move 1) elapsed
               when
-                and left-a? $ not= 0 (nth r-delta 0)
-                rotate-viewer-by! $ * -0.1 (nth r-delta 0) elapsed
-              when (and left-b? right-b?)
-                let
-                    shift @*viewer-y-shift
-                  cond
-                      < shift -0.06
-                      shift-viewer-by! $ * 2 elapsed
-                    (> shift 0.06)
-                      shift-viewer-by! $ * -2 elapsed
-                    (< (js/Math.abs shift) 0.06)
-                      shift-viewer-by! false
-                    true nil
+                and left-a? $ not= 0 (nth r-move 0)
+                spin-glance-by! $ * -0.05 (nth r-move 0) elapsed
               when
                 or
                   not= l-move $ [] 0 0
@@ -758,11 +732,13 @@
         |render-canvas! $ quote
           defn render-canvas! () $ let
               gl @*gl-context
-            ; println "\"console.log" "\"demo."
+            ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
+            ; do (hud-display "\"position" @*viewer-position) (hud-display "\"forward" @*viewer-forward) (hud-display "\"upward" @*viewer-upward)
             let
                 offsets $ js-array 0 0 0 1
                 uniforms $ js-object (:offsets offsets)
                   :lookPoint $ js-array & (new-lookat-point)
+                  :upwardDirection $ js-array & @*viewer-upward
                   :cameraPosition $ js-array & @*viewer-position
                   :coneBackScale back-cone-scale
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
@@ -797,8 +773,12 @@
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
-        |rotate-viewer-by! $ quote
-          defn rotate-viewer-by! (x) (swap! *viewer-angle &+ x) (; render-canvas)
+        |reset-canvas-size! $ quote
+          defn reset-canvas-size! (canvas)
+            ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
+            ; -> canvas .-height $ set! (&* dpr js/window.innerHeight)
+            -> canvas .-style .-width $ set! (str js/window.innerWidth "\"px")
+            -> canvas .-style .-height $ set! (str js/window.innerHeight "\"px")
         |setup-mouse-events! $ quote
           defn setup-mouse-events! (canvas)
             set! (.-onclick canvas) handle-screen-click!
@@ -810,43 +790,6 @@
           defn shift-viewer-by! (x)
             if (= x false) (reset! *viewer-y-shift 0)
               swap! *viewer-y-shift &+ $ * 2 x
-        |to-viewer-axis $ quote
-          defn to-viewer-axis (x y z)
-            let
-                length $ sqrt
-                  + (pow x 2) (pow y 2) (pow z 2)
-                angle @*viewer-angle
-                project-distance 20
-                shift @*viewer-y-shift
-                v-angle $ js/Math.atan (/ shift project-distance)
-                from-y $ []
-                  -> y
-                    * $ js/Math.cos (+ v-angle half-pi)
-                    * $ js/Math.cos angle
-                  -> y $ *
-                    js/Math.sin $ + v-angle half-pi
-                  -> y
-                    * $ js/Math.cos (+ v-angle half-pi)
-                    * $ js/Math.sin angle
-                    negate
-                from-x $ wo-log
-                  []
-                    -> x $ *
-                      js/Math.cos $ - angle half-pi
-                    , 0 $ -> x
-                      * $ js/Math.sin (- angle half-pi)
-                      negate
-                from-z $ []
-                  -> z (negate)
-                    * $ js/Math.cos v-angle
-                    * $ js/Math.cos angle
-                  -> z (negate)
-                    * $ js/Math.sin v-angle
-                  -> z (negate)
-                    * $ js/Math.cos v-angle
-                    * $ js/Math.sin angle
-                    negate
-              -> from-x (&v+ from-y) (&v+ from-z)
         |traverse-tree $ quote
           defn traverse-tree (tree coord cb)
             when (some? tree)
@@ -858,13 +801,14 @@
                 map-indexed children $ fn (idx child)
                   traverse-tree child (conj coord idx) cb
       :ns $ quote
-        ns quatrefoil.core $ :require
+        ns triadica.core $ :require
           touch-control.core :refer $ render-control!
-          triadica.global :refer $ *viewer-angle *viewer-y-shift *viewer-position *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths *uniform-data
+          triadica.global :refer $ *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths *uniform-data
+          triadica.perspective :refer $ *viewer-position *viewer-forward *viewer-upward transform-3d new-lookat-point move-viewer-by! rotate-glance-by! spin-glance-by!
           triadica.render :refer $ render-canvas!
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
-          triadica.math :refer $ &v+ &v- transform-3d c-distance
+          triadica.math :refer $ &v+ &v- c-distance
           triadica.config :refer $ half-pi mobile? dpr back-cone-scale
     |triadica.global $ {}
       :defs $ {}
@@ -879,11 +823,6 @@
           defatom *proxied-dispatch $ fn (op data) (js/console.log "\"not rendered yet")
         |*uniform-data $ quote
           defatom *uniform-data $ {} (:spin-city 0)
-        |*viewer-angle $ quote
-          defatom *viewer-angle $ &/ &PI 2
-        |*viewer-position $ quote
-          defatom *viewer-position $ [] 0 200 0
-        |*viewer-y-shift $ quote (defatom *viewer-y-shift 0)
       :ns $ quote (ns triadica.global)
     |triadica.hud $ {}
       :defs $ {}
@@ -891,7 +830,7 @@
           defatom *debug-info $ {}
         |css-debug $ quote
           defstyle css-debug $ {}
-            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"6px 8px") (:border-radius "\"6px") (:position :absolute) (:top 0) (:right 0) (:margin 0) (:font-size 10) (:line-height 1.5)
+            "\"$0" $ {} (:color :white) (:font-family "\"menlo,monospace") (:padding "\"6px 8px") (:border-radius "\"6px") (:position :absolute) (:top 0) (:left 0) (:margin 0) (:font-size 10) (:line-height 1.5)
               :background-color $ hsl 0 0 40 0.4
         |hud-display $ quote
           defn hud-display (name content) (swap! *debug-info assoc name content)
@@ -933,34 +872,113 @@
         |sum-squares $ quote
           defn sum-squares (a b)
             &+ (&* a a) (&* b b)
+        |v-cross $ quote
+          defn v-cross (v1 v2)
+            let-sugar
+                  [] x1 y1 z1
+                  , v1
+                ([] x2 y2 z2) v2
+              []
+                &- (&* y1 z2) (&* y2 z1)
+                &- (&* x2 z1) (&* x1 z2)
+                &- (&* x1 y2) (&* x2 y1)
+        |v-dot $ quote
+          defn v-dot (v1 v2)
+            let-sugar
+                  [] x1 y1 z1
+                  , v1
+                ([] x2 y2 z2) v2
+              + (&* x1 x2) (&* y1 y2) (&* z1 z2)
+        |v-scale $ quote
+          defn v-scale (v s)
+            let[] (x y z) v $ [] (&* x s) (&* y s) (&* z s)
+      :ns $ quote
+        ns triadica.math $ :require
+          triadica.core :refer $ new-lookat-point &v- &v+
+          triadica.hud :refer $ hud-display
+          triadica.global :refer $ *viewer-position
+          triadica.config :refer $ back-cone-scale
+    |triadica.perspective $ {}
+      :defs $ {}
+        |*viewer-forward $ quote
+          defatom *viewer-forward $ [] 0 0 -1
+        |*viewer-position $ quote
+          defatom *viewer-position $ [] 0 0 0
+        |*viewer-upward $ quote
+          defatom *viewer-upward $ [] 0 1 0
+        |move-viewer-by! $ quote
+          defn move-viewer-by! (x0 y0 z0)
+            let
+                dv $ to-viewer-axis x0 y0 z0
+                position @*viewer-position
+              reset! *viewer-position $ &v+ position dv
+              ; println ([] x0 y0 z0) |=> $ [] dx dy dz
+              ; render-canvas
+        |new-lookat-point $ quote
+          defn new-lookat-point () $ v-scale @*viewer-forward 600
+        |rotate-glance-by! $ quote
+          defn rotate-glance-by! (x y)
+            if (not= x 0)
+              let
+                  da $ * x 0.1
+                  forward @*viewer-forward
+                  upward @*viewer-upward
+                  rightward $ v-cross upward forward
+                reset! *viewer-forward $ &v+
+                  v-scale forward $ js/Math.cos da
+                  v-scale rightward $ js/Math.sin da
+            if (not= y 0)
+              let
+                  da $ * y 0.1
+                  forward @*viewer-forward
+                  upward @*viewer-upward
+                reset! *viewer-forward $ &v+
+                  v-scale forward $ js/Math.cos da
+                  v-scale upward $ js/Math.sin da
+                reset! *viewer-upward $ &v+
+                  v-scale upward $ js/Math.cos da
+                  v-scale forward $ negate (js/Math.sin da)
+            ; render-canvas
+        |spin-glance-by! $ quote
+          defn spin-glance-by! (v)
+            if (not= v 0)
+              let
+                  da $ * v 0.1
+                  forward @*viewer-forward
+                  upward @*viewer-upward
+                  rightward $ v-cross upward forward
+                reset! *viewer-upward $ &v+
+                  v-scale upward $ js/Math.cos da
+                  v-scale rightward $ js/Math.sin da
+        |to-viewer-axis $ quote
+          defn to-viewer-axis (x y z) (; "\"converting from WebGL coordinate to object coordinate")
+            let
+                forward @*viewer-forward
+                upward @*viewer-upward
+                rightward $ v-cross upward forward
+              &v+
+                &v+
+                  v-scale rightward $ negate x
+                  v-scale upward y
+                v-scale forward $ negate z
         |transform-3d $ quote
           defn transform-3d (p0)
             let-sugar
                 point $ &v- p0 @*viewer-position
                 look-distance $ wo-log (new-lookat-point)
+                upward @*viewer-upward
+                rightward $ v-cross upward @*viewer-forward
                 s $ noted "\"size factor of light cone in negative direction" back-cone-scale
-                ([] x y z) point
-                ([] a b c) look-distance
-                r $ /
-                  + (* a x) (* b y) (* c z)
-                  + (square a) (square b) (square c)
-                q $ / (+ s 1) (+ r s)
-                L1 $ sqrt
-                  + (* a a b b)
-                    square $ sum-squares a c
-                    * b b c c
-                y' $ *
-                  /
-                    + (* q y) (* b q s) (* -1 b s) (* -1 b)
-                    sum-squares a c
-                  , L1
-                x' $ *
-                  /
-                    -
-                      + (* q x) (* a q s) (* -1 s a) (* -1 a)
-                      * y' $ / (* -1 a b) L1
-                    , c -1
-                  sqrt $ sum-squares a c
+                r $ wo-log
+                  &/ (v-dot point look-distance)
+                    +
+                      square $ nth look-distance 0
+                      square $ nth look-distance 1
+                      square $ nth look-distance 2
+                screen_scale $ &/ (&+ s 1) (&+ r s)
+                y' $ &* (v-dot point upward) screen_scale
+                x' $ negate
+                  &* (v-dot point rightward) screen_scale
                 z' r
               ; println $ [] x' y' z'
               ; -> ([] x' y' z')
@@ -969,8 +987,6 @@
                 map $ fn (p) p
               [] x' y' z'
       :ns $ quote
-        ns triadica.math $ :require
-          triadica.core :refer $ new-lookat-point &v- &v+
-          triadica.hud :refer $ hud-display
-          triadica.global :refer $ *viewer-position
-          triadica.config :refer $ back-cone-scale
+        ns triadica.perspective $ :require
+          triadica.math :refer $ square sum-squares &v- &v+ v-cross v-scale v-dot
+          triadica.config :refer $ back-cone-scale half-pi
