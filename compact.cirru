@@ -13,24 +13,71 @@
           defn object (options) (assoc options :type :object)
       :ns $ quote
         ns triadica.alias $ :require
+    |triadica.app.container $ {}
+      :defs $ {}
+        |comp-container $ quote
+          defn comp-container (store)
+            group ({})
+              case-default (:tab store)
+                do
+                  println "\"unknown tab" $ :tab store
+                  axis-object
+                :axis $ axis-object
+                :cubes $ cubes-object
+                :spin-city $ spin-city
+                :bg $ bg-object
+                :tree $ tree-object
+                :curve-ball $ curve-ball
+                :spin-city $ spin-city
+                :fiber-bending $ fiber-bending
+                :plate-bending $ plate-bending
+                :mushroom $ mushroom-object
+              comp-tabs
+                {} $ :position ([] -40 0 0)
+                []
+                  {} (:key :axis)
+                    :position $ [] -400 240 0
+                  {} (:key :cubes)
+                    :position $ [] -400 200 0
+                  {} (:key :spin-city)
+                    :position $ [] -400 160 0
+                  {} (:key :bg)
+                    :position $ [] -400 120 0
+                  {} (:key :tree)
+                    :position $ [] -400 80 0
+                  {} (:key :curve-ball)
+                    :position $ [] -400 40 0
+                  {} (:key :spin-city)
+                    :position $ [] -400 0 0
+                  {} (:key :fiber-bending)
+                    :position $ [] -400 -40 0
+                  {} (:key :plate-bending)
+                    :position $ [] -400 -80 0
+                  {} (:key :mushroom)
+                    :position $ [] -400 -120 0
+      :ns $ quote
+        ns triadica.app.container $ :require
+          triadica.alias :refer $ group
+          triadica.comp.tabs :refer $ comp-tabs
+          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
-          defatom *store $ {} (:v 0)
+          defatom *store $ {} (:v 0) (:tab nil)
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
           defn dispatch! (op data) (js/console.log "\"Dispatch:" op data)
             if (= op :city-spin)
-              do
-                swap! *uniform-data update :spin-city $ fn (x)
+              do $ swap! *uniform-data update :spin-city
+                fn (x)
                   + x $ * 0.01 data
-                render-canvas!
               let
                   store @*store
                   next $ case-default op
                     do (js/console.warn "\"unknown op" op) nil
                     :cube-right $ update store :v inc
+                    :tab-focus $ assoc store :tab data
                 if (some? next) (reset! *store next)
         |main! $ quote
           defn main! ()
@@ -44,30 +91,21 @@
             render-control!
             start-control-loop! 10 on-control-event
             add-watch *store :change $ fn (v _p) (render-app!)
-            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-app!)
+            add-watch *uniform-data :change $ fn (v _p) (render-canvas!)
+            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-canvas!)
             setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (remove-watch *store :change)
+            do (render-app!) (remove-watch *store :change)
               add-watch *store :change $ fn (v _p) (render-app!)
               replace-control-loop! 10 on-control-event
-              set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-app!)
               setup-mouse-events! canvas
-              render-app!
+              set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-canvas!)
               hud! "\"ok~" "\"OK"
             hud! "\"error" build-errors
         |render-app! $ quote
           defn render-app! ()
-            load-objects!
-              group ({}) (; axis-object) (; cubes-object) (; bg-object) (; tree-object)
-                ; tiny-cube-object $ :v @*store
-                ; curve-ball
-                ; spin-city
-                ; fiber-bending
-                ; plate-bending
-                ; mushroom-object
-                line-wave
-              , dispatch!
+            load-objects! (comp-container @*store) dispatch!
             render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
@@ -77,8 +115,7 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
-          triadica.alias :refer $ group
+          triadica.app.container :refer $ comp-container
     |triadica.app.shapes $ {}
       :defs $ {}
         |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
@@ -467,6 +504,35 @@
           triadica.alias :refer $ object
           triadica.math :refer $ &v+
           triadica.core :refer $ %nested-attribute
+    |triadica.comp.tabs $ {}
+      :defs $ {}
+        |comp-tabs $ quote
+          defn comp-tabs (props entries)
+            let
+                base-position $ :position props
+              group ({}) & $ -> entries
+                map $ fn (entry)
+                  let
+                      key $ :key entry
+                      position $ &v+ base-position (:position entry)
+                      geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
+                      indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
+                    object $ {} (:draw-mode :lines)
+                      :vertex-shader $ inline-shader "\"shape.vert"
+                      :fragment-shader $ inline-shader "\"shape.frag"
+                      :points $ map geo
+                        fn (p)
+                          -> p
+                            map $ fn (i) (* i 32)
+                            &v+ position
+                      :indices indices
+                      :hit-region $ {} (:position position) (:radius 32)
+                        :on-hit $ fn (e d!) (d! :tab-focus key)
+      :ns $ quote
+        ns triadica.comp.tabs $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ group object
+          triadica.math :refer $ &v+
     |triadica.config $ {}
       :defs $ {}
         |back-cone-scale $ quote (def back-cone-scale 1)
@@ -564,21 +630,21 @@
                 fn (obj coord)
                   if-let
                     region $ :hit-region obj
-                    let
-                        mapped-position $ transform-3d (:position region)
-                        screen-position $ map mapped-position
-                          fn (p) (&* p scale-radio)
-                        r $ nth mapped-position 2
-                        mapped-radius $ * scale-radio (:radius region)
-                          &/ back-cone-scale $ &+ r back-cone-scale
-                        distance $ c-distance screen-position ([] x y)
-                      ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
-                      if
-                        and
-                          <= distance $ &max touch-deviation mapped-radius
-                          noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
-                        let
-                            on-hit $ :on-hit region
+                    if-let
+                      on-hit $ :on-hit region
+                      let
+                          mapped-position $ transform-3d (:position region)
+                          screen-position $ map mapped-position
+                            fn (p) (&* p scale-radio)
+                          r $ nth mapped-position 2
+                          mapped-radius $ * scale-radio (:radius region)
+                            &/ (inc back-cone-scale) (&+ r back-cone-scale)
+                          distance $ c-distance screen-position ([] x y)
+                        ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
+                        if
+                          and
+                            <= distance $ &max touch-deviation mapped-radius
+                            noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
                           on-hit event @*proxied-dispatch
         |handle-screen-mousedown! $ quote
           defn handle-screen-mousedown! (event)
@@ -592,23 +658,22 @@
                 fn (obj coord)
                   if-let
                     region $ :hit-region obj
-                    let
-                        mapped-position $ transform-3d (:position region)
-                        screen-position $ map mapped-position
-                          fn (p) (&* p scale-radio)
-                        r $ nth mapped-position 2
-                        mapped-radius $ * scale-radio (:radius region)
-                          &/ back-cone-scale $ &+ r back-cone-scale
-                        distance $ c-distance screen-position ([] x y)
-                      ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
-                      if
-                        and
-                          <= distance $ &max touch-deviation mapped-radius
-                          noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
-                        let
-                            on-mousedown $ :on-mousedown region
-                          on-mousedown event @*proxied-dispatch
-                          swap! *mouse-holding-paths conj coord
+                    if-let
+                      on-mousedown $ :on-mousedown region
+                      let
+                          mapped-position $ transform-3d (:position region)
+                          screen-position $ map mapped-position
+                            fn (p) (&* p scale-radio)
+                          r $ nth mapped-position 2
+                          mapped-radius $ * scale-radio (:radius region)
+                            &/ (inc back-cone-scale) (&+ r back-cone-scale)
+                          distance $ c-distance screen-position ([] x y)
+                        ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
+                        if
+                          and
+                            <= distance $ &max touch-deviation mapped-radius
+                            noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
+                          do (on-mousedown event @*proxied-dispatch) (swap! *mouse-holding-paths conj coord)
         |handle-screen-mousemove! $ quote
           defn handle-screen-mousemove! (event)
             let
