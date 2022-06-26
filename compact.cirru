@@ -23,37 +23,35 @@
                   {} position length forward upward
                   , info
                 rightward $ v-cross forward upward
-                delta-angle 1.5
-                regress 0.5
+                delta-angle 2.09
+                regress 0.74
                 segments 4
-                branch-angle 0.8
+                branch-angle 0.9
                 main-branch $ wo-log
                   [] position $ &v+ position (v-scale forward length)
                 side-branches $ ->
                   range 1 $ inc segments
-                  mapcat $ fn (n)
+                  map $ fn (n)
                     let
                         base $ &v+ position
-                          v-scale forward $ * length (/ n segments)
-                        alpha $ * delta-angle n
+                          v-scale forward $ &* length (&/ n segments)
+                        alpha $ &* delta-angle n
                         side-base $ &v+
-                          v-scale upward $ cos alpha
-                          v-scale rightward $ sin alpha
+                          v-scale upward $ js/Math.cos alpha
+                          v-scale rightward $ js/Math.sin alpha
+                        side-length $ &* (&* length regress)
+                          &- 1 $ &* 0.16 (dec n)
                         side-forward $ &v+
-                          v-scale forward $ cos branch-angle
-                          v-scale side-base $ sin branch-angle
-                        branch $ -> side-forward
-                          v-scale $ * length regress
-                      concat
-                        [] base $ &v+ base branch
+                          v-scale forward $ js/Math.cos branch-angle
+                          v-scale side-base $ js/Math.sin branch-angle
+                        branch $ -> side-forward (v-scale side-length)
+                      [] base (&v+ base branch)
                         if (<= max-level 0) ([])
                           build-path (dec max-level)
-                            {} (:position base)
-                              :length $ * length regress
-                              :forward side-forward
+                            {} (:position base) (:length side-length) (:forward side-forward)
                               :upward $ v-normalize
                                 &v- side-forward $ v-scale forward
-                                  / 1 $ cos branch-angle
+                                  &/ 1 $ js/Math.cos branch-angle
               [] main-branch side-branches
         |comp-branches $ quote
           defn comp-branches () $ let-sugar
@@ -61,7 +59,7 @@
               points $ build-path max-level
                 {}
                   :position $ [] 0 0 0
-                  :length 400
+                  :length 800
                   :forward $ [] 0 1 0
                   :upward $ [] 1 0 0
             group ({})
