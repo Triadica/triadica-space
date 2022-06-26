@@ -13,6 +13,76 @@
           defn object (options) (assoc options :type :object)
       :ns $ quote
         ns triadica.alias $ :require
+    |triadica.app.comp.branches $ {}
+      :defs $ {}
+        |*points-buffer $ quote
+          defatom *points-buffer $ []
+        |build-path $ quote
+          defn build-path (max-level info)
+            let-sugar
+                  {} position length forward upward
+                  , info
+                rightward $ v-cross forward upward
+                delta-angle 1.5
+                regress 0.5
+                segments 4
+                branch-angle 0.8
+                main-branch $ wo-log
+                  [] position $ &v+ position (v-scale forward length)
+                side-branches $ ->
+                  range 1 $ inc segments
+                  mapcat $ fn (n)
+                    let
+                        base $ &v+ position
+                          v-scale forward $ * length (/ n segments)
+                        alpha $ * delta-angle n
+                        side-base $ &v+
+                          v-scale upward $ cos alpha
+                          v-scale rightward $ sin alpha
+                        side-forward $ &v+
+                          v-scale forward $ cos branch-angle
+                          v-scale side-base $ sin branch-angle
+                        branch $ -> side-forward
+                          v-scale $ * length regress
+                      concat
+                        [] base $ &v+ base branch
+                        if (<= max-level 0) ([])
+                          build-path (dec max-level)
+                            {} (:position base)
+                              :length $ * length regress
+                              :forward side-forward
+                              :upward $ v-normalize
+                                &v- side-forward $ v-scale forward
+                                  / 1 $ cos branch-angle
+              [] main-branch side-branches
+        |comp-branches $ quote
+          defn comp-branches () $ let-sugar
+              max-level 8
+              points $ build-path max-level
+                {}
+                  :position $ [] 0 0 0
+                  :length 400
+                  :forward $ [] 0 1 0
+                  :upward $ [] 1 0 0
+            group ({})
+              object $ {} (:draw-mode :lines)
+                :vertex-shader $ inline-shader "\"lines.vert"
+                :fragment-shader $ inline-shader "\"lines.frag"
+                :points $ %{} %nested-attribute (:augment 3)
+                  :length $ / (count-recursive points) 3
+                  :data points
+        |count-recursive $ quote
+          defn count-recursive (xs)
+            if (list? xs)
+              reduce xs 0 $ fn (acc x)
+                &+ acc $ count-recursive x
+              , 1
+      :ns $ quote
+        ns triadica.app.comp.branches $ :require
+          triadica.alias :refer $ group object
+          triadica.core :refer $ %nested-attribute
+          triadica.config :refer $ inline-shader
+          triadica.math :refer $ &v+ v-scale v-cross &v- v-normalize
     |triadica.app.container $ {}
       :defs $ {}
         |comp-container $ quote
@@ -32,6 +102,7 @@
                 :fiber-bending $ fiber-bending
                 :plate-bending $ plate-bending
                 :mushroom $ mushroom-object
+                :branches $ comp-branches
               comp-tabs
                 {} $ :position ([] -40 0 0)
                 []
@@ -55,15 +126,18 @@
                     :position $ [] -400 -80 0
                   {} (:key :mushroom)
                     :position $ [] -400 -120 0
+                  {} (:key :branches)
+                    :position $ [] -400 -160 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
           triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
+          triadica.app.comp.branches :refer $ comp-branches
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
-          defatom *store $ {} (:v 0) (:tab nil)
+          defatom *store $ {} (:v 0) (:tab :branches)
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
@@ -832,7 +906,7 @@
                   twgl/setUniforms program-info uniforms
                   case-default (:draw-mode object)
                     do
-                      js/console.warn "\"unknown draw mode" $ :draw-mode object
+                      js/console.warn "\"unknown draw mode:" $ :draw-mode object
                       twgl/drawBufferInfo gl buffer-info $ .-LINES gl
                     :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
@@ -954,6 +1028,12 @@
                   , v1
                 ([] x2 y2 z2) v2
               + (&* x1 x2) (&* y1 y2) (&* z1 z2)
+        |v-normalize $ quote
+          defn v-normalize (v)
+            let[] (x y z) v $ let
+                length $ sqrt
+                  + (&* x x) (&* y y) (&* z z)
+              v-scale v $ / 1 length
         |v-scale $ quote
           defn v-scale (v s)
             let[] (x y z) v $ [] (&* x s) (&* y s) (&* z s)
