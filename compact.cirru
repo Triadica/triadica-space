@@ -13,24 +13,143 @@
           defn object (options) (assoc options :type :object)
       :ns $ quote
         ns triadica.alias $ :require
+    |triadica.app.comp.branches $ {}
+      :defs $ {}
+        |*points-buffer $ quote
+          defatom *points-buffer $ []
+        |build-path $ quote
+          defn build-path (max-level info)
+            let-sugar
+                  {} position length forward upward
+                  , info
+                rightward $ v-cross forward upward
+                delta-angle 2.09
+                regress 0.74
+                segments 4
+                branch-angle 0.9
+                main-branch $ wo-log
+                  [] position $ &v+ position (v-scale forward length)
+                side-branches $ ->
+                  range 1 $ inc segments
+                  map $ fn (n)
+                    let
+                        base $ &v+ position
+                          v-scale forward $ &* length (&/ n segments)
+                        alpha $ &* delta-angle n
+                        side-base $ &v+
+                          v-scale upward $ js/Math.cos alpha
+                          v-scale rightward $ js/Math.sin alpha
+                        side-length $ &* (&* length regress)
+                          &- 1 $ &* 0.16 (dec n)
+                        side-forward $ &v+
+                          v-scale forward $ js/Math.cos branch-angle
+                          v-scale side-base $ js/Math.sin branch-angle
+                        branch $ -> side-forward (v-scale side-length)
+                      [] base (&v+ base branch)
+                        if (<= max-level 0) ([])
+                          build-path (dec max-level)
+                            {} (:position base) (:length side-length) (:forward side-forward)
+                              :upward $ v-normalize
+                                &v- side-forward $ v-scale forward
+                                  &/ 1 $ js/Math.cos branch-angle
+              [] main-branch side-branches
+        |comp-branches $ quote
+          defn comp-branches () $ let-sugar
+              max-level 8
+              points $ build-path max-level
+                {}
+                  :position $ [] 0 0 0
+                  :length 800
+                  :forward $ [] 0 1 0
+                  :upward $ [] 1 0 0
+            group ({})
+              object $ {} (:draw-mode :lines)
+                :vertex-shader $ inline-shader "\"lines.vert"
+                :fragment-shader $ inline-shader "\"lines.frag"
+                :points $ %{} %nested-attribute (:augment 3)
+                  :length $ / (count-recursive points) 3
+                  :data points
+        |count-recursive $ quote
+          defn count-recursive (xs)
+            if (list? xs)
+              reduce xs 0 $ fn (acc x)
+                &+ acc $ count-recursive x
+              , 1
+      :ns $ quote
+        ns triadica.app.comp.branches $ :require
+          triadica.alias :refer $ group object
+          triadica.core :refer $ %nested-attribute
+          triadica.config :refer $ inline-shader
+          triadica.math :refer $ &v+ v-scale v-cross &v- v-normalize
+    |triadica.app.container $ {}
+      :defs $ {}
+        |comp-container $ quote
+          defn comp-container (store)
+            group ({})
+              case-default (:tab store)
+                do
+                  println "\"unknown tab" $ :tab store
+                  axis-object
+                :axis $ axis-object
+                :cubes $ cubes-object
+                :spin-city $ spin-city
+                :bg $ bg-object
+                :conch $ conch-object
+                :curve-ball $ curve-ball
+                :spin-city $ spin-city
+                :fiber-bending $ fiber-bending
+                :plate-bending $ plate-bending
+                :mushroom $ mushroom-object
+                :branches $ comp-branches
+              comp-tabs
+                {} $ :position ([] -40 0 0)
+                []
+                  {} (:key :axis)
+                    :position $ [] -400 240 0
+                  {} (:key :cubes)
+                    :position $ [] -400 200 0
+                  {} (:key :spin-city)
+                    :position $ [] -400 160 0
+                  {} (:key :bg)
+                    :position $ [] -400 120 0
+                  {} (:key :conch)
+                    :position $ [] -400 80 0
+                  {} (:key :curve-ball)
+                    :position $ [] -400 40 0
+                  {} (:key :spin-city)
+                    :position $ [] -400 0 0
+                  {} (:key :fiber-bending)
+                    :position $ [] -400 -40 0
+                  {} (:key :plate-bending)
+                    :position $ [] -400 -80 0
+                  {} (:key :mushroom)
+                    :position $ [] -400 -120 0
+                  {} (:key :branches)
+                    :position $ [] -400 -160 0
+      :ns $ quote
+        ns triadica.app.container $ :require
+          triadica.alias :refer $ group
+          triadica.comp.tabs :refer $ comp-tabs
+          triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
+          triadica.app.comp.branches :refer $ comp-branches
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
-          defatom *store $ {} (:v 0)
+          defatom *store $ {} (:v 0) (:tab :branches)
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
           defn dispatch! (op data) (js/console.log "\"Dispatch:" op data)
             if (= op :city-spin)
-              do
-                swap! *uniform-data update :spin-city $ fn (x)
+              do $ swap! *uniform-data update :spin-city
+                fn (x)
                   + x $ * 0.01 data
-                render-canvas!
               let
                   store @*store
                   next $ case-default op
                     do (js/console.warn "\"unknown op" op) nil
                     :cube-right $ update store :v inc
+                    :tab-focus $ assoc store :tab data
                 if (some? next) (reset! *store next)
         |main! $ quote
           defn main! ()
@@ -44,30 +163,21 @@
             render-control!
             start-control-loop! 10 on-control-event
             add-watch *store :change $ fn (v _p) (render-app!)
-            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-app!)
+            add-watch *uniform-data :change $ fn (v _p) (render-canvas!)
+            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-canvas!)
             setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (remove-watch *store :change)
+            do (render-app!) (remove-watch *store :change)
               add-watch *store :change $ fn (v _p) (render-app!)
               replace-control-loop! 10 on-control-event
-              set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-app!)
               setup-mouse-events! canvas
-              render-app!
+              set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-canvas!)
               hud! "\"ok~" "\"OK"
             hud! "\"error" build-errors
         |render-app! $ quote
           defn render-app! ()
-            load-objects!
-              group ({}) (; axis-object) (; cubes-object) (; bg-object) (; tree-object)
-                ; tiny-cube-object $ :v @*store
-                ; curve-ball
-                ; spin-city
-                ; fiber-bending
-                ; plate-bending
-                ; mushroom-object
-                line-wave
-              , dispatch!
+            load-objects! (comp-container @*store) dispatch!
             render-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
@@ -77,16 +187,15 @@
           triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
-          triadica.app.shapes :refer $ bg-object cubes-object tree-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
-          triadica.alias :refer $ group
+          triadica.app.container :refer $ comp-container
     |triadica.app.shapes $ {}
       :defs $ {}
         |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
         |axis-object $ quote
           defn axis-object () $ object
             {} (:draw-mode :lines)
-              :vertex-shader $ inline-shader "\"shape.vert"
-              :fragment-shader $ inline-shader "\"shape.frag"
+              :vertex-shader $ inline-shader "\"lines.vert"
+              :fragment-shader $ inline-shader "\"lines.frag"
               :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
         |bg-object $ quote
           defn bg-object () $ let
@@ -124,13 +233,57 @@
               :draw-mode :triangles
               :points geo
               :indices indices
+        |conch-object $ quote
+          defn conch-object () $ let
+              vs $ range 0 400
+              dt 0.08
+              dr 0.6
+              dy 1.5
+              dpy 0.8
+              geo $ -> vs
+                mapcat $ fn (i)
+                  let
+                      ri $ + 40 (* dr i)
+                      rs $ * 0.4 (- ri 20)
+                    []
+                      []
+                        * rs $ cos
+                          + 0.3 $ * i dt
+                        * i dpy
+                        * rs $ sin
+                          + 0.3 $ * i dt
+                      []
+                        * (pow ri 1.4) 0.2 $ cos (* i dt)
+                        * i dy 1
+                        * (pow ri 1.4) 0.2 $ sin (* i dt)
+                prepend $ [] 0 0 0
+              indices $ -> vs
+                map $ fn (i)
+                  let
+                      v $ * i 2
+                    [] v (+ v 1) (+ v 2)
+                &list:flatten
+              radius-bounds $ -> vs
+                map $ fn (i)
+                  let
+                      v $ + 40 (* dr i)
+                    [] v v v
+                &list:flatten
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"tree.vert"
+              :fragment-shader $ inline-shader "\"tree.frag"
+              :points $ map geo
+                fn (p)
+                  update p 2 $ fn (z) (- z 200)
+              :indices indices
+              :attributes $ {} (:radius_bound radius-bounds)
         |cubes-object $ quote
           defn cubes-object () $ let
               geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
               indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
             object $ {} (:draw-mode :lines)
-              :vertex-shader $ inline-shader "\"shape.vert"
-              :fragment-shader $ inline-shader "\"shape.frag"
+              :vertex-shader $ inline-shader "\"lines.vert"
+              :fragment-shader $ inline-shader "\"lines.frag"
               :points $ concat (map geo move-point) (map geo move-point-2) (map geo move-point-3) (map geo move-point-4)
               :indices $ concat indices
                 map indices $ fn (x) (+ x 8)
@@ -417,56 +570,41 @@
                       d! :city-spin $ - x @*prev-mouse-x
                       reset! *prev-mouse-x x
                   :on-mouseup $ fn (e d!) (js/console.log "\"mouseup" e)
-        |tree-object $ quote
-          defn tree-object () $ let
-              vs $ range 0 400
-              dt 0.08
-              dr 0.6
-              dy 1.5
-              dpy 0.8
-              geo $ -> vs
-                mapcat $ fn (i)
-                  let
-                      ri $ + 40 (* dr i)
-                      rs $ * 0.4 (- ri 20)
-                    []
-                      []
-                        * rs $ cos
-                          + 0.3 $ * i dt
-                        * i dpy
-                        * rs $ sin
-                          + 0.3 $ * i dt
-                      []
-                        * (pow ri 1.4) 0.2 $ cos (* i dt)
-                        * i dy 1
-                        * (pow ri 1.4) 0.2 $ sin (* i dt)
-                prepend $ [] 0 0 0
-              indices $ -> vs
-                map $ fn (i)
-                  let
-                      v $ * i 2
-                    [] v (+ v 1) (+ v 2)
-                &list:flatten
-              radius-bounds $ -> vs
-                map $ fn (i)
-                  let
-                      v $ + 40 (* dr i)
-                    [] v v v
-                &list:flatten
-            object $ {} (:draw-mode :triangles)
-              :vertex-shader $ inline-shader "\"tree.vert"
-              :fragment-shader $ inline-shader "\"tree.frag"
-              :points $ map geo
-                fn (p)
-                  update p 2 $ fn (z) (- z 200)
-              :indices indices
-              :attributes $ {} (:radius_bound radius-bounds)
       :ns $ quote
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object
           triadica.math :refer $ &v+
           triadica.core :refer $ %nested-attribute
+    |triadica.comp.tabs $ {}
+      :defs $ {}
+        |comp-tabs $ quote
+          defn comp-tabs (props entries)
+            let
+                base-position $ :position props
+              group ({}) & $ -> entries
+                map $ fn (entry)
+                  let
+                      key $ :key entry
+                      position $ &v+ base-position (:position entry)
+                      geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
+                      indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
+                    object $ {} (:draw-mode :lines)
+                      :vertex-shader $ inline-shader "\"lines.vert"
+                      :fragment-shader $ inline-shader "\"lines.frag"
+                      :points $ map geo
+                        fn (p)
+                          -> p
+                            map $ fn (i) (* i 32)
+                            &v+ position
+                      :indices indices
+                      :hit-region $ {} (:position position) (:radius 32)
+                        :on-hit $ fn (e d!) (d! :tab-focus key)
+      :ns $ quote
+        ns triadica.comp.tabs $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ group object
+          triadica.math :refer $ &v+
     |triadica.config $ {}
       :defs $ {}
         |back-cone-scale $ quote (def back-cone-scale 1)
@@ -564,21 +702,21 @@
                 fn (obj coord)
                   if-let
                     region $ :hit-region obj
-                    let
-                        mapped-position $ transform-3d (:position region)
-                        screen-position $ map mapped-position
-                          fn (p) (&* p scale-radio)
-                        r $ nth mapped-position 2
-                        mapped-radius $ * scale-radio (:radius region)
-                          &/ back-cone-scale $ &+ r back-cone-scale
-                        distance $ c-distance screen-position ([] x y)
-                      ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
-                      if
-                        and
-                          <= distance $ &max touch-deviation mapped-radius
-                          noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
-                        let
-                            on-hit $ :on-hit region
+                    if-let
+                      on-hit $ :on-hit region
+                      let
+                          mapped-position $ transform-3d (:position region)
+                          screen-position $ map mapped-position
+                            fn (p) (&* p scale-radio)
+                          r $ nth mapped-position 2
+                          mapped-radius $ * scale-radio (:radius region)
+                            &/ (inc back-cone-scale) (&+ r back-cone-scale)
+                          distance $ c-distance screen-position ([] x y)
+                        ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
+                        if
+                          and
+                            <= distance $ &max touch-deviation mapped-radius
+                            noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
                           on-hit event @*proxied-dispatch
         |handle-screen-mousedown! $ quote
           defn handle-screen-mousedown! (event)
@@ -592,23 +730,22 @@
                 fn (obj coord)
                   if-let
                     region $ :hit-region obj
-                    let
-                        mapped-position $ transform-3d (:position region)
-                        screen-position $ map mapped-position
-                          fn (p) (&* p scale-radio)
-                        r $ nth mapped-position 2
-                        mapped-radius $ * scale-radio (:radius region)
-                          &/ back-cone-scale $ &+ r back-cone-scale
-                        distance $ c-distance screen-position ([] x y)
-                      ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
-                      if
-                        and
-                          <= distance $ &max touch-deviation mapped-radius
-                          noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
-                        let
-                            on-mousedown $ :on-mousedown region
-                          on-mousedown event @*proxied-dispatch
-                          swap! *mouse-holding-paths conj coord
+                    if-let
+                      on-mousedown $ :on-mousedown region
+                      let
+                          mapped-position $ transform-3d (:position region)
+                          screen-position $ map mapped-position
+                            fn (p) (&* p scale-radio)
+                          r $ nth mapped-position 2
+                          mapped-radius $ * scale-radio (:radius region)
+                            &/ (inc back-cone-scale) (&+ r back-cone-scale)
+                          distance $ c-distance screen-position ([] x y)
+                        ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
+                        if
+                          and
+                            <= distance $ &max touch-deviation mapped-radius
+                            noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
+                          do (on-mousedown event @*proxied-dispatch) (swap! *mouse-holding-paths conj coord)
         |handle-screen-mousemove! $ quote
           defn handle-screen-mousemove! (event)
             let
@@ -694,6 +831,7 @@
                 r-delta $ :right-move delta
                 l-delta $ :left-move delta
                 left-a? $ :left-a? states
+                right-a? $ :right-a? states
                 right-b? $ :right-b? states
                 left-b? $ :left-b? states
               ; println "\"L" l-move "\"R" r-move
@@ -707,23 +845,22 @@
                   * -0.05 elapsed $ nth l-move 0
                   , 0
               when
-                and (not left-a?) (not left-b?)
+                and (not right-a?)
                   not= ([] 0 0) r-move
                 move-viewer-by!
                   * 2 elapsed $ nth r-move 0
                   * 2 elapsed $ nth r-move 1
                   , 0
               when
-                and left-a? $ not= 0 (nth r-move 1)
+                and right-a? $ not= 0 (nth r-move 1)
                 rotate-glance-by! 0 $ * 0.05 (nth r-move 1) elapsed
               when
-                and left-a? $ not= 0 (nth r-move 0)
+                and right-a? $ not= 0 (nth r-move 0)
                 spin-glance-by! $ * -0.05 (nth r-move 0) elapsed
               when
                 or
                   not= l-move $ [] 0 0
                   not= r-move $ [] 0 0
-                  , left-b?
                 render-canvas!
         |refine-strength $ quote
           defn refine-strength (x)
@@ -767,7 +904,7 @@
                   twgl/setUniforms program-info uniforms
                   case-default (:draw-mode object)
                     do
-                      js/console.warn "\"unknown draw mode" $ :draw-mode object
+                      js/console.warn "\"unknown draw mode:" $ :draw-mode object
                       twgl/drawBufferInfo gl buffer-info $ .-LINES gl
                     :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
@@ -889,6 +1026,12 @@
                   , v1
                 ([] x2 y2 z2) v2
               + (&* x1 x2) (&* y1 y2) (&* z1 z2)
+        |v-normalize $ quote
+          defn v-normalize (v)
+            let[] (x y z) v $ let
+                length $ sqrt
+                  + (&* x x) (&* y y) (&* z z)
+              v-scale v $ / 1 length
         |v-scale $ quote
           defn v-scale (v s)
             let[] (x y z) v $ [] (&* x s) (&* y s) (&* z s)

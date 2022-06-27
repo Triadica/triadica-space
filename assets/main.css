@@ -12,10 +12,3 @@ canvas {
   width: 100vw;
   height: 100vh;
 }
-
-body .touch-control .left-hand {
-  left: 60px;
-}
-body .touch-control .right-hand {
-  right: 60px;
-}
