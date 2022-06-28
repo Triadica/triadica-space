@@ -1,0 +1,14 @@
+{
+  "name": "@quatrefoil/triadica-lib",
+  "version": "0.0.2",
+  "description": "reusable JavaScript for Triadica",
+  "main": "./fb.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "webgl"
+  ],
+  "author": "tiye",
+  "license": "ISC"
+}

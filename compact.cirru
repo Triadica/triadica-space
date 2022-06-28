@@ -908,7 +908,7 @@
               ; .!cullFace gl $ .-BACK gl
               ; .!cullFace gl $ .-FRONT_AND_BACK gl
               .!clearColor gl 0 0 0 1
-              .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+              clear_gl gl
               &doseq (object @*objects-buffer)
                 let
                     program-info $ :program object
@@ -931,8 +931,8 @@
                     js-object $ :position
                       create-attribute-array $ [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
                 .!bindFramebuffer gl (.-FRAMEBUFFER gl) nil
-                ; .!clearColor gl 0 0 0 1
-                ; .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+                .!clearColor gl 0 0 0 1
+                clear_gl gl
                 ; .!enable gl $ .-DEPTH_TEST gl
                 ; .!depthFunc gl $ .-LESS gl
                 ; .!depthFunc gl $ .-GREATER gl
@@ -979,7 +979,7 @@
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
           triadica.config :refer $ half-pi mobile? dpr back-cone-scale inline-shader
-          "\"./fb.js" :refer $ createTextureAndFramebuffer
+          "\"@quatrefoil/triadica-lib" :refer $ createTextureAndFramebuffer clear_gl
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)

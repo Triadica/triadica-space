@@ -31,6 +31,11 @@
   resolved "https://registry.yarnpkg.com/@quamolit/touch-control/-/touch-control-0.0.11.tgz#f6d01a7ecac385d5f4955118b6d630958d660070"
   integrity sha512-v1ygM4gLeRkidbSil99dpdUcOjOR9EaWH448HEaQIwIWYYB4a58hCT0hSlGknPJRQxp8ZbjDo8T+LpZhCf8vfQ==
 
+"@quatrefoil/triadica-lib@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@quatrefoil/triadica-lib/-/triadica-lib-0.0.2.tgz#15fe24d7e21ea1dcaaf8534994be58108f152dbc"
+  integrity sha512-tty7yK3NBbFEZaJjcucJZ+FDRx7Kges9ht2Kj5hJXKFWJiGRNlTayTpnUaHq44Mrc90+9Dei/jnX4sFqaLbjqQ==
+
 bottom-tip@^0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/bottom-tip/-/bottom-tip-0.1.3.tgz#ad3a4bcc8c3d5b5c6dac68fd3d140bf18efc50f8"

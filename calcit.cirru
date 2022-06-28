@@ -6668,10 +6668,10 @@
                                                   |T $ {} (:at 1656419373363) (:by |u0) (:text |f) (:type :leaf)
                                                   |b $ {} (:at 1656419373844) (:by |u0) (:type :expr)
                                                     :data $ {}
-                                                      |T $ {} (:at 1656419373844) (:by |u0) (:text |createTextureAndFramebuffer) (:type :leaf)
+                                                      |T $ {} (:at 1656431920522) (:by |u0) (:text |createTextureAndFramebuffer) (:type :leaf)
                                                       |b $ {} (:at 1656419373844) (:by |u0) (:text |gl) (:type :leaf)
-                                                      |h $ {} (:at 1656419373844) (:by |u0) (:text |scaled-width) (:type :leaf)
-                                                      |l $ {} (:at 1656419373844) (:by |u0) (:text |scaled-height) (:type :leaf)
+                                                      |h $ {} (:at 1656431894839) (:by |u0) (:text |scaled-width) (:type :leaf)
+                                                      |l $ {} (:at 1656431896479) (:by |u0) (:text |scaled-height) (:type :leaf)
                                           |h $ {} (:at 1656419377420) (:by |u0) (:type :expr)
                                             :data $ {}
                                               |T $ {} (:at 1656419380453) (:by |u0) (:text |reset!) (:type :leaf)
@@ -6832,19 +6832,8 @@
                           |q $ {} (:at 1656417405561) (:by |u0) (:text |1) (:type :leaf)
                       |v $ {} (:at 1656417410809) (:by |u0) (:type :expr)
                         :data $ {}
-                          |T $ {} (:at 1656417410809) (:by |u0) (:text |.!clear) (:type :leaf)
+                          |T $ {} (:at 1656431979757) (:by |u0) (:text |clear_gl) (:type :leaf)
                           |b $ {} (:at 1656417410809) (:by |u0) (:text |gl) (:type :leaf)
-                          |h $ {} (:at 1656417410809) (:by |u0) (:type :expr)
-                            :data $ {}
-                              |T $ {} (:at 1656417410809) (:by |u0) (:text |or) (:type :leaf)
-                              |b $ {} (:at 1656417410809) (:by |u0) (:type :expr)
-                                :data $ {}
-                                  |T $ {} (:at 1656417410809) (:by |u0) (:text |.-COLOR_BUFFER_BIT) (:type :leaf)
-                                  |b $ {} (:at 1656417410809) (:by |u0) (:text |gl) (:type :leaf)
-                              |h $ {} (:at 1656417410809) (:by |u0) (:type :expr)
-                                :data $ {}
-                                  |T $ {} (:at 1656417410809) (:by |u0) (:text |.-DEPTH_BUFFER_BIT) (:type :leaf)
-                                  |b $ {} (:at 1656417410809) (:by |u0) (:text |gl) (:type :leaf)
                       |x $ {} (:at 1653323208458) (:by |u0) (:type :expr)
                         :data $ {}
                           |D $ {} (:at 1653323212600) (:by |u0) (:text |&doseq) (:type :leaf)
@@ -7048,7 +7037,6 @@
                               |l $ {} (:at 1656413602173) (:by |u0) (:text |nil) (:type :leaf)
                           |R $ {} (:at 1656413258196) (:by |u0) (:type :expr)
                             :data $ {}
-                              |D $ {} (:at 1656416567405) (:by |u0) (:text |;) (:type :leaf)
                               |T $ {} (:at 1656413258196) (:by |u0) (:text |.!clearColor) (:type :leaf)
                               |b $ {} (:at 1656413258196) (:by |u0) (:text |gl) (:type :leaf)
                               |h $ {} (:at 1656413258196) (:by |u0) (:text |0) (:type :leaf)
@@ -7057,20 +7045,8 @@
                               |q $ {} (:at 1656413258196) (:by |u0) (:text |1) (:type :leaf)
                           |S $ {} (:at 1656413264666) (:by |u0) (:type :expr)
                             :data $ {}
-                              |D $ {} (:at 1656416566806) (:by |u0) (:text |;) (:type :leaf)
-                              |T $ {} (:at 1656413264666) (:by |u0) (:text |.!clear) (:type :leaf)
+                              |T $ {} (:at 1656431983731) (:by |u0) (:text |clear_gl) (:type :leaf)
                               |b $ {} (:at 1656413264666) (:by |u0) (:text |gl) (:type :leaf)
-                              |h $ {} (:at 1656413264666) (:by |u0) (:type :expr)
-                                :data $ {}
-                                  |T $ {} (:at 1656413264666) (:by |u0) (:text |or) (:type :leaf)
-                                  |b $ {} (:at 1656413264666) (:by |u0) (:type :expr)
-                                    :data $ {}
-                                      |T $ {} (:at 1656413264666) (:by |u0) (:text |.-COLOR_BUFFER_BIT) (:type :leaf)
-                                      |b $ {} (:at 1656413264666) (:by |u0) (:text |gl) (:type :leaf)
-                                  |h $ {} (:at 1656413264666) (:by |u0) (:type :expr)
-                                    :data $ {}
-                                      |T $ {} (:at 1656413264666) (:by |u0) (:text |.-DEPTH_BUFFER_BIT) (:type :leaf)
-                                      |b $ {} (:at 1656413264666) (:by |u0) (:text |gl) (:type :leaf)
                           |ST $ {} (:at 1656416348185) (:by |u0) (:type :expr)
                             :data $ {}
                               |D $ {} (:at 1656416565894) (:by |u0) (:text |;) (:type :leaf)
@@ -7429,11 +7405,12 @@
                         |o $ {} (:at 1656413948897) (:by |u0) (:text |inline-shader) (:type :leaf)
                 |zq $ {} (:at 1656412469181) (:by |u0) (:type :expr)
                   :data $ {}
-                    |T $ {} (:at 1656412472235) (:by |u0) (:text "|\"./fb.js") (:type :leaf)
+                    |T $ {} (:at 1656432508869) (:by |u0) (:text "|\"@quatrefoil/triadica-lib") (:type :leaf)
                     |b $ {} (:at 1656412473802) (:by |u0) (:text |:refer) (:type :leaf)
                     |h $ {} (:at 1656412474090) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1656412474359) (:by |u0) (:text |createTextureAndFramebuffer) (:type :leaf)
+                        |b $ {} (:at 1656431986511) (:by |u0) (:text |clear_gl) (:type :leaf)
       |triadica.global $ {}
         :configs $ {}
         :defs $ {}
