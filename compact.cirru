@@ -26,7 +26,7 @@
                 delta-angle 2.09
                 regress 0.74
                 segments 4
-                branch-angle 0.9
+                branch-angle 0.7
                 main-branch $ wo-log
                   [] position $ &v+ position (v-scale forward length)
                 side-branches $ ->
@@ -135,7 +135,7 @@
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
-          defatom *store $ {} (:v 0) (:tab :spin-city)
+          defatom *store $ {} (:v 0) (:tab :cubes)
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
