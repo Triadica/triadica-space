@@ -81,6 +81,68 @@
           triadica.core :refer $ %nested-attribute
           triadica.config :refer $ inline-shader
           triadica.math :refer $ &v+ v-scale v-cross &v- v-normalize
+    |triadica.app.comp.lamps $ {}
+      :defs $ {}
+        |comp-lamps $ quote
+          defn comp-lamps () $ let
+              r-top 24
+              r-bottom 32
+              h 60
+              angle0 $ * 0.25 &PI
+              item-count 20
+              grid $ -> (range item-count)
+                mapcat $ fn (i)
+                  -> (range item-count)
+                    mapcat $ fn (k)
+                      -> (range item-count)
+                        map $ fn (j) ([] i k j)
+            ; println geo
+            object $ {}
+              :vertex-shader $ inline-shader "\"lamps.vert"
+              :fragment-shader $ inline-shader "\"lamps.frag"
+              :draw-mode :triangles
+              :points $ %{} %nested-attribute (:augment 3)
+                :length $ * 8 6 (count grid)
+                :data $ -> grid
+                  map $ fn (position)
+                    -> (range 8)
+                      map $ fn (i)
+                        let
+                            i' $ inc i
+                            base $ v-scale position 400
+                            p0 $ &v+ base
+                              []
+                                * r-bottom $ cos (* i angle0)
+                                , 0 $ * r-bottom
+                                  sin $ * i angle0
+                            p1 $ &v+ base
+                              []
+                                * r-bottom $ cos (* i' angle0)
+                                , 0 $ * r-bottom
+                                  sin $ * i' angle0
+                            p2 $ &v+ base
+                              []
+                                * r-top $ cos (* i angle0)
+                                , h $ * r-top
+                                  sin $ * i angle0
+                            p3 $ &v+ base
+                              []
+                                * r-top $ cos (* i' angle0)
+                                , h $ * r-top
+                                  sin $ * i' angle0
+                          [] p0 p1 p2 p1 p3 p2
+              :attributes $ {}
+                :center $ %{} %nested-attribute (:augment 3)
+                  :length $ * 8 6 (count grid)
+                  :data $ -> grid
+                    map $ fn (position)
+                      repeat position $ * 8 6
+      :ns $ quote
+        ns triadica.app.comp.lamps $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ object
+          triadica.math :refer $ &v+ v-scale
+          triadica.core :refer $ %nested-attribute
     |triadica.app.container $ {}
       :defs $ {}
         |comp-container $ quote
@@ -101,6 +163,7 @@
                 :plate-bending $ plate-bending
                 :mushroom $ mushroom-object
                 :branches $ comp-branches
+                :lamps $ comp-lamps
               comp-tabs
                 {} $ :position ([] -40 0 0)
                 []
@@ -126,16 +189,19 @@
                     :position $ [] -400 -120 0
                   {} (:key :branches)
                     :position $ [] -400 -160 0
+                  {} (:key :lamps)
+                    :position $ [] -400 -200 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
           triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
           triadica.app.comp.branches :refer $ comp-branches
+          triadica.app.comp.lamps :refer $ comp-lamps
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
-          defatom *store $ {} (:v 0) (:tab :cubes)
+          defatom *store $ {} (:v 0) (:tab :lamps)
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
@@ -908,7 +974,7 @@
               ; .!cullFace gl $ .-BACK gl
               ; .!cullFace gl $ .-FRONT_AND_BACK gl
               .!clearColor gl 0 0 0 1
-              clear_gl gl
+              .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
               &doseq (object @*objects-buffer)
                 let
                     program-info $ :program object
@@ -932,7 +998,7 @@
                       create-attribute-array $ [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
                 .!bindFramebuffer gl (.-FRAMEBUFFER gl) nil
                 .!clearColor gl 0 0 0 1
-                clear_gl gl
+                .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
                 ; .!enable gl $ .-DEPTH_TEST gl
                 ; .!depthFunc gl $ .-LESS gl
                 ; .!depthFunc gl $ .-GREATER gl
@@ -979,7 +1045,7 @@
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
           triadica.config :refer $ half-pi mobile? dpr back-cone-scale inline-shader
-          "\"@quatrefoil/triadica-lib" :refer $ createTextureAndFramebuffer clear_gl
+          "\"@quatrefoil/triadica-lib" :refer $ createTextureAndFramebuffer
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
