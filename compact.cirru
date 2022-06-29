@@ -26,7 +26,7 @@
                 delta-angle 2.09
                 regress 0.74
                 segments 4
-                branch-angle 0.9
+                branch-angle 0.7
                 main-branch $ wo-log
                   [] position $ &v+ position (v-scale forward length)
                 side-branches $ ->
@@ -135,7 +135,7 @@
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
-          defatom *store $ {} (:v 0) (:tab :branches)
+          defatom *store $ {} (:v 0) (:tab :cubes)
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
@@ -630,6 +630,7 @@
     |triadica.core $ {}
       :defs $ {}
         |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
+        |*fb-pair $ quote (defatom *fb-pair nil)
         |*local-array-counter $ quote (defatom *local-array-counter 0)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
         |create-attribute-array $ quote
@@ -869,6 +870,8 @@
         |render-canvas! $ quote
           defn render-canvas! () $ let
               gl @*gl-context
+              scaled-width $ * dpr js/window.innerWidth
+              scaled-height $ * dpr js/window.innerHeight
             ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
             ; do (hud-display "\"position" @*viewer-position) (hud-display "\"forward" @*viewer-forward) (hud-display "\"upward" @*viewer-upward)
             let
@@ -880,13 +883,24 @@
                   :coneBackScale back-cone-scale
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
                   :citySpin $ wo-log (:spin-city @*uniform-data)
+                fb-pair $ let
+                    b @*fb-pair
+                  if
+                    and (some? b)
+                      &= ([] scaled-width scaled-height) (&map:get b :size)
+                    &map:get b :buffer
+                    let
+                        f $ createTextureAndFramebuffer gl scaled-width scaled-height
+                      reset! *fb-pair $ {} (:buffer f)
+                        :size $ [] scaled-width scaled-height
+                      , f
               twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
-              .!viewport gl 0 0.0 (* dpr js/window.innerWidth) (* dpr js/window.innerHeight) (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
+              .!bindFramebuffer gl (.-FRAMEBUFFER gl) (.-fb fb-pair)
+              .!viewport gl 0 0.0 scaled-width scaled-height (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
               ; .!depthFunc gl $ .-GREATER gl
               .!depthMask gl true
-              ; .!depthFunc gl $ .-GREATER gl
               ; .!depthFunc gl $ .-ALWAYS gl
               ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
               ; .!enable gl $ .-BLEND gl
@@ -894,7 +908,7 @@
               ; .!cullFace gl $ .-BACK gl
               ; .!cullFace gl $ .-FRONT_AND_BACK gl
               .!clearColor gl 0 0 0 1
-              .!clear gl $ or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+              clear_gl gl
               &doseq (object @*objects-buffer)
                 let
                     program-info $ :program object
@@ -910,6 +924,24 @@
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
+              let
+                  mix-program $ twgl/createProgramInfo gl
+                    js-array (inline-shader "\"effect.vert") (inline-shader "\"effect.frag")
+                  mix-buffer-info $ twgl/createBufferInfoFromArrays gl
+                    js-object $ :position
+                      create-attribute-array $ [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
+                .!bindFramebuffer gl (.-FRAMEBUFFER gl) nil
+                .!clearColor gl 0 0 0 1
+                clear_gl gl
+                ; .!enable gl $ .-DEPTH_TEST gl
+                ; .!depthFunc gl $ .-LESS gl
+                ; .!depthFunc gl $ .-GREATER gl
+                ; .!depthMask gl true
+                .!useProgram gl $ .-program mix-program
+                twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
+                twgl/setUniforms mix-program $ js-object
+                  :tex1 $ .-tex fb-pair
+                twgl/drawBufferInfo gl mix-buffer-info $ .-TRIANGLES gl
         |reset-canvas-size! $ quote
           defn reset-canvas-size! (canvas)
             ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
@@ -946,7 +978,8 @@
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
-          triadica.config :refer $ half-pi mobile? dpr back-cone-scale
+          triadica.config :refer $ half-pi mobile? dpr back-cone-scale inline-shader
+          "\"@quatrefoil/triadica-lib" :refer $ createTextureAndFramebuffer clear_gl
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
