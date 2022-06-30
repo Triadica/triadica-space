@@ -172,7 +172,9 @@
                   axis-object
                 :axis $ axis-object
                 :cubes $ cubes-object
-                :spin-city $ spin-city
+                :spin-city $ group ({})
+                  tiny-cube-object $ :v store
+                  spin-city
                 :bg $ bg-object
                 :conch $ conch-object
                 :curve-ball $ curve-ball
@@ -663,8 +665,8 @@
                   + 400 $ * v 10
                   , 400 -1200
               object $ {} (:draw-mode :lines)
-                :vertex-shader $ inline-shader "\"shape.vert"
-                :fragment-shader $ inline-shader "\"shape.frag"
+                :vertex-shader $ inline-shader "\"lines.vert"
+                :fragment-shader $ inline-shader "\"lines.frag"
                 :points $ map geo
                   fn (p)
                     -> p
