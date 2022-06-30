@@ -975,19 +975,20 @@
                   :coneBackScale back-cone-scale
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
                   :citySpin $ wo-log (:spin-city @*uniform-data)
-                fb-pair $ let
+                fb $ let
                     b @*fb-pair
                   if
                     and (some? b)
                       &= ([] scaled-width scaled-height) (&map:get b :size)
                     &map:get b :buffer
                     let
-                        f $ createTextureAndFramebuffer gl scaled-width scaled-height
+                        f $ twgl/createFramebufferInfo gl
                       reset! *fb-pair $ {} (:buffer f)
                         :size $ [] scaled-width scaled-height
                       , f
               twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
-              .!bindFramebuffer gl (.-FRAMEBUFFER gl) (.-fb fb-pair)
+              twgl/bindFramebufferInfo gl fb
+              twgl/resizeFramebufferInfo gl fb
               .!viewport gl 0 0.0 scaled-width scaled-height (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
@@ -1022,17 +1023,17 @@
                   mix-buffer-info $ twgl/createBufferInfoFromArrays gl
                     js-object $ :position
                       create-attribute-array $ [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
-                .!bindFramebuffer gl (.-FRAMEBUFFER gl) nil
+                twgl/bindFramebufferInfo gl nil
                 .!clearColor gl 0 0 0 1
                 .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
-                ; .!enable gl $ .-DEPTH_TEST gl
+                .!disable gl $ .-DEPTH_TEST gl
                 ; .!depthFunc gl $ .-LESS gl
                 ; .!depthFunc gl $ .-GREATER gl
                 ; .!depthMask gl true
                 .!useProgram gl $ .-program mix-program
                 twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
                 twgl/setUniforms mix-program $ js-object
-                  :tex1 $ .-tex fb-pair
+                  :tex1 $ .-0 (.-attachments fb)
                 twgl/drawBufferInfo gl mix-buffer-info $ .-TRIANGLES gl
         |reset-canvas-size! $ quote
           defn reset-canvas-size! (canvas)
@@ -1071,7 +1072,6 @@
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
           triadica.config :refer $ half-pi mobile? dpr back-cone-scale inline-shader
-          "\"@quatrefoil/triadica-lib" :refer $ createTextureAndFramebuffer
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
