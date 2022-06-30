@@ -85,14 +85,14 @@
       :defs $ {}
         |comp-lamps $ quote
           defn comp-lamps () $ let
-              r-top 24
-              r-bottom 32
-              h 60
+              r-top 32
+              r-bottom 40
+              h 100
               angle0 $ * 0.25 &PI
-              item-count 20
+              item-count 40
               grid $ -> (range item-count)
                 mapcat $ fn (i)
-                  -> (range item-count)
+                  -> (range 4)
                     mapcat $ fn (k)
                       -> (range item-count)
                         map $ fn (j) ([] i k j)
@@ -102,41 +102,67 @@
               :fragment-shader $ inline-shader "\"lamps.frag"
               :draw-mode :triangles
               :points $ %{} %nested-attribute (:augment 3)
-                :length $ * 8 6 (count grid)
+                :length $ *
+                  + (* 8 6) (* 6 3)
+                  count grid
                 :data $ -> grid
                   map $ fn (position)
-                    -> (range 8)
-                      map $ fn (i)
-                        let
-                            i' $ inc i
-                            base $ v-scale position 400
-                            p0 $ &v+ base
-                              []
-                                * r-bottom $ cos (* i angle0)
-                                , 0 $ * r-bottom
-                                  sin $ * i angle0
-                            p1 $ &v+ base
-                              []
-                                * r-bottom $ cos (* i' angle0)
-                                , 0 $ * r-bottom
-                                  sin $ * i' angle0
-                            p2 $ &v+ base
-                              []
-                                * r-top $ cos (* i angle0)
-                                , h $ * r-top
-                                  sin $ * i angle0
-                            p3 $ &v+ base
-                              []
-                                * r-top $ cos (* i' angle0)
-                                , h $ * r-top
-                                  sin $ * i' angle0
-                          [] p0 p1 p2 p1 p3 p2
+                    let
+                        base $ v-scale position 600
+                      []
+                        -> (range 8)
+                          map $ fn (i)
+                            let
+                                i' $ inc i
+                                p0 $ &v+ base
+                                  []
+                                    * r-bottom $ cos (* i angle0)
+                                    , 0 $ * r-bottom
+                                      sin $ * i angle0
+                                p1 $ &v+ base
+                                  []
+                                    * r-bottom $ cos (* i' angle0)
+                                    , 0 $ * r-bottom
+                                      sin $ * i' angle0
+                                p2 $ &v+ base
+                                  []
+                                    * r-top $ cos (* i angle0)
+                                    , h $ * r-top
+                                      sin $ * i angle0
+                                p3 $ &v+ base
+                                  []
+                                    * r-top $ cos (* i' angle0)
+                                    , h $ * r-top
+                                      sin $ * i' angle0
+                              [] p0 p1 p2 p1 p3 p2
+                        -> (range 6)
+                          map $ fn (i)
+                            []
+                              &v+ base $ []
+                                * r-top $ cos 0
+                                , h
+                                  * r-top $ sin 0
+                              &v+ base $ []
+                                * r-top $ cos
+                                  * (inc i) angle0
+                                , h
+                                  * r-top $ sin
+                                    * (inc i) angle0
+                              &v+ base $ []
+                                * r-top $ cos
+                                  * (+ 2 i) angle0
+                                , h
+                                  * r-top $ sin
+                                    * (+ 2 i) angle0
               :attributes $ {}
                 :center $ %{} %nested-attribute (:augment 3)
-                  :length $ * 8 6 (count grid)
+                  :length $ *
+                    + (* 8 6) (* 6 3)
+                    count grid
                   :data $ -> grid
                     map $ fn (position)
-                      repeat position $ * 8 6
+                      repeat (v-scale position 600)
+                        + (* 8 6) (* 6 3)
       :ns $ quote
         ns triadica.app.comp.lamps $ :require
           triadica.config :refer $ inline-shader

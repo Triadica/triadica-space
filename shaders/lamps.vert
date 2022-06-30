@@ -80,10 +80,10 @@ PointResult transform_perspective(vec3 p) {
 
 void main() {
 
-  float delta = 400.0;
-  float rand1 = delta * snoise(a_center.xy);
-  float rand2 = delta * snoise(a_center.yz);
-  float rand3 = delta * snoise(a_center.zx);
+  float delta = 1600.0;
+  float rand1 = delta * snoise(a_center.xy * 100.0);
+  float rand2 = delta * snoise(a_center.yz * 100.0);
+  float rand3 = delta * snoise(a_center.zx * 100.0);
   vec3 move = vec3(rand1, rand2, rand3);
 
   vec3 moved_position = a_position + move;

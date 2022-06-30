@@ -40,6 +40,10 @@ float snoise(vec2 v){
 }
 
 
+float rand(vec2 c){
+	return fract(sin(dot(c.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 float hue2rgb(float f1, float f2, float hue) {
     if (hue < 0.0)
         hue += 1.0;
@@ -98,7 +102,9 @@ void main() {
   // float vv = 1.0/z;
   // gl_FragColor = vec4(vv, vv, vv, 1.0);
 
-  float rand1 = snoise(v_center.xy) * 0.4;
+  float rand1 = snoise(v_center.xy / 9000.0 + vec2(v_s*10.0, v_s*100.0));
   // float rand3 = 0.9 * snoise(v_center.zx);
-  gl_FragColor = vec4(hsl2rgb(rand1, 1.0, 0.7 + v_h / 80000.0), 1.0);
+  gl_FragColor = vec4(hsl2rgb(fract(0.8+0.4*fract(rand1)), 1.0, 0.4 + v_h / 200.0), 1.0);
+
+  // gl_FragColor = vec4(1.0, 1.0, v_h / 4000.0, 1.0);
 }
