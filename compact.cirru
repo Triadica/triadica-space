@@ -190,6 +190,7 @@
                 :mushroom $ mushroom-object
                 :branches $ comp-branches
                 :lamps $ comp-lamps
+                :line-wave $ line-wave
               comp-tabs
                 {} $ :position ([] -40 0 0)
                 []
@@ -217,6 +218,8 @@
                     :position $ [] -400 -160 0
                   {} (:key :lamps)
                     :position $ [] -400 -200 0
+                  {} (:key :line-wave)
+                    :position $ [] -400 -240 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -472,11 +475,35 @@
                 :data segments
         |line-wave $ quote
           defn line-wave () (; js/console.log "\"data" data)
-            object $ {} (:draw-mode :line-strip)
+            object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"line-wave.vert"
               :fragment-shader $ inline-shader "\"line-wave.frag"
-              :attributes $ {}
-                :idx $ range 100000
+              :points $ %{} %nested-attribute (:augment 3)
+                :length $ &* 100000 6
+                :data $ -> (range 100000)
+                  map $ fn (idx)
+                    let
+                        r $ &* 0.004 idx
+                        r2 $ &+ r 1.27
+                        angle $ &* idx 0.02
+                        angle2 $ &+ angle 0.02
+                        p0 $ []
+                          &* r $ js/Math.cos angle
+                          , 0
+                            &* r $ js/Math.sin angle
+                        p1 $ []
+                          &* r2 $ js/Math.cos angle
+                          , 0
+                            &* r2 $ js/Math.sin angle
+                        p2 $ []
+                          &* r2 $ js/Math.cos angle2
+                          , 0
+                            &* r2 $ js/Math.sin angle2
+                        p3 $ []
+                          &* r $ js/Math.cos angle2
+                          , 0
+                            &* r $ js/Math.sin angle2
+                      [] p0 p1 p2 p0 p2 p3
         |move-point $ quote
           defn move-point (p)
             -> p
