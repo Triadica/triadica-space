@@ -85,8 +85,8 @@
       :defs $ {}
         |comp-lamps $ quote
           defn comp-lamps () $ let
-              r-top 32
-              r-bottom 40
+              r-top 36
+              r-bottom 48
               h 100
               angle0 $ * 0.25 &PI
               item-count 40

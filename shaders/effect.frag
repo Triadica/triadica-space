@@ -41,7 +41,7 @@ void main() {
     for (int j = -repeat; j <= repeat; j++) {
       if (1 != 0 || j != 0) {
         vec4 color2 = texture2D(tex1, v_texcoord + vec2(i, j) / 800.0);
-        if ((color2.r + color2.g + color2.g) < 0.3) {
+        if ((color2.r + color2.g + color2.g) < 0.5) {
           continue;
         }
         vec4 glow = color2 * normal_distribution(0.3*length(vec2(i, j)), 0.6);
@@ -61,7 +61,7 @@ void main() {
   gl_FragColor = color1;
 
   if (max_glow_value > color_strength(color1)) {
-    gl_FragColor = max_glow;
+    gl_FragColor += max_glow;
   }
 
   // glow /= float(count);

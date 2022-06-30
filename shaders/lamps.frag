@@ -106,5 +106,9 @@ void main() {
   // float rand3 = 0.9 * snoise(v_center.zx);
   gl_FragColor = vec4(hsl2rgb(fract(0.8+0.4*fract(rand1)), 1.0, 0.4 + v_h / 200.0), 1.0);
 
+  if (v_r > 6.0) {
+    gl_FragColor = gl_FragColor / ((v_r - 6.0) * 0.2 + 1.0);
+  }
+
   // gl_FragColor = vec4(1.0, 1.0, v_h / 4000.0, 1.0);
 }
