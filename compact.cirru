@@ -66,15 +66,7 @@
               object $ {} (:draw-mode :lines)
                 :vertex-shader $ inline-shader "\"lines.vert"
                 :fragment-shader $ inline-shader "\"lines.frag"
-                :points $ %{} %nested-attribute (:augment 3)
-                  :length $ / (count-recursive points) 3
-                  :data points
-        |count-recursive $ quote
-          defn count-recursive (xs)
-            if (list? xs)
-              reduce xs 0 $ fn (acc x)
-                &+ acc $ count-recursive x
-              , 1
+                :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
       :ns $ quote
         ns triadica.app.comp.branches $ :require
           triadica.alias :refer $ group object
@@ -752,14 +744,21 @@
         |*fb-pair $ quote (defatom *fb-pair nil)
         |*local-array-counter $ quote (defatom *local-array-counter 0)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |count-recursive $ quote
+          defn count-recursive (xs)
+            if (list? xs)
+              reduce xs 0 $ fn (acc x)
+                &+ acc $ count-recursive x
+              , 1
         |create-attribute-array $ quote
           defn create-attribute-array (points)
             if
               and (record? points) (&record:matches? %nested-attribute points)
               let
                   augment $ :augment points
-                  length $ :length points
                   data $ :data points
+                  length $ or (:length points)
+                    &/ (count-recursive data) augment
                   total $ * augment length
                   position-array $ .!createAugmentedTypedArray twgl/primitives augment length
                   write-array! $ fn (v)
