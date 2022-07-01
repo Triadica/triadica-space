@@ -743,10 +743,22 @@
     |triadica.core $ {}
       :defs $ {}
         |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
+        |*draw-fb $ quote (defatom *draw-fb nil)
         |*effect-x-fb $ quote (defatom *effect-x-fb nil)
+        |*effect-y-fb $ quote (defatom *effect-y-fb nil)
         |*local-array-counter $ quote (defatom *local-array-counter 0)
-        |*mix-fb $ quote (defatom *mix-fb nil)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |blur-at-direction $ quote
+          defn blur-at-direction (gl from-fb to-fb direction program buffer) (twgl/resizeFramebufferInfo gl to-fb)
+            twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
+            twgl/bindFramebufferInfo gl to-fb
+            ; clear-gl! gl
+            .!useProgram gl $ .-program program
+            twgl/setBuffersAndAttributes gl program buffer
+            twgl/setUniforms program $ js-object
+              :tex1 $ .-0 (.-attachments from-fb)
+              :direction direction
+            twgl/drawBufferInfo gl buffer $ .-TRIANGLES gl
         |clear-gl! $ quote
           defn clear-gl! (gl) (.!clearColor gl 0 0 0 1)
             .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
@@ -1020,8 +1032,10 @@
                   :coneBackScale back-cone-scale
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
                   :citySpin $ wo-log (:spin-city @*uniform-data)
-                draw-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
-                effect-x-fb $ load-sized-buffer! gl *mix-fb scaled-width scaled-height
+                  :time $ &- (js/Date.now) start-time
+                draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
+                effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
+                effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
               twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
               twgl/resizeFramebufferInfo gl draw-fb
               twgl/bindFramebufferInfo gl draw-fb
@@ -1063,15 +1077,12 @@
                   effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                   mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                 .!disable gl $ .-DEPTH_TEST gl
-                twgl/resizeFramebufferInfo gl effect-x-fb
-                twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
-                twgl/bindFramebufferInfo gl effect-x-fb
-                ; clear-gl! gl
-                .!useProgram gl $ .-program effect-x-program
-                twgl/setBuffersAndAttributes gl effect-x-program effect-x-buffer-info
-                twgl/setUniforms effect-x-program $ js-object
-                  :tex1 $ .-0 (.-attachments draw-fb)
-                twgl/drawBufferInfo gl effect-x-buffer-info $ .-TRIANGLES gl
+                blur-at-direction gl draw-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-y-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-y-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
                 ; .!depthFunc gl $ .-LESS gl
                 ; .!depthFunc gl $ .-GREATER gl
                 ; .!depthMask gl true
@@ -1082,7 +1093,7 @@
                 twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
                 twgl/setUniforms mix-program $ js-object
                   :draw_tex $ .-0 (.-attachments draw-fb)
-                  :effect_x_tex $ .-0 (.-attachments effect-x-fb)
+                  :effect_x_tex $ .-0 (.-attachments effect-y-fb)
                 twgl/drawBufferInfo gl mix-buffer-info $ .-TRIANGLES gl
         |reset-canvas-size! $ quote
           defn reset-canvas-size! (canvas)
@@ -1101,6 +1112,8 @@
           defn shift-viewer-by! (x)
             if (= x false) (reset! *viewer-y-shift 0)
               swap! *viewer-y-shift &+ $ * 2 x
+        |start-time $ quote
+          def start-time $ js/Date.now
         |traverse-tree $ quote
           defn traverse-tree (tree coord cb)
             when (some? tree)

@@ -5,6 +5,7 @@ uniform vec3 lookPoint; // direction in front, transformed into a specific lengt
 uniform vec3 upwardDirection; // direction up over head, better unit vector
 uniform float viewportRatio;
 uniform vec3 cameraPosition;
+uniform float time;
 
 attribute vec3 a_position;
 attribute vec3 a_center;
