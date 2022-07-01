@@ -81,7 +81,7 @@
               r-bottom 48
               h 100
               angle0 $ * 0.25 &PI
-              item-count 40
+              item-count 30
               grid $ -> (range item-count)
                 mapcat $ fn (i)
                   -> (range 4)
@@ -743,9 +743,13 @@
     |triadica.core $ {}
       :defs $ {}
         |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
-        |*fb-pair $ quote (defatom *fb-pair nil)
+        |*effect-x-fb $ quote (defatom *effect-x-fb nil)
         |*local-array-counter $ quote (defatom *local-array-counter 0)
+        |*mix-fb $ quote (defatom *mix-fb nil)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |clear-gl! $ quote
+          defn clear-gl! (gl) (.!clearColor gl 0 0 0 1)
+            .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
         |count-recursive $ quote
           defn count-recursive (xs)
             if (list? xs)
@@ -930,6 +934,19 @@
                       buffer-info $ twgl/createBufferInfoFromArrays gl arrays
                     swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
                       :draw-mode $ :draw-mode obj
+        |load-sized-buffer! $ quote
+          defn load-sized-buffer! (gl *fb-ref w h)
+            let
+                b @*fb-ref
+              if
+                and (some? b)
+                  &= ([] w h) (&map:get b :size)
+                &map:get b :buffer
+                let
+                    f $ twgl/createFramebufferInfo gl
+                  reset! *fb-ref $ {} (:buffer f)
+                    :size $ [] w h
+                  , f
         |load-tree-node $ quote
           defn load-tree-node (tree path)
             if (empty? path) tree $ if-let
@@ -1003,20 +1020,11 @@
                   :coneBackScale back-cone-scale
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
                   :citySpin $ wo-log (:spin-city @*uniform-data)
-                fb $ let
-                    b @*fb-pair
-                  if
-                    and (some? b)
-                      &= ([] scaled-width scaled-height) (&map:get b :size)
-                    &map:get b :buffer
-                    let
-                        f $ twgl/createFramebufferInfo gl
-                      reset! *fb-pair $ {} (:buffer f)
-                        :size $ [] scaled-width scaled-height
-                      , f
+                draw-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
+                effect-x-fb $ load-sized-buffer! gl *mix-fb scaled-width scaled-height
               twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
-              twgl/bindFramebufferInfo gl fb
-              twgl/resizeFramebufferInfo gl fb
+              twgl/resizeFramebufferInfo gl draw-fb
+              twgl/bindFramebufferInfo gl draw-fb
               .!viewport gl 0 0.0 scaled-width scaled-height (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
@@ -1028,8 +1036,7 @@
               ; .!enable gl $ .-CULL_FACE gl
               ; .!cullFace gl $ .-BACK gl
               ; .!cullFace gl $ .-FRONT_AND_BACK gl
-              .!clearColor gl 0 0 0 1
-              .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+              clear-gl! gl
               &doseq (object @*objects-buffer)
                 let
                     program-info $ :program object
@@ -1046,22 +1053,36 @@
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
               let
+                  effect-x-program $ twgl/createProgramInfo gl
+                    js-array (inline-shader "\"effect-x.vert") (inline-shader "\"effect-x.frag")
                   mix-program $ twgl/createProgramInfo gl
-                    js-array (inline-shader "\"effect.vert") (inline-shader "\"effect.frag")
-                  mix-buffer-info $ twgl/createBufferInfoFromArrays gl
-                    js-object $ :position
-                      create-attribute-array $ [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
-                twgl/bindFramebufferInfo gl nil
-                .!clearColor gl 0 0 0 1
-                .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+                    js-array (inline-shader "\"effect-mix.vert") (inline-shader "\"effect-mix.frag")
+                  uv-settings $ js-object
+                    :position $ create-attribute-array
+                      [][] (-1 -1) (1 -1) (1 1) (-1 -1) (-1 1) (1 1)
+                  effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
+                  mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                 .!disable gl $ .-DEPTH_TEST gl
+                twgl/resizeFramebufferInfo gl effect-x-fb
+                twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
+                twgl/bindFramebufferInfo gl effect-x-fb
+                ; clear-gl! gl
+                .!useProgram gl $ .-program effect-x-program
+                twgl/setBuffersAndAttributes gl effect-x-program effect-x-buffer-info
+                twgl/setUniforms effect-x-program $ js-object
+                  :tex1 $ .-0 (.-attachments draw-fb)
+                twgl/drawBufferInfo gl effect-x-buffer-info $ .-TRIANGLES gl
                 ; .!depthFunc gl $ .-LESS gl
                 ; .!depthFunc gl $ .-GREATER gl
                 ; .!depthMask gl true
+                twgl/bindFramebufferInfo gl nil
+                twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
+                clear-gl! gl
                 .!useProgram gl $ .-program mix-program
                 twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
                 twgl/setUniforms mix-program $ js-object
-                  :tex1 $ .-0 (.-attachments fb)
+                  :draw_tex $ .-0 (.-attachments draw-fb)
+                  :effect_x_tex $ .-0 (.-attachments effect-x-fb)
                 twgl/drawBufferInfo gl mix-buffer-info $ .-TRIANGLES gl
         |reset-canvas-size! $ quote
           defn reset-canvas-size! (canvas)
