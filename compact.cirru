@@ -66,15 +66,7 @@
               object $ {} (:draw-mode :lines)
                 :vertex-shader $ inline-shader "\"lines.vert"
                 :fragment-shader $ inline-shader "\"lines.frag"
-                :points $ %{} %nested-attribute (:augment 3)
-                  :length $ / (count-recursive points) 3
-                  :data points
-        |count-recursive $ quote
-          defn count-recursive (xs)
-            if (list? xs)
-              reduce xs 0 $ fn (acc x)
-                &+ acc $ count-recursive x
-              , 1
+                :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
       :ns $ quote
         ns triadica.app.comp.branches $ :require
           triadica.alias :refer $ group object
@@ -89,7 +81,7 @@
               r-bottom 48
               h 100
               angle0 $ * 0.25 &PI
-              item-count 40
+              item-count 30
               grid $ -> (range item-count)
                 mapcat $ fn (i)
                   -> (range 4)
@@ -180,7 +172,9 @@
                   axis-object
                 :axis $ axis-object
                 :cubes $ cubes-object
-                :spin-city $ spin-city
+                :spin-city $ group ({})
+                  tiny-cube-object $ :v store
+                  spin-city
                 :bg $ bg-object
                 :conch $ conch-object
                 :curve-ball $ curve-ball
@@ -190,6 +184,7 @@
                 :mushroom $ mushroom-object
                 :branches $ comp-branches
                 :lamps $ comp-lamps
+                :line-wave $ line-wave
               comp-tabs
                 {} $ :position ([] -40 0 0)
                 []
@@ -217,6 +212,8 @@
                     :position $ [] -400 -160 0
                   {} (:key :lamps)
                     :position $ [] -400 -200 0
+                  {} (:key :line-wave)
+                    :position $ [] -400 -240 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -472,11 +469,35 @@
                 :data segments
         |line-wave $ quote
           defn line-wave () (; js/console.log "\"data" data)
-            object $ {} (:draw-mode :line-strip)
+            object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"line-wave.vert"
               :fragment-shader $ inline-shader "\"line-wave.frag"
-              :attributes $ {}
-                :idx $ range 100000
+              :points $ %{} %nested-attribute (:augment 3)
+                :length $ &* 100000 6
+                :data $ -> (range 100000)
+                  map $ fn (idx)
+                    let
+                        r $ &* 0.004 idx
+                        r2 $ &+ r 1.27
+                        angle $ &* idx 0.02
+                        angle2 $ &+ angle 0.02
+                        p0 $ []
+                          &* r $ js/Math.cos angle
+                          , 0
+                            &* r $ js/Math.sin angle
+                        p1 $ []
+                          &* r2 $ js/Math.cos angle
+                          , 0
+                            &* r2 $ js/Math.sin angle
+                        p2 $ []
+                          &* r2 $ js/Math.cos angle2
+                          , 0
+                            &* r2 $ js/Math.sin angle2
+                        p3 $ []
+                          &* r $ js/Math.cos angle2
+                          , 0
+                            &* r $ js/Math.sin angle2
+                      [] p0 p1 p2 p0 p2 p3
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -644,8 +665,8 @@
                   + 400 $ * v 10
                   , 400 -1200
               object $ {} (:draw-mode :lines)
-                :vertex-shader $ inline-shader "\"shape.vert"
-                :fragment-shader $ inline-shader "\"shape.frag"
+                :vertex-shader $ inline-shader "\"lines.vert"
+                :fragment-shader $ inline-shader "\"lines.frag"
                 :points $ map geo
                   fn (p)
                     -> p
@@ -722,17 +743,28 @@
     |triadica.core $ {}
       :defs $ {}
         |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
-        |*fb-pair $ quote (defatom *fb-pair nil)
+        |*effect-x-fb $ quote (defatom *effect-x-fb nil)
         |*local-array-counter $ quote (defatom *local-array-counter 0)
+        |*mix-fb $ quote (defatom *mix-fb nil)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |clear-gl! $ quote
+          defn clear-gl! (gl) (.!clearColor gl 0 0 0 1)
+            .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+        |count-recursive $ quote
+          defn count-recursive (xs)
+            if (list? xs)
+              reduce xs 0 $ fn (acc x)
+                &+ acc $ count-recursive x
+              , 1
         |create-attribute-array $ quote
           defn create-attribute-array (points)
             if
               and (record? points) (&record:matches? %nested-attribute points)
               let
                   augment $ :augment points
-                  length $ :length points
                   data $ :data points
+                  length $ or (:length points)
+                    &/ (count-recursive data) augment
                   total $ * augment length
                   position-array $ .!createAugmentedTypedArray twgl/primitives augment length
                   write-array! $ fn (v)
@@ -902,6 +934,19 @@
                       buffer-info $ twgl/createBufferInfoFromArrays gl arrays
                     swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
                       :draw-mode $ :draw-mode obj
+        |load-sized-buffer! $ quote
+          defn load-sized-buffer! (gl *fb-ref w h)
+            let
+                b @*fb-ref
+              if
+                and (some? b)
+                  &= ([] w h) (&map:get b :size)
+                &map:get b :buffer
+                let
+                    f $ twgl/createFramebufferInfo gl
+                  reset! *fb-ref $ {} (:buffer f)
+                    :size $ [] w h
+                  , f
         |load-tree-node $ quote
           defn load-tree-node (tree path)
             if (empty? path) tree $ if-let
@@ -975,20 +1020,11 @@
                   :coneBackScale back-cone-scale
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
                   :citySpin $ wo-log (:spin-city @*uniform-data)
-                fb $ let
-                    b @*fb-pair
-                  if
-                    and (some? b)
-                      &= ([] scaled-width scaled-height) (&map:get b :size)
-                    &map:get b :buffer
-                    let
-                        f $ twgl/createFramebufferInfo gl
-                      reset! *fb-pair $ {} (:buffer f)
-                        :size $ [] scaled-width scaled-height
-                      , f
+                draw-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
+                effect-x-fb $ load-sized-buffer! gl *mix-fb scaled-width scaled-height
               twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
-              twgl/bindFramebufferInfo gl fb
-              twgl/resizeFramebufferInfo gl fb
+              twgl/resizeFramebufferInfo gl draw-fb
+              twgl/bindFramebufferInfo gl draw-fb
               .!viewport gl 0 0.0 scaled-width scaled-height (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
@@ -1000,8 +1036,7 @@
               ; .!enable gl $ .-CULL_FACE gl
               ; .!cullFace gl $ .-BACK gl
               ; .!cullFace gl $ .-FRONT_AND_BACK gl
-              .!clearColor gl 0 0 0 1
-              .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+              clear-gl! gl
               &doseq (object @*objects-buffer)
                 let
                     program-info $ :program object
@@ -1018,22 +1053,36 @@
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
               let
+                  effect-x-program $ twgl/createProgramInfo gl
+                    js-array (inline-shader "\"effect-x.vert") (inline-shader "\"effect-x.frag")
                   mix-program $ twgl/createProgramInfo gl
-                    js-array (inline-shader "\"effect.vert") (inline-shader "\"effect.frag")
-                  mix-buffer-info $ twgl/createBufferInfoFromArrays gl
-                    js-object $ :position
-                      create-attribute-array $ [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
-                twgl/bindFramebufferInfo gl nil
-                .!clearColor gl 0 0 0 1
-                .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+                    js-array (inline-shader "\"effect-mix.vert") (inline-shader "\"effect-mix.frag")
+                  uv-settings $ js-object
+                    :position $ create-attribute-array
+                      [][] (-1 -1) (1 -1) (1 1) (-1 -1) (-1 1) (1 1)
+                  effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
+                  mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                 .!disable gl $ .-DEPTH_TEST gl
+                twgl/resizeFramebufferInfo gl effect-x-fb
+                twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
+                twgl/bindFramebufferInfo gl effect-x-fb
+                ; clear-gl! gl
+                .!useProgram gl $ .-program effect-x-program
+                twgl/setBuffersAndAttributes gl effect-x-program effect-x-buffer-info
+                twgl/setUniforms effect-x-program $ js-object
+                  :tex1 $ .-0 (.-attachments draw-fb)
+                twgl/drawBufferInfo gl effect-x-buffer-info $ .-TRIANGLES gl
                 ; .!depthFunc gl $ .-LESS gl
                 ; .!depthFunc gl $ .-GREATER gl
                 ; .!depthMask gl true
+                twgl/bindFramebufferInfo gl nil
+                twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
+                clear-gl! gl
                 .!useProgram gl $ .-program mix-program
                 twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
                 twgl/setUniforms mix-program $ js-object
-                  :tex1 $ .-0 (.-attachments fb)
+                  :draw_tex $ .-0 (.-attachments draw-fb)
+                  :effect_x_tex $ .-0 (.-attachments effect-x-fb)
                 twgl/drawBufferInfo gl mix-buffer-info $ .-TRIANGLES gl
         |reset-canvas-size! $ quote
           defn reset-canvas-size! (canvas)
