@@ -73,6 +73,94 @@
           triadica.core :refer $ %nested-attribute
           triadica.config :refer $ inline-shader
           triadica.math :refer $ &v+ v-scale v-cross &v- v-normalize
+    |triadica.app.comp.fireworks $ {}
+      :defs $ {}
+        |build-firework $ quote
+          defn build-firework (position r0 size beta0 seconds)
+            let
+                angle0 $ / &PI size
+              -> (range size)
+                map $ fn (i)
+                  let
+                      rx-delta $ sin (* i angle0)
+                      rx $ * r0 rx-delta
+                      ry $ * r0
+                        cos $ * i angle0
+                      ball-size $ js/Math.ceil
+                        + 0.1 $ / rx-delta 0.04
+                      angle1 $ / (* 2 &PI) ball-size
+                    -> (range ball-size)
+                      map $ fn (j)
+                        let
+                            v0 $ []
+                              * rx $ cos (* j angle1)
+                              , ry
+                                * rx $ sin (* j angle1)
+                          -> (range seconds)
+                            map $ fn (k)
+                              let
+                                  t0 $ + k 0.5
+                                  t1 $ + k 1.4
+                                  p0 $ &v+ position (calc-parabola v0 t0)
+                                  p1 $ &v+ position (calc-parabola v0 t1)
+                                [] p0 p1 $ &v+ p1
+                                  []
+                                    * 12 $ cos (* k beta0)
+                                    , 4 0
+        |calc-parabola $ quote
+          defn calc-parabola (v0 t)
+            &v+
+              v-scale ([] 0 -4 0)
+                * 0.5 $ * t t
+              v-scale v0 t
+        |comp-fireworks $ quote
+          defn comp-fireworks () $ let
+              f1 $ build-firework
+                noted position $ [] 0 0 0
+                noted r0 60
+                noted size 20
+                noted beta0 0.5
+                noted seconds 20
+              f2 $ build-firework
+                noted position $ [] 1200 200 0
+                noted r0 100
+                noted size 10
+                noted beta0 0.5
+                noted seconds 4
+              f3 $ build-firework
+                noted position $ [] 0 400 1000
+                noted r0 320
+                noted size 10
+                noted beta0 0.5
+                noted seconds 2
+              f4 $ build-firework
+                noted position $ [] -1600 -200 -800
+                noted r0 110
+                noted size 40
+                noted beta0 0.6
+                noted seconds 40
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"fireworks.vert"
+              :fragment-shader $ inline-shader "\"fireworks.frag"
+              :points $ %{} %nested-attribute (:length nil) (:augment 3)
+                :data $ [] f1 f2 f3 f4
+              :attributes $ {}
+                :center $ %{} %nested-attribute (:length nil) (:augment 3)
+                  :data $ []
+                    repeat ([] 0 0 0)
+                      / (count-recursive f1) 3
+                    repeat ([] 1200 200 0)
+                      / (count-recursive f2) 3
+                    repeat ([] 0 400 1000)
+                      / (count-recursive f3) 3
+                    repeat ([] -1600 -222.5 -800)
+                      / (count-recursive f4) 3
+      :ns $ quote
+        ns triadica.app.comp.fireworks $ :require
+          triadica.core :refer $ %nested-attribute count-recursive
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ object group
+          triadica.math :refer $ v-scale &v+
     |triadica.app.comp.lamps $ {}
       :defs $ {}
         |comp-lamps $ quote
@@ -185,6 +273,7 @@
                 :branches $ comp-branches
                 :lamps $ comp-lamps
                 :line-wave $ line-wave
+                :fireworks $ comp-fireworks
               comp-tabs
                 {} $ :position ([] -40 0 0)
                 []
@@ -211,9 +300,11 @@
                   {} (:key :branches)
                     :position $ [] -400 -160 0
                   {} (:key :lamps)
-                    :position $ [] -400 -200 0
+                    :position $ [] -300 -0 0
                   {} (:key :line-wave)
-                    :position $ [] -400 -240 0
+                    :position $ [] -300 -40 0
+                  {} (:key :fireworks)
+                    :position $ [] -300 -80 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -221,10 +312,12 @@
           triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
           triadica.app.comp.branches :refer $ comp-branches
           triadica.app.comp.lamps :refer $ comp-lamps
+          triadica.app.comp.fireworks :refer $ comp-fireworks
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
-          defatom *store $ {} (:v 0) (:tab :lamps)
+          defatom *store $ {} (:v 0)
+            :tab $ turn-keyword (get-env "\"tab" "\"lamps")
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
