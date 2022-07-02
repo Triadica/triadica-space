@@ -18,19 +18,18 @@
         |*points-buffer $ quote
           defatom *points-buffer $ []
         |build-multiple-path $ quote
-          defn build-multiple-path (max-level info)
+          defn build-multiple-path (max-level parts info)
             let-sugar
                   {} position length forward upward
                   , info
                 rightward $ v-cross forward upward
-                regress 0.6
-                segments 6
-                delta-angle $ / (* 2 &PI) segments
-                branch-angle 0.5
+                regress 0.38
+                delta-angle $ / (* 2 &PI) parts
+                branch-angle 1.57
                 main-branch $ wo-log
                   [] position $ &v+ position (v-scale forward length)
                 side-branches $ ->
-                  range 1 $ inc segments
+                  range 1 $ inc parts
                   map $ fn (n)
                     let
                         base $ &v+ position (v-scale forward length)
@@ -44,11 +43,10 @@
                           v-scale side-base $ js/Math.sin branch-angle
                         branch $ -> side-forward (v-scale side-length)
                       [] $ if (<= max-level 0) ([])
-                        build-multiple-path (dec max-level)
-                          {} (:position base) (:length side-length) (:forward side-forward)
-                            :upward $ v-normalize
-                              &v- side-forward $ v-scale forward
-                                &/ 1 $ js/Math.cos branch-angle
+                        build-multiple-path (dec max-level) parts $ {} (:position base) (:length side-length) (:forward side-forward)
+                          :upward $ v-normalize
+                            &v- side-forward $ v-scale forward
+                              &/ 1 $ js/Math.cos branch-angle
               [] main-branch side-branches
         |build-path $ quote
           defn build-path (max-level info)
@@ -103,7 +101,8 @@
         |comp-multiple-branches $ quote
           defn comp-multiple-branches () $ let-sugar
               max-level 6
-              points $ build-multiple-path max-level
+              parts 8
+              points $ build-multiple-path max-level parts
                 {}
                   :position $ [] 0 -400 0
                   :length 400
@@ -119,7 +118,7 @@
                     :data $ ->
                       range $ inc max-level
                       map $ fn (n)
-                        repeat ([] n n) (pow 6 n)
+                        repeat ([] n n) (pow parts n)
       :ns $ quote
         ns triadica.app.comp.branches $ :require
           triadica.alias :refer $ group object
@@ -376,7 +375,7 @@
       :defs $ {}
         |*store $ quote
           defatom *store $ {} (:v 0)
-            :tab $ turn-keyword (get-env "\"tab" "\"lamps")
+            :tab $ turn-keyword (get-env "\"tab" "\"multiple-branches")
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
