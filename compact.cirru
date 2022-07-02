@@ -17,6 +17,39 @@
       :defs $ {}
         |*points-buffer $ quote
           defatom *points-buffer $ []
+        |build-multiple-path $ quote
+          defn build-multiple-path (max-level info)
+            let-sugar
+                  {} position length forward upward
+                  , info
+                rightward $ v-cross forward upward
+                regress 0.6
+                segments 6
+                delta-angle $ / (* 2 &PI) segments
+                branch-angle 0.5
+                main-branch $ wo-log
+                  [] position $ &v+ position (v-scale forward length)
+                side-branches $ ->
+                  range 1 $ inc segments
+                  map $ fn (n)
+                    let
+                        base $ &v+ position (v-scale forward length)
+                        alpha $ &* delta-angle n
+                        side-base $ &v+
+                          v-scale upward $ js/Math.cos alpha
+                          v-scale rightward $ js/Math.sin alpha
+                        side-length $ &* length regress
+                        side-forward $ &v+
+                          v-scale forward $ js/Math.cos branch-angle
+                          v-scale side-base $ js/Math.sin branch-angle
+                        branch $ -> side-forward (v-scale side-length)
+                      [] $ if (<= max-level 0) ([])
+                        build-multiple-path (dec max-level)
+                          {} (:position base) (:length side-length) (:forward side-forward)
+                            :upward $ v-normalize
+                              &v- side-forward $ v-scale forward
+                                &/ 1 $ js/Math.cos branch-angle
+              [] main-branch side-branches
         |build-path $ quote
           defn build-path (max-level info)
             let-sugar
@@ -67,6 +100,26 @@
                 :vertex-shader $ inline-shader "\"lines.vert"
                 :fragment-shader $ inline-shader "\"lines.frag"
                 :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+        |comp-multiple-branches $ quote
+          defn comp-multiple-branches () $ let-sugar
+              max-level 6
+              points $ build-multiple-path max-level
+                {}
+                  :position $ [] 0 -400 0
+                  :length 400
+                  :forward $ [] 0 1 0
+                  :upward $ [] 1 0 0
+            group ({})
+              object $ {} (:draw-mode :lines)
+                :vertex-shader $ inline-shader "\"branches.vert"
+                :fragment-shader $ inline-shader "\"branches.frag"
+                :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+                :attributes $ {}
+                  :color_index $ %{} %nested-attribute (:augment 1) (:length nil)
+                    :data $ ->
+                      range $ inc max-level
+                      map $ fn (n)
+                        repeat ([] n n) (pow 6 n)
       :ns $ quote
         ns triadica.app.comp.branches $ :require
           triadica.alias :refer $ group object
@@ -271,10 +324,11 @@
                 :plate-bending $ plate-bending
                 :mushroom $ mushroom-object
                 :branches $ comp-branches
+                :multiple-branches $ comp-multiple-branches
                 :lamps $ comp-lamps
                 :line-wave $ line-wave
                 :fireworks $ comp-fireworks
-              comp-tabs
+              if-not hide-tabs? $ comp-tabs
                 {}
                   :position $ [] -40 0 0
                   :selected $ :tab store
@@ -307,12 +361,15 @@
                     :position $ [] -300 -40 0
                   {} (:key :fireworks)
                     :position $ [] -300 -80 0
+                  {} (:key :multiple-branches)
+                    :position $ [] -300 -120 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
           triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
-          triadica.app.comp.branches :refer $ comp-branches
+          triadica.config :refer $ hide-tabs?
+          triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
           triadica.app.comp.lamps :refer $ comp-lamps
           triadica.app.comp.fireworks :refer $ comp-fireworks
     |triadica.app.main $ {}
@@ -323,7 +380,8 @@
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
-          defn dispatch! (op data) (js/console.log "\"Dispatch:" op data)
+          defn dispatch! (op data)
+            when dev? $ js/console.log "\"Dispatch:" op data
             if (= op :city-spin)
               do $ swap! *uniform-data update :spin-city
                 fn (x)
@@ -828,6 +886,8 @@
         |dpr $ quote (def dpr js/window.devicePixelRatio)
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
+        |hide-tabs? $ quote
+          def hide-tabs? $ = true (get-env "\"hide-tabs" "\"false")
         |inline-shader $ quote
           defmacro inline-shader (name)
             let
@@ -875,9 +935,9 @@
             if
               and (record? points) (&record:matches? %nested-attribute points)
               let
-                  augment $ :augment points
-                  data $ :data points
-                  length $ or (:length points)
+                  augment $ &record:get points :augment
+                  data $ &record:get points :data
+                  length $ or (&record:get points :length)
                     &/ (count-recursive data) augment
                   total $ * augment length
                   position-array $ .!createAugmentedTypedArray twgl/primitives augment length
