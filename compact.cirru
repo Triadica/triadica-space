@@ -275,7 +275,9 @@
                 :line-wave $ line-wave
                 :fireworks $ comp-fireworks
               comp-tabs
-                {} $ :position ([] -40 0 0)
+                {}
+                  :position $ [] -40 0 0
+                  :selected $ :tab store
                 []
                   {} (:key :axis)
                     :position $ [] -400 240 0
@@ -788,24 +790,31 @@
           defn comp-tabs (props entries)
             let
                 base-position $ :position props
+                selected $ :selected props
               group ({}) & $ -> entries
                 map $ fn (entry)
                   let
                       key $ :key entry
                       position $ &v+ base-position (:position entry)
-                      geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
-                      indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
-                    object $ {} (:draw-mode :lines)
-                      :vertex-shader $ inline-shader "\"lines.vert"
-                      :fragment-shader $ inline-shader "\"lines.frag"
+                      geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                      indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
+                    object $ {} (:draw-mode :triangles)
+                      :vertex-shader $ inline-shader "\"tab.vert"
+                      :fragment-shader $ inline-shader "\"tab.frag"
                       :points $ map geo
                         fn (p)
                           -> p
-                            map $ fn (i) (* i 32)
+                            map $ fn (i) (* i 20)
                             &v+ position
                       :indices indices
-                      :hit-region $ {} (:position position) (:radius 32)
+                      :hit-region $ {} (:position position) (:radius 20)
                         :on-hit $ fn (e d!) (d! :tab-focus key)
+                      :attributes $ {}
+                        :color_index $ repeat
+                          if
+                            = selected $ :key entry
+                            , 1 0
+                          count indices
       :ns $ quote
         ns triadica.comp.tabs $ :require
           triadica.config :refer $ inline-shader
