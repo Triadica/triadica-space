@@ -49,7 +49,7 @@
                               &/ 1 $ js/Math.cos branch-angle
               [] main-branch side-branches
         |build-path $ quote
-          defn build-path (max-level info)
+          defn build-path (max-level branch-angle info)
             let-sugar
                   {} position length forward upward
                   , info
@@ -57,7 +57,6 @@
                 delta-angle 2.09
                 regress 0.74
                 segments 4
-                branch-angle 0.7
                 main-branch $ wo-log
                   [] position $ &v+ position (v-scale forward length)
                 side-branches $ ->
@@ -78,26 +77,31 @@
                         branch $ -> side-forward (v-scale side-length)
                       [] base (&v+ base branch)
                         if (<= max-level 0) ([])
-                          build-path (dec max-level)
-                            {} (:position base) (:length side-length) (:forward side-forward)
-                              :upward $ v-normalize
-                                &v- side-forward $ v-scale forward
-                                  &/ 1 $ js/Math.cos branch-angle
+                          build-path (dec max-level) branch-angle $ {} (:position base) (:length side-length) (:forward side-forward)
+                            :upward $ v-normalize
+                              &v- side-forward $ v-scale forward
+                                &/ 1 $ js/Math.cos branch-angle
               [] main-branch side-branches
         |comp-branches $ quote
-          defn comp-branches () $ let-sugar
-              max-level 8
-              points $ build-path max-level
-                {}
-                  :position $ [] 0 0 0
-                  :length 800
-                  :forward $ [] 0 1 0
-                  :upward $ [] 1 0 0
-            group ({})
-              object $ {} (:draw-mode :lines)
-                :vertex-shader $ inline-shader "\"lines.vert"
-                :fragment-shader $ inline-shader "\"lines.frag"
-                :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+          defn comp-branches (branch-angle)
+            let-sugar
+                max-level 3
+                points $ build-path max-level branch-angle
+                  {}
+                    :position $ [] 0 0 0
+                    :length 800
+                    :forward $ [] 0 1 0
+                    :upward $ [] 1 0 0
+              group ({})
+                object $ {} (:draw-mode :lines)
+                  :vertex-shader $ inline-shader "\"lines.vert"
+                  :fragment-shader $ inline-shader "\"lines.frag"
+                  :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+                comp-slider
+                  {} $ :position ([] 200 0 0)
+                  fn (data d!)
+                    d! :set-branch-angle $ + branch-angle
+                      * 0.001 $ first data
         |comp-multiple-branches $ quote
           defn comp-multiple-branches () $ let-sugar
               max-level 6
@@ -125,6 +129,7 @@
           triadica.core :refer $ %nested-attribute
           triadica.config :refer $ inline-shader
           triadica.math :refer $ &v+ v-scale v-cross &v- v-normalize
+          triadica.comp.drag-point :refer $ comp-slider
     |triadica.app.comp.fireworks $ {}
       :defs $ {}
         |build-firework $ quote
@@ -322,7 +327,7 @@
                 :fiber-bending $ fiber-bending
                 :plate-bending $ plate-bending
                 :mushroom $ mushroom-object
-                :branches $ comp-branches
+                :branches $ comp-branches (:branch-angle store)
                 :multiple-branches $ comp-multiple-branches
                 :lamps $ comp-lamps
                 :line-wave $ line-wave
@@ -383,6 +388,7 @@
           defatom *store $ {} (:v 0)
             :tab $ turn-keyword (get-env "\"tab" "\"multiple-branches")
             :p1 $ [] 0 0 0
+            :branch-angle 0.7
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
@@ -399,6 +405,7 @@
                     :cube-right $ update store :v inc
                     :tab-focus $ assoc store :tab data
                     :move-p1 $ assoc store :p1 data
+                    :set-branch-angle $ assoc store :branch-angle data
                 if (some? next) (reset! *store next)
         |main! $ quote
           defn main! ()
@@ -882,6 +889,47 @@
                         &v+ (v-scale rightward dx) (v-scale upward dy)
                         &/ screen_scale scale-radio
                       , d!
+              object $ {} (:draw-mode :triangles)
+                :vertex-shader $ inline-shader "\"drag-point.vert"
+                :fragment-shader $ inline-shader "\"drag-point.frag"
+                :points $ map geo
+                  fn (p)
+                    -> p
+                      map $ fn (i) (* i 20)
+                      &v+ position
+                :indices indices
+                :hit-region $ {} (:position position) (:radius 20)
+                  :on-mousedown $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      reset! *drag-cache $ {} (:x x) (:y y)
+                  ; :on-mousemove $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      handle-drag! x y d!
+                      reset! *drag-cache $ {} (:x x) (:y y)
+                  :on-mouseup $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      handle-drag! x y d!
+                :attributes $ {}
+                  :color_index $ repeat 0 (count indices)
+        |comp-slider $ quote
+          defn comp-slider (props on-move)
+            let
+                position $ :position props
+                geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
+                handle-drag! $ fn (x y d!)
+                  let
+                      prev @*drag-cache
+                      dx $ - x (:x prev)
+                      dy $ - (:y prev) y
+                    ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
+                    on-move ([] dx dy) d!
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ inline-shader "\"drag-point.vert"
                 :fragment-shader $ inline-shader "\"drag-point.frag"
