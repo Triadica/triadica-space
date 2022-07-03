@@ -327,6 +327,9 @@
                 :lamps $ comp-lamps
                 :line-wave $ line-wave
                 :fireworks $ comp-fireworks
+                :drag-point $ comp-drag-point
+                  {} $ :position (:p1 store)
+                  fn (p d!) (d! :move-p1 p)
               if-not hide-tabs? $ comp-tabs
                 {}
                   :position $ [] -40 0 0
@@ -362,10 +365,13 @@
                     :position $ [] -300 -80 0
                   {} (:key :multiple-branches)
                     :position $ [] -300 -120 0
+                  {} (:key :drag-point)
+                    :position $ [] -300 -160 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
+          triadica.comp.drag-point :refer $ comp-drag-point
           triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
           triadica.config :refer $ hide-tabs?
           triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
@@ -376,6 +382,7 @@
         |*store $ quote
           defatom *store $ {} (:v 0)
             :tab $ turn-keyword (get-env "\"tab" "\"multiple-branches")
+            :p1 $ [] 0 0 0
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
@@ -391,6 +398,7 @@
                     do (js/console.warn "\"unknown op" op) nil
                     :cube-right $ update store :v inc
                     :tab-focus $ assoc store :tab data
+                    :move-p1 $ assoc store :p1 data
                 if (some? next) (reset! *store next)
         |main! $ quote
           defn main! ()
@@ -841,6 +849,73 @@
           triadica.alias :refer $ object
           triadica.math :refer $ &v+
           triadica.core :refer $ %nested-attribute
+    |triadica.comp.drag-point $ {}
+      :defs $ {}
+        |*drag-cache $ quote
+          defatom *drag-cache $ {} (:x 0) (:y 0)
+        |comp-drag-point $ quote
+          defn comp-drag-point (props on-move)
+            let
+                position $ :position props
+                geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
+                handle-drag! $ fn (x y d!)
+                  let
+                      prev @*drag-cache
+                      dx $ - x (:x prev)
+                      dy $ - (:y prev) y
+                      look-distance $ new-lookat-point
+                      upward @*viewer-upward
+                      rightward $ v-scale (v-cross upward @*viewer-forward) -1
+                      s $ noted "\"size factor of light cone in negative direction" back-cone-scale
+                      r $ &/
+                        v-dot (&v- position @*viewer-position) look-distance
+                        +
+                          square $ nth look-distance 0
+                          square $ nth look-distance 1
+                          square $ nth look-distance 2
+                      scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
+                      screen_scale $ &/ (&+ r s) (&+ s 1)
+                    ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
+                    on-move
+                      &v+ position $ v-scale
+                        &v+ (v-scale rightward dx) (v-scale upward dy)
+                        &/ screen_scale scale-radio
+                      , d!
+              object $ {} (:draw-mode :triangles)
+                :vertex-shader $ inline-shader "\"drag-point.vert"
+                :fragment-shader $ inline-shader "\"drag-point.frag"
+                :points $ map geo
+                  fn (p)
+                    -> p
+                      map $ fn (i) (* i 20)
+                      &v+ position
+                :indices indices
+                :hit-region $ {} (:position position) (:radius 20)
+                  :on-mousedown $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      reset! *drag-cache $ {} (:x x) (:y y)
+                  ; :on-mousemove $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      handle-drag! x y d!
+                      reset! *drag-cache $ {} (:x x) (:y y)
+                  :on-mouseup $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      handle-drag! x y d!
+                :attributes $ {}
+                  :color_index $ repeat 0 (count indices)
+      :ns $ quote
+        ns triadica.comp.drag-point $ :require
+          triadica.config :refer $ inline-shader back-cone-scale
+          triadica.alias :refer $ group object
+          triadica.math :refer $ &v+ v-cross v-scale v-dot square &v-
+          triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
     |triadica.comp.tabs $ {}
       :defs $ {}
         |comp-tabs $ quote
