@@ -1265,7 +1265,7 @@
                 r-delta $ :right-move delta
                 l-delta $ :left-move delta
                 left-a? $ :left-a? states
-                right-a? $ :right-a? states
+                right-a? $ or (:right-a? states) (:shift? states)
                 right-b? $ :right-b? states
                 left-b? $ :left-b? states
               ; println "\"L" l-move "\"R" r-move

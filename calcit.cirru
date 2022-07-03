@@ -9494,10 +9494,17 @@
                       |r $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1656175791892) (:by |u0) (:text |right-a?) (:type :leaf)
-                          |b $ {} (:at 1651658419548) (:by |u0) (:type :expr)
+                          |b $ {} (:at 1656855562561) (:by |u0) (:type :expr)
                             :data $ {}
-                              |T $ {} (:at 1656175795981) (:by |u0) (:text |:right-a?) (:type :leaf)
-                              |b $ {} (:at 1651658419548) (:by |u0) (:text |states) (:type :leaf)
+                              |D $ {} (:at 1656855563408) (:by |u0) (:text |or) (:type :leaf)
+                              |T $ {} (:at 1651658419548) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1656175795981) (:by |u0) (:text |:right-a?) (:type :leaf)
+                                  |b $ {} (:at 1651658419548) (:by |u0) (:text |states) (:type :leaf)
+                              |b $ {} (:at 1651658419548) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1656855568560) (:by |u0) (:text |:shift?) (:type :leaf)
+                                  |b $ {} (:at 1651658419548) (:by |u0) (:text |states) (:type :leaf)
                       |s $ {} (:at 1651658419548) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1651658419548) (:by |u0) (:text |right-b?) (:type :leaf)
