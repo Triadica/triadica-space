@@ -4,6 +4,8 @@
 
 - Live Demo https://r.tiye.me/Quatrefoil-GL/triadica-space/
 
+parameters: `effects=on/off & dev=release/dev & tab=axis/lamps/...`
+
 ### Object definition
 
 For example:

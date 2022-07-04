@@ -7,12 +7,13 @@ uniform float viewportRatio;
 uniform vec3 cameraPosition;
 
 attribute vec3 a_position;
+attribute float a_color_index;
 
 varying float v_r;
 varying float v_s;
 varying float z_color;
 varying vec3 original_position;
-varying float v_idx;
+varying float v_color_index;
 
 float square(float a) {
   return a * a;
@@ -171,11 +172,11 @@ void main() {
   vec3 p = a_position;
 
   // p = spin(p, vec3(0.0, 320.0, 0.0), 6000.8, 320.0);
-  p = spin(p, vec3(0.0, 0.0, 320.0), 6000.8, 320.0);
+  // p = spin(p, vec3(0.0, 0.0, 320.0), 6000.8, 320.0);
   // p = spin(p, vec3(320.0, 0.0, 0.0), 6000.8, 320.0);
   // p = spin(p, vec3(400.0, 0.0, 0.0), 1020.8, 180.0);
   // p = spin(p, vec3(-110.0, 20.0, 222.0), -4000.4, 180.0);
-  p = spin(p, vec3(200.0, 300.0, 102.0), 2300.4, 280.0);
+  // p = spin(p, vec3(200.0, 300.0, 102.0), 2300.4, 280.0);
   // p = spin(p, vec3(90.0, -200.0, 202.0), 1820.4, 280.0);
   // p = spin(p, vec3(210.0, 60.0, -292.0), 2420.1, 280.0);
   // p = spin(p, vec3(-200.0, 236.0, 92.0), 2444.4, 480.0);
@@ -187,6 +188,7 @@ void main() {
 
   v_r = result.r;
   v_s = result.s;
+  v_color_index = a_color_index;
 
   // if (result.r > 0.0) {
     gl_Position = vec4(pos_next * 0.001, 1.0);

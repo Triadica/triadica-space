@@ -306,6 +306,47 @@
           triadica.alias :refer $ object
           triadica.math :refer $ &v+ v-scale
           triadica.core :refer $ %nested-attribute
+    |triadica.app.comp.line-wave $ {}
+      :defs $ {}
+        |comp-line-wave $ quote
+          defn comp-line-wave () (; js/console.log "\"data" data)
+            let
+                size 400000
+                points $ gen-lorenz-seq size 0.004 10 28 (/ 8 3) 40
+              object $ {} (:draw-mode :line-strip)
+                :vertex-shader $ inline-shader "\"line-wave.vert"
+                :fragment-shader $ inline-shader "\"line-wave.frag"
+                :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+                :attributes $ {}
+                  :color_index $ map (range size)
+                    fn (x) (&/ x size)
+        |gen-lorenz-seq $ quote
+          defn gen-lorenz-seq (steps dt a b c scale)
+            apply-args
+                []
+                , 2 3 4 steps
+              fn (acc x y z n) (; println "\"trace" x y z n)
+                if (&<= n 0) acc $ let
+                    dx $ &* dt
+                      &* a $ &- y x
+                    dy $ &* dt
+                      &-
+                        &* x $ &- b z
+                        , y
+                    dz $ &* dt
+                      &- (&* x y) (&* c z)
+                  recur
+                    conj acc $ v-scale ([] x y z) scale
+                    &+ x dx
+                    &+ y dy
+                    &+ z dz
+                    dec n
+      :ns $ quote
+        ns triadica.app.comp.line-wave $ :require
+          triadica.math :refer $ v-scale
+          triadica.alias :refer $ group object
+          triadica.core :refer $ %nested-attribute
+          triadica.config :refer $ inline-shader
     |triadica.app.container $ {}
       :defs $ {}
         |comp-container $ quote
@@ -330,7 +371,7 @@
                 :branches $ comp-branches (:branch-angle store)
                 :multiple-branches $ comp-multiple-branches
                 :lamps $ comp-lamps
-                :line-wave $ line-wave
+                :line-wave $ comp-line-wave
                 :fireworks $ comp-fireworks
                 :drag-point $ comp-drag-point
                   {} $ :position (:p1 store)
@@ -382,11 +423,12 @@
           triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
           triadica.app.comp.lamps :refer $ comp-lamps
           triadica.app.comp.fireworks :refer $ comp-fireworks
+          triadica.app.comp.line-wave :refer $ comp-line-wave
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
           defatom *store $ {} (:v 0)
-            :tab $ turn-keyword (get-env "\"tab" "\"multiple-branches")
+            :tab $ turn-keyword (get-env "\"tab" "\"axis")
             :p1 $ [] 0 0 0
             :branch-angle 0.7
         |canvas $ quote
@@ -634,37 +676,6 @@
                 :length $ * 6 seg-size (count segments)
                 :augment 3
                 :data segments
-        |line-wave $ quote
-          defn line-wave () (; js/console.log "\"data" data)
-            object $ {} (:draw-mode :triangles)
-              :vertex-shader $ inline-shader "\"line-wave.vert"
-              :fragment-shader $ inline-shader "\"line-wave.frag"
-              :points $ %{} %nested-attribute (:augment 3)
-                :length $ &* 100000 6
-                :data $ -> (range 100000)
-                  map $ fn (idx)
-                    let
-                        r $ &* 0.004 idx
-                        r2 $ &+ r 1.27
-                        angle $ &* idx 0.02
-                        angle2 $ &+ angle 0.02
-                        p0 $ []
-                          &* r $ js/Math.cos angle
-                          , 0
-                            &* r $ js/Math.sin angle
-                        p1 $ []
-                          &* r2 $ js/Math.cos angle
-                          , 0
-                            &* r2 $ js/Math.sin angle
-                        p2 $ []
-                          &* r2 $ js/Math.cos angle2
-                          , 0
-                            &* r2 $ js/Math.sin angle2
-                        p3 $ []
-                          &* r $ js/Math.cos angle2
-                          , 0
-                            &* r $ js/Math.sin angle2
-                      [] p0 p1 p2 p0 p2 p3
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -1021,6 +1032,8 @@
               read-file shader
         |mobile? $ quote
           def mobile? $ .!mobile (new mobile-detect js/window.navigator.userAgent)
+        |post-effect? $ quote
+          def post-effect? $ &= "\"on" (get-env "\"effect" "\"on")
       :ns $ quote
         ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
           triadica.$meta :refer $ calcit-dirname
@@ -1321,8 +1334,9 @@
                 effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
                 effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
               twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
-              twgl/resizeFramebufferInfo gl draw-fb
-              twgl/bindFramebufferInfo gl draw-fb
+              if post-effect?
+                do (twgl/resizeFramebufferInfo gl draw-fb) (twgl/bindFramebufferInfo gl draw-fb)
+                twgl/bindFramebufferInfo gl nil
               .!viewport gl 0 0.0 scaled-width scaled-height (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
@@ -1350,7 +1364,7 @@
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
-              let
+              when post-effect? $ let
                   effect-x-program $ twgl/createProgramInfo gl
                     js-array (inline-shader "\"effect-x.vert") (inline-shader "\"effect-x.frag")
                   mix-program $ twgl/createProgramInfo gl
@@ -1417,7 +1431,7 @@
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
-          triadica.config :refer $ half-pi mobile? dpr back-cone-scale inline-shader
+          triadica.config :refer $ half-pi mobile? post-effect? dpr back-cone-scale inline-shader
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
