@@ -17,8 +17,39 @@
       :defs $ {}
         |*points-buffer $ quote
           defatom *points-buffer $ []
+        |build-multiple-path $ quote
+          defn build-multiple-path (max-level parts info)
+            let-sugar
+                  {} position length forward upward
+                  , info
+                rightward $ v-cross forward upward
+                regress 0.38
+                delta-angle $ / (* 2 &PI) parts
+                branch-angle 1.57
+                main-branch $ wo-log
+                  [] position $ &v+ position (v-scale forward length)
+                side-branches $ ->
+                  range 1 $ inc parts
+                  map $ fn (n)
+                    let
+                        base $ &v+ position (v-scale forward length)
+                        alpha $ &* delta-angle n
+                        side-base $ &v+
+                          v-scale upward $ js/Math.cos alpha
+                          v-scale rightward $ js/Math.sin alpha
+                        side-length $ &* length regress
+                        side-forward $ &v+
+                          v-scale forward $ js/Math.cos branch-angle
+                          v-scale side-base $ js/Math.sin branch-angle
+                        branch $ -> side-forward (v-scale side-length)
+                      [] $ if (<= max-level 0) ([])
+                        build-multiple-path (dec max-level) parts $ {} (:position base) (:length side-length) (:forward side-forward)
+                          :upward $ v-normalize
+                            &v- side-forward $ v-scale forward
+                              &/ 1 $ js/Math.cos branch-angle
+              [] main-branch side-branches
         |build-path $ quote
-          defn build-path (max-level info)
+          defn build-path (max-level branch-angle info)
             let-sugar
                   {} position length forward upward
                   , info
@@ -26,7 +57,6 @@
                 delta-angle 2.09
                 regress 0.74
                 segments 4
-                branch-angle 0.7
                 main-branch $ wo-log
                   [] position $ &v+ position (v-scale forward length)
                 side-branches $ ->
@@ -47,32 +77,147 @@
                         branch $ -> side-forward (v-scale side-length)
                       [] base (&v+ base branch)
                         if (<= max-level 0) ([])
-                          build-path (dec max-level)
-                            {} (:position base) (:length side-length) (:forward side-forward)
-                              :upward $ v-normalize
-                                &v- side-forward $ v-scale forward
-                                  &/ 1 $ js/Math.cos branch-angle
+                          build-path (dec max-level) branch-angle $ {} (:position base) (:length side-length) (:forward side-forward)
+                            :upward $ v-normalize
+                              &v- side-forward $ v-scale forward
+                                &/ 1 $ js/Math.cos branch-angle
               [] main-branch side-branches
         |comp-branches $ quote
-          defn comp-branches () $ let-sugar
-              max-level 8
-              points $ build-path max-level
+          defn comp-branches (branch-angle)
+            let-sugar
+                max-level 3
+                points $ build-path max-level branch-angle
+                  {}
+                    :position $ [] 0 0 0
+                    :length 800
+                    :forward $ [] 0 1 0
+                    :upward $ [] 1 0 0
+              group ({})
+                object $ {} (:draw-mode :lines)
+                  :vertex-shader $ inline-shader "\"lines.vert"
+                  :fragment-shader $ inline-shader "\"lines.frag"
+                  :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+                comp-slider
+                  {} $ :position ([] 200 0 0)
+                  fn (data d!)
+                    d! :set-branch-angle $ + branch-angle
+                      * 0.001 $ first data
+        |comp-multiple-branches $ quote
+          defn comp-multiple-branches () $ let-sugar
+              max-level 6
+              parts 8
+              points $ build-multiple-path max-level parts
                 {}
-                  :position $ [] 0 0 0
-                  :length 800
+                  :position $ [] 0 -400 0
+                  :length 400
                   :forward $ [] 0 1 0
                   :upward $ [] 1 0 0
             group ({})
               object $ {} (:draw-mode :lines)
-                :vertex-shader $ inline-shader "\"lines.vert"
-                :fragment-shader $ inline-shader "\"lines.frag"
+                :vertex-shader $ inline-shader "\"branches.vert"
+                :fragment-shader $ inline-shader "\"branches.frag"
                 :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+                :attributes $ {}
+                  :color_index $ %{} %nested-attribute (:augment 1) (:length nil)
+                    :data $ ->
+                      range $ inc max-level
+                      map $ fn (n)
+                        repeat ([] n n) (pow parts n)
       :ns $ quote
         ns triadica.app.comp.branches $ :require
           triadica.alias :refer $ group object
           triadica.core :refer $ %nested-attribute
           triadica.config :refer $ inline-shader
           triadica.math :refer $ &v+ v-scale v-cross &v- v-normalize
+          triadica.comp.drag-point :refer $ comp-slider
+    |triadica.app.comp.fireworks $ {}
+      :defs $ {}
+        |build-firework $ quote
+          defn build-firework (position r0 size beta0 seconds)
+            let
+                angle0 $ / &PI size
+              -> (range size)
+                map $ fn (i)
+                  let
+                      rx-delta $ sin (* i angle0)
+                      rx $ * r0 rx-delta
+                      ry $ * r0
+                        cos $ * i angle0
+                      ball-size $ js/Math.ceil
+                        + 0.1 $ / rx-delta 0.04
+                      angle1 $ / (* 2 &PI) ball-size
+                    -> (range ball-size)
+                      map $ fn (j)
+                        let
+                            v0 $ []
+                              * rx $ cos (* j angle1)
+                              , ry
+                                * rx $ sin (* j angle1)
+                          -> (range seconds)
+                            map $ fn (k)
+                              let
+                                  t0 $ + k 0.5
+                                  t1 $ + k 1.4
+                                  p0 $ &v+ position (calc-parabola v0 t0)
+                                  p1 $ &v+ position (calc-parabola v0 t1)
+                                [] p0 p1 $ &v+ p1
+                                  []
+                                    * 12 $ cos (* k beta0)
+                                    , 4 0
+        |calc-parabola $ quote
+          defn calc-parabola (v0 t)
+            &v+
+              v-scale ([] 0 -4 0)
+                * 0.5 $ * t t
+              v-scale v0 t
+        |comp-fireworks $ quote
+          defn comp-fireworks () $ let
+              f1 $ build-firework
+                noted position $ [] 0 0 0
+                noted r0 60
+                noted size 20
+                noted beta0 0.5
+                noted seconds 20
+              f2 $ build-firework
+                noted position $ [] 1200 200 0
+                noted r0 100
+                noted size 10
+                noted beta0 0.5
+                noted seconds 4
+              f3 $ build-firework
+                noted position $ [] 0 400 1000
+                noted r0 320
+                noted size 10
+                noted beta0 0.5
+                noted seconds 2
+              f4 $ build-firework
+                noted position $ [] -1600 -200 -800
+                noted r0 110
+                noted size 40
+                noted beta0 0.6
+                noted seconds 40
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"fireworks.vert"
+              :fragment-shader $ inline-shader "\"fireworks.frag"
+              :points $ %{} %nested-attribute (:length nil) (:augment 3)
+                :data $ [] f1 f2 f3 f4
+              :attributes $ {}
+                :center $ %{} %nested-attribute (:length nil) (:augment 3)
+                  :data $ []
+                    repeat ([] 0 0 0)
+                      / (count-recursive f1) 3
+                    repeat ([] 1200 200 0)
+                      / (count-recursive f2) 3
+                    repeat ([] 0 400 1000)
+                      / (count-recursive f3) 3
+                    repeat ([] -1600 -222.5 -800)
+                      / (count-recursive f4) 3
+      :ns $ quote
+        ns triadica.app.comp.fireworks $ :require
+          triadica.core :refer $ %nested-attribute count-recursive
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ object group
+          triadica.math :refer $ v-scale &v+
     |triadica.app.comp.lamps $ {}
       :defs $ {}
         |comp-lamps $ quote
@@ -161,6 +306,47 @@
           triadica.alias :refer $ object
           triadica.math :refer $ &v+ v-scale
           triadica.core :refer $ %nested-attribute
+    |triadica.app.comp.line-wave $ {}
+      :defs $ {}
+        |comp-line-wave $ quote
+          defn comp-line-wave () (; js/console.log "\"data" data)
+            let
+                size 400000
+                points $ gen-lorenz-seq size 0.004 10 28 (/ 8 3) 40
+              object $ {} (:draw-mode :line-strip)
+                :vertex-shader $ inline-shader "\"line-wave.vert"
+                :fragment-shader $ inline-shader "\"line-wave.frag"
+                :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+                :attributes $ {}
+                  :color_index $ map (range size)
+                    fn (x) (&/ x size)
+        |gen-lorenz-seq $ quote
+          defn gen-lorenz-seq (steps dt a b c scale)
+            apply-args
+                []
+                , 2 3 4 steps
+              fn (acc x y z n) (; println "\"trace" x y z n)
+                if (&<= n 0) acc $ let
+                    dx $ &* dt
+                      &* a $ &- y x
+                    dy $ &* dt
+                      &-
+                        &* x $ &- b z
+                        , y
+                    dz $ &* dt
+                      &- (&* x y) (&* c z)
+                  recur
+                    conj acc $ v-scale ([] x y z) scale
+                    &+ x dx
+                    &+ y dy
+                    &+ z dz
+                    dec n
+      :ns $ quote
+        ns triadica.app.comp.line-wave $ :require
+          triadica.math :refer $ v-scale
+          triadica.alias :refer $ group object
+          triadica.core :refer $ %nested-attribute
+          triadica.config :refer $ inline-shader
     |triadica.app.container $ {}
       :defs $ {}
         |comp-container $ quote
@@ -182,11 +368,18 @@
                 :fiber-bending $ fiber-bending
                 :plate-bending $ plate-bending
                 :mushroom $ mushroom-object
-                :branches $ comp-branches
+                :branches $ comp-branches (:branch-angle store)
+                :multiple-branches $ comp-multiple-branches
                 :lamps $ comp-lamps
-                :line-wave $ line-wave
-              comp-tabs
-                {} $ :position ([] -40 0 0)
+                :line-wave $ comp-line-wave
+                :fireworks $ comp-fireworks
+                :drag-point $ comp-drag-point
+                  {} $ :position (:p1 store)
+                  fn (p d!) (d! :move-p1 p)
+              if-not hide-tabs? $ comp-tabs
+                {}
+                  :position $ [] -40 0 0
+                  :selected $ :tab store
                 []
                   {} (:key :axis)
                     :position $ [] -400 240 0
@@ -211,24 +404,38 @@
                   {} (:key :branches)
                     :position $ [] -400 -160 0
                   {} (:key :lamps)
-                    :position $ [] -400 -200 0
+                    :position $ [] -300 -0 0
                   {} (:key :line-wave)
-                    :position $ [] -400 -240 0
+                    :position $ [] -300 -40 0
+                  {} (:key :fireworks)
+                    :position $ [] -300 -80 0
+                  {} (:key :multiple-branches)
+                    :position $ [] -300 -120 0
+                  {} (:key :drag-point)
+                    :position $ [] -300 -160 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
+          triadica.comp.drag-point :refer $ comp-drag-point
           triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
-          triadica.app.comp.branches :refer $ comp-branches
+          triadica.config :refer $ hide-tabs?
+          triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
           triadica.app.comp.lamps :refer $ comp-lamps
+          triadica.app.comp.fireworks :refer $ comp-fireworks
+          triadica.app.comp.line-wave :refer $ comp-line-wave
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
-          defatom *store $ {} (:v 0) (:tab :lamps)
+          defatom *store $ {} (:v 0)
+            :tab $ turn-keyword (get-env "\"tab" "\"axis")
+            :p1 $ [] 0 0 0
+            :branch-angle 0.7
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
-          defn dispatch! (op data) (js/console.log "\"Dispatch:" op data)
+          defn dispatch! (op data)
+            when dev? $ js/console.log "\"Dispatch:" op data
             if (= op :city-spin)
               do $ swap! *uniform-data update :spin-city
                 fn (x)
@@ -239,6 +446,8 @@
                     do (js/console.warn "\"unknown op" op) nil
                     :cube-right $ update store :v inc
                     :tab-focus $ assoc store :tab data
+                    :move-p1 $ assoc store :p1 data
+                    :set-branch-angle $ assoc store :branch-angle data
                 if (some? next) (reset! *store next)
         |main! $ quote
           defn main! ()
@@ -467,37 +676,6 @@
                 :length $ * 6 seg-size (count segments)
                 :augment 3
                 :data segments
-        |line-wave $ quote
-          defn line-wave () (; js/console.log "\"data" data)
-            object $ {} (:draw-mode :triangles)
-              :vertex-shader $ inline-shader "\"line-wave.vert"
-              :fragment-shader $ inline-shader "\"line-wave.frag"
-              :points $ %{} %nested-attribute (:augment 3)
-                :length $ &* 100000 6
-                :data $ -> (range 100000)
-                  map $ fn (idx)
-                    let
-                        r $ &* 0.004 idx
-                        r2 $ &+ r 1.27
-                        angle $ &* idx 0.02
-                        angle2 $ &+ angle 0.02
-                        p0 $ []
-                          &* r $ js/Math.cos angle
-                          , 0
-                            &* r $ js/Math.sin angle
-                        p1 $ []
-                          &* r2 $ js/Math.cos angle
-                          , 0
-                            &* r2 $ js/Math.sin angle
-                        p2 $ []
-                          &* r2 $ js/Math.cos angle2
-                          , 0
-                            &* r2 $ js/Math.sin angle2
-                        p3 $ []
-                          &* r $ js/Math.cos angle2
-                          , 0
-                            &* r $ js/Math.sin angle2
-                      [] p0 p1 p2 p0 p2 p3
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -689,30 +867,145 @@
           triadica.alias :refer $ object
           triadica.math :refer $ &v+
           triadica.core :refer $ %nested-attribute
+    |triadica.comp.drag-point $ {}
+      :defs $ {}
+        |*drag-cache $ quote
+          defatom *drag-cache $ {} (:x 0) (:y 0)
+        |comp-drag-point $ quote
+          defn comp-drag-point (props on-move)
+            let
+                position $ :position props
+                geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
+                handle-drag! $ fn (x y d!)
+                  let
+                      prev @*drag-cache
+                      dx $ - x (:x prev)
+                      dy $ - (:y prev) y
+                      look-distance $ new-lookat-point
+                      upward @*viewer-upward
+                      rightward $ v-scale (v-cross upward @*viewer-forward) -1
+                      s $ noted "\"size factor of light cone in negative direction" back-cone-scale
+                      r $ &/
+                        v-dot (&v- position @*viewer-position) look-distance
+                        +
+                          square $ nth look-distance 0
+                          square $ nth look-distance 1
+                          square $ nth look-distance 2
+                      scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
+                      screen_scale $ &/ (&+ r s) (&+ s 1)
+                    ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
+                    on-move
+                      &v+ position $ v-scale
+                        &v+ (v-scale rightward dx) (v-scale upward dy)
+                        &/ screen_scale scale-radio
+                      , d!
+              object $ {} (:draw-mode :triangles)
+                :vertex-shader $ inline-shader "\"drag-point.vert"
+                :fragment-shader $ inline-shader "\"drag-point.frag"
+                :points $ map geo
+                  fn (p)
+                    -> p
+                      map $ fn (i) (* i 20)
+                      &v+ position
+                :indices indices
+                :hit-region $ {} (:position position) (:radius 20)
+                  :on-mousedown $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      reset! *drag-cache $ {} (:x x) (:y y)
+                  ; :on-mousemove $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      handle-drag! x y d!
+                      reset! *drag-cache $ {} (:x x) (:y y)
+                  :on-mouseup $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      handle-drag! x y d!
+                :attributes $ {}
+                  :color_index $ repeat 0 (count indices)
+        |comp-slider $ quote
+          defn comp-slider (props on-move)
+            let
+                position $ :position props
+                geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
+                handle-drag! $ fn (x y d!)
+                  let
+                      prev @*drag-cache
+                      dx $ - x (:x prev)
+                      dy $ - (:y prev) y
+                    ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
+                    on-move ([] dx dy) d!
+              object $ {} (:draw-mode :triangles)
+                :vertex-shader $ inline-shader "\"drag-point.vert"
+                :fragment-shader $ inline-shader "\"drag-point.frag"
+                :points $ map geo
+                  fn (p)
+                    -> p
+                      map $ fn (i) (* i 20)
+                      &v+ position
+                :indices indices
+                :hit-region $ {} (:position position) (:radius 20)
+                  :on-mousedown $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      reset! *drag-cache $ {} (:x x) (:y y)
+                  ; :on-mousemove $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      handle-drag! x y d!
+                      reset! *drag-cache $ {} (:x x) (:y y)
+                  :on-mouseup $ fn (e d!)
+                    let
+                        x $ .-clientX e
+                        y $ .-clientY e
+                      handle-drag! x y d!
+                :attributes $ {}
+                  :color_index $ repeat 0 (count indices)
+      :ns $ quote
+        ns triadica.comp.drag-point $ :require
+          triadica.config :refer $ inline-shader back-cone-scale
+          triadica.alias :refer $ group object
+          triadica.math :refer $ &v+ v-cross v-scale v-dot square &v-
+          triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
     |triadica.comp.tabs $ {}
       :defs $ {}
         |comp-tabs $ quote
           defn comp-tabs (props entries)
             let
                 base-position $ :position props
+                selected $ :selected props
               group ({}) & $ -> entries
                 map $ fn (entry)
                   let
                       key $ :key entry
                       position $ &v+ base-position (:position entry)
-                      geo $ [] ([] -0.5 -0.5 0) ([] -0.5 0.5 0) ([] 0.5 0.5 0) ([] 0.5 -0.5 0) ([] -0.5 -0.5 -1) ([] -0.5 0.5 -1) ([] 0.5 0.5 -1) ([] 0.5 -0.5 -1)
-                      indices $ [] 0 1 1 2 2 3 3 0 0 4 1 5 2 6 3 7 4 5 5 6 6 7 7 4
-                    object $ {} (:draw-mode :lines)
-                      :vertex-shader $ inline-shader "\"lines.vert"
-                      :fragment-shader $ inline-shader "\"lines.frag"
+                      geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                      indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
+                    object $ {} (:draw-mode :triangles)
+                      :vertex-shader $ inline-shader "\"tab.vert"
+                      :fragment-shader $ inline-shader "\"tab.frag"
                       :points $ map geo
                         fn (p)
                           -> p
-                            map $ fn (i) (* i 32)
+                            map $ fn (i) (* i 20)
                             &v+ position
                       :indices indices
-                      :hit-region $ {} (:position position) (:radius 32)
+                      :hit-region $ {} (:position position) (:radius 20)
                         :on-hit $ fn (e d!) (d! :tab-focus key)
+                      :attributes $ {}
+                        :color_index $ repeat
+                          if
+                            = selected $ :key entry
+                            , 1 0
+                          count indices
       :ns $ quote
         ns triadica.comp.tabs $ :require
           triadica.config :refer $ inline-shader
@@ -726,6 +1019,8 @@
         |dpr $ quote (def dpr js/window.devicePixelRatio)
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
+        |hide-tabs? $ quote
+          def hide-tabs? $ = true (get-env "\"hide-tabs" "\"false")
         |inline-shader $ quote
           defmacro inline-shader (name)
             let
@@ -737,16 +1032,30 @@
               read-file shader
         |mobile? $ quote
           def mobile? $ .!mobile (new mobile-detect js/window.navigator.userAgent)
+        |post-effect? $ quote
+          def post-effect? $ &= "\"on" (get-env "\"effect" "\"on")
       :ns $ quote
         ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
           triadica.$meta :refer $ calcit-dirname
     |triadica.core $ {}
       :defs $ {}
         |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
+        |*draw-fb $ quote (defatom *draw-fb nil)
         |*effect-x-fb $ quote (defatom *effect-x-fb nil)
+        |*effect-y-fb $ quote (defatom *effect-y-fb nil)
         |*local-array-counter $ quote (defatom *local-array-counter 0)
-        |*mix-fb $ quote (defatom *mix-fb nil)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |blur-at-direction $ quote
+          defn blur-at-direction (gl from-fb to-fb direction program buffer) (twgl/resizeFramebufferInfo gl to-fb)
+            twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
+            twgl/bindFramebufferInfo gl to-fb
+            ; clear-gl! gl
+            .!useProgram gl $ .-program program
+            twgl/setBuffersAndAttributes gl program buffer
+            twgl/setUniforms program $ js-object
+              :tex1 $ .-0 (.-attachments from-fb)
+              :direction direction
+            twgl/drawBufferInfo gl buffer $ .-TRIANGLES gl
         |clear-gl! $ quote
           defn clear-gl! (gl) (.!clearColor gl 0 0 0 1)
             .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
@@ -761,9 +1070,9 @@
             if
               and (record? points) (&record:matches? %nested-attribute points)
               let
-                  augment $ :augment points
-                  data $ :data points
-                  length $ or (:length points)
+                  augment $ &record:get points :augment
+                  data $ &record:get points :data
+                  length $ or (&record:get points :length)
                     &/ (count-recursive data) augment
                   total $ * augment length
                   position-array $ .!createAugmentedTypedArray twgl/primitives augment length
@@ -969,7 +1278,7 @@
                 r-delta $ :right-move delta
                 l-delta $ :left-move delta
                 left-a? $ :left-a? states
-                right-a? $ :right-a? states
+                right-a? $ or (:right-a? states) (:shift? states)
                 right-b? $ :right-b? states
                 left-b? $ :left-b? states
               ; println "\"L" l-move "\"R" r-move
@@ -1020,11 +1329,14 @@
                   :coneBackScale back-cone-scale
                   :viewportRatio $ / js/window.innerHeight js/window.innerWidth
                   :citySpin $ wo-log (:spin-city @*uniform-data)
-                draw-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
-                effect-x-fb $ load-sized-buffer! gl *mix-fb scaled-width scaled-height
+                  :time $ &- (js/Date.now) start-time
+                draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
+                effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
+                effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
               twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
-              twgl/resizeFramebufferInfo gl draw-fb
-              twgl/bindFramebufferInfo gl draw-fb
+              if post-effect?
+                do (twgl/resizeFramebufferInfo gl draw-fb) (twgl/bindFramebufferInfo gl draw-fb)
+                twgl/bindFramebufferInfo gl nil
               .!viewport gl 0 0.0 scaled-width scaled-height (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
@@ -1052,7 +1364,7 @@
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
-              let
+              when post-effect? $ let
                   effect-x-program $ twgl/createProgramInfo gl
                     js-array (inline-shader "\"effect-x.vert") (inline-shader "\"effect-x.frag")
                   mix-program $ twgl/createProgramInfo gl
@@ -1063,15 +1375,12 @@
                   effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                   mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                 .!disable gl $ .-DEPTH_TEST gl
-                twgl/resizeFramebufferInfo gl effect-x-fb
-                twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
-                twgl/bindFramebufferInfo gl effect-x-fb
-                ; clear-gl! gl
-                .!useProgram gl $ .-program effect-x-program
-                twgl/setBuffersAndAttributes gl effect-x-program effect-x-buffer-info
-                twgl/setUniforms effect-x-program $ js-object
-                  :tex1 $ .-0 (.-attachments draw-fb)
-                twgl/drawBufferInfo gl effect-x-buffer-info $ .-TRIANGLES gl
+                blur-at-direction gl draw-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-y-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-y-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
                 ; .!depthFunc gl $ .-LESS gl
                 ; .!depthFunc gl $ .-GREATER gl
                 ; .!depthMask gl true
@@ -1082,7 +1391,7 @@
                 twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
                 twgl/setUniforms mix-program $ js-object
                   :draw_tex $ .-0 (.-attachments draw-fb)
-                  :effect_x_tex $ .-0 (.-attachments effect-x-fb)
+                  :effect_x_tex $ .-0 (.-attachments effect-y-fb)
                 twgl/drawBufferInfo gl mix-buffer-info $ .-TRIANGLES gl
         |reset-canvas-size! $ quote
           defn reset-canvas-size! (canvas)
@@ -1101,6 +1410,8 @@
           defn shift-viewer-by! (x)
             if (= x false) (reset! *viewer-y-shift 0)
               swap! *viewer-y-shift &+ $ * 2 x
+        |start-time $ quote
+          def start-time $ js/Date.now
         |traverse-tree $ quote
           defn traverse-tree (tree coord cb)
             when (some? tree)
@@ -1120,7 +1431,7 @@
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
-          triadica.config :refer $ half-pi mobile? dpr back-cone-scale inline-shader
+          triadica.config :refer $ half-pi mobile? post-effect? dpr back-cone-scale inline-shader
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
