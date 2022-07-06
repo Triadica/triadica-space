@@ -7054,7 +7054,6 @@
                                                           |b $ {} (:at 1656849560168) (:by |u0) (:text |y) (:type :leaf)
                                   |p $ {} (:at 1656849279835) (:by |u0) (:type :expr)
                                     :data $ {}
-                                      |D $ {} (:at 1656850816817) (:by |u0) (:text |;) (:type :leaf)
                                       |T $ {} (:at 1656849279835) (:by |u0) (:text |:on-mousemove) (:type :leaf)
                                       |b $ {} (:at 1656849279835) (:by |u0) (:type :expr)
                                         :data $ {}
@@ -7447,7 +7446,6 @@
                                                           |b $ {} (:at 1656854152687) (:by |u0) (:text |y) (:type :leaf)
                                   |o $ {} (:at 1656854152687) (:by |u0) (:type :expr)
                                     :data $ {}
-                                      |T $ {} (:at 1656854152687) (:by |u0) (:text |;) (:type :leaf)
                                       |b $ {} (:at 1656854152687) (:by |u0) (:text |:on-mousemove) (:type :leaf)
                                       |h $ {} (:at 1656854152687) (:by |u0) (:type :expr)
                                         :data $ {}
@@ -7887,11 +7885,85 @@
       |triadica.config $ {}
         :configs $ {}
         :defs $ {}
+          |*shader-programs $ {} (:at 1657120675486) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1657120677009) (:by |u0) (:text |defatom) (:type :leaf)
+              |b $ {} (:at 1657120675486) (:by |u0) (:text |*shader-programs) (:type :leaf)
+              |h $ {} (:at 1657120675486) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1657120678180) (:by |u0) (:text |{}) (:type :leaf)
           |back-cone-scale $ {} (:at 1654954273477) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1654954275017) (:by |u0) (:text |def) (:type :leaf)
               |b $ {} (:at 1654954273477) (:by |u0) (:text |back-cone-scale) (:type :leaf)
               |h $ {} (:at 1656607336473) (:by |u0) (:text |1) (:type :leaf)
+          |cached-build-program $ {} (:at 1657120637191) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1657120637191) (:by |u0) (:text |defn) (:type :leaf)
+              |b $ {} (:at 1657120637191) (:by |u0) (:text |cached-build-program) (:type :leaf)
+              |h $ {} (:at 1657120637191) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1657120639779) (:by |u0) (:text |gl) (:type :leaf)
+                  |X $ {} (:at 1657120645933) (:by |u0) (:text |vs) (:type :leaf)
+                  |b $ {} (:at 1657120642681) (:by |u0) (:text |fs) (:type :leaf)
+              |l $ {} (:at 1657120661589) (:by |u0) (:type :expr)
+                :data $ {}
+                  |D $ {} (:at 1657120663289) (:by |u0) (:text |let) (:type :leaf)
+                  |L $ {} (:at 1657120663539) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1657120664036) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1657120664899) (:by |u0) (:text |caches) (:type :leaf)
+                          |b $ {} (:at 1657120675082) (:by |u0) (:text |@*shader-programs) (:type :leaf)
+                      |b $ {} (:at 1657120690086) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1657120692609) (:by |u0) (:text |field) (:type :leaf)
+                          |b $ {} (:at 1657120693379) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1657120693893) (:by |u0) (:text |str) (:type :leaf)
+                              |b $ {} (:at 1657120694518) (:by |u0) (:text |vs) (:type :leaf)
+                              |e $ {} (:at 1657120703797) (:by |u0) (:text |&newline) (:type :leaf)
+                              |eT $ {} (:at 1657120712118) (:by |u0) (:text "|\"@@@@@@") (:type :leaf)
+                              |f $ {} (:at 1657120705177) (:by |u0) (:text |&newline) (:type :leaf)
+                              |h $ {} (:at 1657120695233) (:by |u0) (:text |fs) (:type :leaf)
+                  |T $ {} (:at 1657120715791) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |D $ {} (:at 1657120716318) (:by |u0) (:text |if) (:type :leaf)
+                      |L $ {} (:at 1657120718152) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1657120722409) (:by |u0) (:text |&map:contains?) (:type :leaf)
+                          |b $ {} (:at 1657120724773) (:by |u0) (:text |caches) (:type :leaf)
+                          |h $ {} (:at 1657120726378) (:by |u0) (:text |field) (:type :leaf)
+                      |P $ {} (:at 1657120732051) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1657120733507) (:by |u0) (:text |&map:get) (:type :leaf)
+                          |b $ {} (:at 1657120735119) (:by |u0) (:text |caches) (:type :leaf)
+                          |h $ {} (:at 1657120737119) (:by |u0) (:text |field) (:type :leaf)
+                      |T $ {} (:at 1657120738290) (:by |u0) (:type :expr)
+                        :data $ {}
+                          |D $ {} (:at 1657120738891) (:by |u0) (:text |let) (:type :leaf)
+                          |T $ {} (:at 1657120741080) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1657120741233) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |D $ {} (:at 1657120743229) (:by |u0) (:text |program) (:type :leaf)
+                                  |T $ {} (:at 1657120656976) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1657120656976) (:by |u0) (:text |twgl/createProgramInfo) (:type :leaf)
+                                      |b $ {} (:at 1657120656976) (:by |u0) (:text |gl) (:type :leaf)
+                                      |h $ {} (:at 1657120656976) (:by |u0) (:type :expr)
+                                        :data $ {}
+                                          |T $ {} (:at 1657120656976) (:by |u0) (:text |js-array) (:type :leaf)
+                                          |b $ {} (:at 1657120656976) (:by |u0) (:text |vs) (:type :leaf)
+                                          |h $ {} (:at 1657120656976) (:by |u0) (:text |fs) (:type :leaf)
+                          |b $ {} (:at 1657120744821) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1657120752243) (:by |u0) (:text |swap!) (:type :leaf)
+                              |b $ {} (:at 1657120756903) (:by |u0) (:text |*shader-programs) (:type :leaf)
+                              |h $ {} (:at 1657120760060) (:by |u0) (:text |assoc) (:type :leaf)
+                              |l $ {} (:at 1657120761668) (:by |u0) (:text |field) (:type :leaf)
+                              |o $ {} (:at 1657120764571) (:by |u0) (:text |program) (:type :leaf)
+                          |h $ {} (:at 1657120767471) (:by |u0) (:text |program) (:type :leaf)
           |dev? $ {} (:at 1651655792604) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1651655795610) (:by |u0) (:text |def) (:type :leaf)
@@ -8033,6 +8105,11 @@
                     |T $ {} (:at 1654078454707) (:by |u0) (:text "|\"mobile-detect") (:type :leaf)
                     |b $ {} (:at 1654078454707) (:by |u0) (:text |:default) (:type :leaf)
                     |h $ {} (:at 1654078454707) (:by |u0) (:text |mobile-detect) (:type :leaf)
+                |e $ {} (:at 1657120802992) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1657120802992) (:by |u0) (:text "|\"twgl.js") (:type :leaf)
+                    |b $ {} (:at 1657120802992) (:by |u0) (:text |:as) (:type :leaf)
+                    |h $ {} (:at 1657120802992) (:by |u0) (:text |twgl) (:type :leaf)
                 |h $ {} (:at 1656096598822) (:by |u0) (:type :expr)
                   :data $ {}
                     |T $ {} (:at 1656096605390) (:by |u0) (:text |triadica.$meta) (:type :leaf)
@@ -9419,13 +9496,10 @@
                                       |T $ {} (:at 1653324172942) (:by |u0) (:text |program-info) (:type :leaf)
                                       |b $ {} (:at 1653324172942) (:by |u0) (:type :expr)
                                         :data $ {}
-                                          |T $ {} (:at 1653324172942) (:by |u0) (:text |twgl/createProgramInfo) (:type :leaf)
+                                          |T $ {} (:at 1657120780164) (:by |u0) (:text |cached-build-program) (:type :leaf)
                                           |b $ {} (:at 1653324172942) (:by |u0) (:text |gl) (:type :leaf)
-                                          |h $ {} (:at 1653324172942) (:by |u0) (:type :expr)
-                                            :data $ {}
-                                              |T $ {} (:at 1653324172942) (:by |u0) (:text |js-array) (:type :leaf)
-                                              |b $ {} (:at 1653324172942) (:by |u0) (:text |vs) (:type :leaf)
-                                              |h $ {} (:at 1653324172942) (:by |u0) (:text |fs) (:type :leaf)
+                                          |h $ {} (:at 1653324172942) (:by |u0) (:text |vs) (:type :leaf)
+                                          |l $ {} (:at 1653324172942) (:by |u0) (:text |fs) (:type :leaf)
                                   |l $ {} (:at 1653324172942) (:by |u0) (:type :expr)
                                     :data $ {}
                                       |T $ {} (:at 1653324172942) (:by |u0) (:text |buffer-info) (:type :leaf)
@@ -10371,37 +10445,31 @@
                                       |T $ {} (:at 1656646470287) (:by |u0) (:text |effect-x-program) (:type :leaf)
                                       |b $ {} (:at 1656646427959) (:by |u0) (:type :expr)
                                         :data $ {}
-                                          |T $ {} (:at 1656646427959) (:by |u0) (:text |twgl/createProgramInfo) (:type :leaf)
+                                          |T $ {} (:at 1657121077050) (:by |u0) (:text |cached-build-program) (:type :leaf)
                                           |b $ {} (:at 1656646427959) (:by |u0) (:text |gl) (:type :leaf)
                                           |h $ {} (:at 1656646427959) (:by |u0) (:type :expr)
                                             :data $ {}
-                                              |T $ {} (:at 1656646427959) (:by |u0) (:text |js-array) (:type :leaf)
-                                              |b $ {} (:at 1656646427959) (:by |u0) (:type :expr)
-                                                :data $ {}
-                                                  |T $ {} (:at 1656646427959) (:by |u0) (:text |inline-shader) (:type :leaf)
-                                                  |b $ {} (:at 1656646462191) (:by |u0) (:text "|\"effect-x.vert") (:type :leaf)
-                                              |h $ {} (:at 1656646427959) (:by |u0) (:type :expr)
-                                                :data $ {}
-                                                  |T $ {} (:at 1656646427959) (:by |u0) (:text |inline-shader) (:type :leaf)
-                                                  |b $ {} (:at 1656646459828) (:by |u0) (:text "|\"effect-x.frag") (:type :leaf)
+                                              |T $ {} (:at 1656646427959) (:by |u0) (:text |inline-shader) (:type :leaf)
+                                              |b $ {} (:at 1656646462191) (:by |u0) (:text "|\"effect-x.vert") (:type :leaf)
+                                          |l $ {} (:at 1656646427959) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1656646427959) (:by |u0) (:text |inline-shader) (:type :leaf)
+                                              |b $ {} (:at 1656646459828) (:by |u0) (:text "|\"effect-x.frag") (:type :leaf)
                                   |T $ {} (:at 1656413087701) (:by |u0) (:type :expr)
                                     :data $ {}
                                       |T $ {} (:at 1656413092284) (:by |u0) (:text |mix-program) (:type :leaf)
                                       |b $ {} (:at 1656413920525) (:by |u0) (:type :expr)
                                         :data $ {}
-                                          |T $ {} (:at 1656413920525) (:by |u0) (:text |twgl/createProgramInfo) (:type :leaf)
+                                          |T $ {} (:at 1657121079805) (:by |u0) (:text |cached-build-program) (:type :leaf)
                                           |b $ {} (:at 1656413920525) (:by |u0) (:text |gl) (:type :leaf)
-                                          |h $ {} (:at 1656413920525) (:by |u0) (:type :expr)
+                                          |h $ {} (:at 1656413940817) (:by |u0) (:type :expr)
                                             :data $ {}
-                                              |T $ {} (:at 1656413920525) (:by |u0) (:text |js-array) (:type :leaf)
-                                              |b $ {} (:at 1656413940817) (:by |u0) (:type :expr)
-                                                :data $ {}
-                                                  |T $ {} (:at 1656413940668) (:by |u0) (:text |inline-shader) (:type :leaf)
-                                                  |b $ {} (:at 1656648417548) (:by |u0) (:text "|\"effect-mix.vert") (:type :leaf)
-                                              |h $ {} (:at 1656413940817) (:by |u0) (:type :expr)
-                                                :data $ {}
-                                                  |T $ {} (:at 1656413940668) (:by |u0) (:text |inline-shader) (:type :leaf)
-                                                  |b $ {} (:at 1656648420089) (:by |u0) (:text "|\"effect-mix.frag") (:type :leaf)
+                                              |T $ {} (:at 1656413940668) (:by |u0) (:text |inline-shader) (:type :leaf)
+                                              |b $ {} (:at 1656648417548) (:by |u0) (:text "|\"effect-mix.vert") (:type :leaf)
+                                          |l $ {} (:at 1656413940817) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1656413940668) (:by |u0) (:text |inline-shader) (:type :leaf)
+                                              |b $ {} (:at 1656648420089) (:by |u0) (:text "|\"effect-mix.frag") (:type :leaf)
                                   |X $ {} (:at 1656646492982) (:by |u0) (:type :expr)
                                     :data $ {}
                                       |D $ {} (:at 1656646501484) (:by |u0) (:text |uv-settings) (:type :leaf)
@@ -10920,6 +10988,7 @@
                         |h $ {} (:at 1654918636750) (:by |u0) (:text |dpr) (:type :leaf)
                         |l $ {} (:at 1654954318816) (:by |u0) (:text |back-cone-scale) (:type :leaf)
                         |o $ {} (:at 1656413948897) (:by |u0) (:text |inline-shader) (:type :leaf)
+                        |q $ {} (:at 1657120777420) (:by |u0) (:text |cached-build-program) (:type :leaf)
       |triadica.global $ {}
         :configs $ {}
         :defs $ {}

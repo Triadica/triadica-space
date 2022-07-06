@@ -924,7 +924,7 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       reset! *drag-cache $ {} (:x x) (:y y)
-                  ; :on-mousemove $ fn (e d!)
+                  :on-mousemove $ fn (e d!)
                     let
                         x $ .-clientX e
                         y $ .-clientY e
@@ -965,7 +965,7 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       reset! *drag-cache $ {} (:x x) (:y y)
-                  ; :on-mousemove $ fn (e d!)
+                  :on-mousemove $ fn (e d!)
                     let
                         x $ .-clientX e
                         y $ .-clientY e
@@ -1024,7 +1024,19 @@
           triadica.math :refer $ &v+
     |triadica.config $ {}
       :defs $ {}
+        |*shader-programs $ quote
+          defatom *shader-programs $ {}
         |back-cone-scale $ quote (def back-cone-scale 1)
+        |cached-build-program $ quote
+          defn cached-build-program (gl vs fs)
+            let
+                caches @*shader-programs
+                field $ str vs &newline "\"@@@@@@" &newline fs
+              if (&map:contains? caches field) (&map:get caches field)
+                let
+                    program $ twgl/createProgramInfo gl (js-array vs fs)
+                  swap! *shader-programs assoc field program
+                  , program
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
         |dpr $ quote (def dpr js/window.devicePixelRatio)
@@ -1046,7 +1058,7 @@
         |post-effect? $ quote
           def post-effect? $ &= "\"on" (get-env "\"effect" "\"on")
       :ns $ quote
-        ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
+        ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect) ("\"twgl.js" :as twgl)
           triadica.$meta :refer $ calcit-dirname
     |triadica.core $ {}
       :defs $ {}
@@ -1250,7 +1262,7 @@
                               turn-string $ nth entry 0
                               create-attribute-array $ nth entry 1
                         wo-js-log ret
-                      program-info $ twgl/createProgramInfo gl (js-array vs fs)
+                      program-info $ cached-build-program gl vs fs
                       buffer-info $ twgl/createBufferInfoFromArrays gl arrays
                     swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
                       :draw-mode $ :draw-mode obj
@@ -1376,10 +1388,8 @@
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
               when post-effect? $ let
-                  effect-x-program $ twgl/createProgramInfo gl
-                    js-array (inline-shader "\"effect-x.vert") (inline-shader "\"effect-x.frag")
-                  mix-program $ twgl/createProgramInfo gl
-                    js-array (inline-shader "\"effect-mix.vert") (inline-shader "\"effect-mix.frag")
+                  effect-x-program $ cached-build-program gl (inline-shader "\"effect-x.vert") (inline-shader "\"effect-x.frag")
+                  mix-program $ cached-build-program gl (inline-shader "\"effect-mix.vert") (inline-shader "\"effect-mix.frag")
                   uv-settings $ js-object
                     :position $ create-attribute-array
                       [][] (-1 -1) (1 -1) (1 1) (-1 -1) (-1 1) (1 1)
@@ -1444,7 +1454,7 @@
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
-          triadica.config :refer $ half-pi mobile? post-effect? dpr back-cone-scale inline-shader
+          triadica.config :refer $ half-pi mobile? post-effect? dpr back-cone-scale inline-shader cached-build-program
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
