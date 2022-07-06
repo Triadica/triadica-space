@@ -1415,13 +1415,15 @@
         |traverse-tree $ quote
           defn traverse-tree (tree coord cb)
             when (some? tree)
-              if
-                = :object $ :type tree
-                cb (dissoc tree :children) coord
-              if-let
-                children $ :children tree
-                map-indexed children $ fn (idx child)
-                  traverse-tree child (conj coord idx) cb
+              case-default (&map:get tree :type)
+                do
+                  js/console.warn "\"Unknown element type:" $ &map:get tree :type
+                  , nil
+                :object $ cb (dissoc tree :children) coord
+                :group $ if-let
+                  children $ :children tree
+                  map-indexed children $ fn (idx child)
+                    traverse-tree child (conj coord idx) cb
       :ns $ quote
         ns triadica.core $ :require
           touch-control.core :refer $ render-control!
