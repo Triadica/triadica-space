@@ -26,9 +26,10 @@ jobs:
     - name: "prepare modules"
       run: >
         mkdir -p ~/.config/calcit/modules/ && cd ~/.config/calcit/modules/
-        && git clone https://github.com/Quamolit/touch-control.git --branch 0.0.12
+        && git clone https://github.com/Quamolit/touch-control.git
         && git clone https://github.com/mvc-works/pointed-prompt.git
         && git clone https://github.com/Respo/respo.calcit.git
+        && git clone https://github.com/calcit-lang/memof.git
 
     - name: "compiles to js"
       run: >
