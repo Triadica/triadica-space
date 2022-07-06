@@ -355,8 +355,8 @@
               case-default (:tab store)
                 do
                   println "\"unknown tab" $ :tab store
-                  axis-object
-                :axis $ axis-object
+                  comp-axis
+                :axis $ comp-axis
                 :cubes $ cubes-object
                 :spin-city $ group ({})
                   tiny-cube-object $ :v store
@@ -418,7 +418,8 @@
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
           triadica.comp.drag-point :refer $ comp-drag-point
-          triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending axis-object plate-bending mushroom-object line-wave
+          triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending plate-bending mushroom-object line-wave
+          triadica.comp.axis :refer $ comp-axis
           triadica.config :refer $ hide-tabs?
           triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
           triadica.app.comp.lamps :refer $ comp-lamps
@@ -489,12 +490,6 @@
     |triadica.app.shapes $ {}
       :defs $ {}
         |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
-        |axis-object $ quote
-          defn axis-object () $ object
-            {} (:draw-mode :lines)
-              :vertex-shader $ inline-shader "\"lines.vert"
-              :fragment-shader $ inline-shader "\"lines.frag"
-              :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
         |bg-object $ quote
           defn bg-object () $ let
               size 50
@@ -867,6 +862,20 @@
           triadica.alias :refer $ object
           triadica.math :refer $ &v+
           triadica.core :refer $ %nested-attribute
+    |triadica.comp.axis $ {}
+      :defs $ {}
+        |comp-axis $ quote
+          defn comp-axis () $ object
+            {} (:draw-mode :lines)
+              :vertex-shader $ inline-shader "\"lines.vert"
+              :fragment-shader $ inline-shader "\"lines.frag"
+              :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
+      :ns $ quote
+        ns triadica.comp.axis $ :require
+          triadica.alias :refer $ group object
+          triadica.config :refer $ inline-shader
+          triadica.math :refer $ &v+
+          triadica.core :refer $ %nested-attribute
     |triadica.comp.drag-point $ {}
       :defs $ {}
         |*drag-cache $ quote
@@ -874,7 +883,7 @@
         |comp-drag-point $ quote
           defn comp-drag-point (props on-move)
             let
-                position $ :position props
+                position $ &map:get props :position
                 geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
@@ -901,8 +910,8 @@
                         &/ screen_scale scale-radio
                       , d!
               object $ {} (:draw-mode :triangles)
-                :vertex-shader $ inline-shader "\"drag-point.vert"
-                :fragment-shader $ inline-shader "\"drag-point.frag"
+                :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
+                :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
                 :points $ map geo
                   fn (p)
                     -> p
@@ -942,8 +951,8 @@
                     ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
                     on-move ([] dx dy) d!
               object $ {} (:draw-mode :triangles)
-                :vertex-shader $ inline-shader "\"drag-point.vert"
-                :fragment-shader $ inline-shader "\"drag-point.frag"
+                :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
+                :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
                 :points $ map geo
                   fn (p)
                     -> p
@@ -985,9 +994,9 @@
               group ({}) & $ -> entries
                 map $ fn (entry)
                   let
-                      key $ :key entry
-                      position $ &v+ base-position (:position entry)
-                      geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                      key $ &map:get entry :key
+                      position $ &v+ base-position (&map:get entry :position)
+                      geo dice-shape-points
                       indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                     object $ {} (:draw-mode :triangles)
                       :vertex-shader $ inline-shader "\"tab.vert"
@@ -1003,9 +1012,11 @@
                       :attributes $ {}
                         :color_index $ repeat
                           if
-                            = selected $ :key entry
+                            = selected $ &map:get entry :key
                             , 1 0
                           count indices
+        |dice-shape-points $ quote
+          def dice-shape-points $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
       :ns $ quote
         ns triadica.comp.tabs $ :require
           triadica.config :refer $ inline-shader
@@ -1415,13 +1426,15 @@
         |traverse-tree $ quote
           defn traverse-tree (tree coord cb)
             when (some? tree)
-              if
-                = :object $ :type tree
-                cb (dissoc tree :children) coord
-              if-let
-                children $ :children tree
-                map-indexed children $ fn (idx child)
-                  traverse-tree child (conj coord idx) cb
+              case-default (&map:get tree :type)
+                do
+                  js/console.warn "\"Unknown element type:" $ &map:get tree :type
+                  , nil
+                :object $ cb (dissoc tree :children) coord
+                :group $ if-let
+                  children $ :children tree
+                  map-indexed children $ fn (idx child)
+                    traverse-tree child (conj coord idx) cb
       :ns $ quote
         ns triadica.core $ :require
           touch-control.core :refer $ render-control!
