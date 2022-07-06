@@ -399,6 +399,7 @@
                 :drag-point $ comp-drag-point
                   {} $ :position (:p1 store)
                   fn (p d!) (d! :move-p1 p)
+                :stitch $ comp-stitch
               if-not hide-tabs? $ memof1-call comp-tabs
                 {}
                   :position $ [] -40 0 0
@@ -438,6 +439,8 @@
               :position $ [] -300 -120 0
             {} (:key :drag-point)
               :position $ [] -300 -160 0
+            {} (:key :stitch)
+              :position $ [] -300 -200 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -450,6 +453,7 @@
           triadica.app.comp.lamps :refer $ comp-lamps
           triadica.app.comp.fireworks :refer $ comp-fireworks
           triadica.app.comp.line-wave :refer $ comp-line-wave
+          triadica.comp.stitch :refer $ comp-stitch
           memof.once :refer $ memof1-call memof1-call-by
     |triadica.app.main $ {}
       :defs $ {}
@@ -488,8 +492,8 @@
             render-control!
             start-control-loop! 10 on-control-event
             add-watch *store :change $ fn (v _p) (render-app!)
-            add-watch *uniform-data :change $ fn (v _p) (render-canvas!)
-            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-canvas!)
+            add-watch *uniform-data :change $ fn (v _p) (paint-canvas!)
+            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
             setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
@@ -497,19 +501,19 @@
               add-watch *store :change $ fn (v _p) (render-app!)
               replace-control-loop! 10 on-control-event
               setup-mouse-events! canvas
-              set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (render-canvas!)
+              set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
               hud! "\"ok~" "\"OK"
             hud! "\"error" build-errors
         |render-app! $ quote
           defn render-app! ()
             load-objects! (comp-container @*store) dispatch!
-            render-canvas!
+            paint-canvas!
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
           triadica.config :refer $ dev? dpr
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
-          triadica.core :refer $ handle-key-event on-control-event load-objects! render-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
+          triadica.core :refer $ handle-key-event on-control-event load-objects! paint-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
           triadica.app.container :refer $ comp-container
@@ -1011,6 +1015,84 @@
           triadica.alias :refer $ group object
           triadica.math :refer $ &v+ v-cross v-scale v-dot square &v-
           triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
+    |triadica.comp.stitch $ {}
+      :defs $ {}
+        |comp-stitch $ quote
+          defn comp-stitch () $ let
+              chars $ [] ([]) ([]) ([]) ([]) ([])
+              position $ [] 0 0 0
+              size 24
+              gap 4
+              s0 $ * 0.1 size
+            group ({})
+              object $ {} (:draw-mode :triangles)
+                :vertex-shader $ inline-shader "\"stitch-bg.vert"
+                :fragment-shader $ inline-shader "\"stitch-bg.frag"
+                :points $ %{} %nested-attribute (:augment 3) (:length nil)
+                  :data $ map-indexed chars
+                    fn (idx c)
+                      ->
+                        [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
+                        map $ fn (x)
+                          &v+
+                            &v+ (v-scale x size) position
+                            v-scale
+                              [] (+ size gap) 0 0
+                              , idx
+              object $ {} (:draw-mode :triangles)
+                :vertex-shader $ inline-shader "\"stitch-line.vert"
+                :fragment-shader $ inline-shader "\"stitch-line.frag"
+                :points $ %{} %nested-attribute (:augment 3) (:length nil)
+                  :data $ map-indexed chars
+                    fn (idx c)
+                      -> stitch-strokes $ map
+                        fn (x)
+                          &v+
+                            &v+ (v-scale x s0) position
+                            v-scale
+                              [] (+ size gap) 0 0
+                              , idx
+                :attributes $ {}
+                  :value $ %{} %nested-attribute (:augment 1) (:length nil)
+                    :data $ map chars
+                      fn (i)
+                        -> (range 32)
+                          map $ fn (idx)
+                            map (range 2)
+                              fn (j)
+                                repeat
+                                  js/Math.round $ js/Math.random
+                                  , 6
+        |stitch-strokes $ quote
+          def stitch-strokes $ let
+              shift 0.2
+            -> (range 4)
+              mapcat $ fn (i)
+                -> (range 4)
+                  mapcat $ fn (j)
+                    let
+                        base $ []
+                          + 1 $ * j 2
+                          - (* i -2) 1
+                      []
+                        &v+ base $ [] 0 0 shift
+                        &v+ base $ [] 0.4 0 shift
+                        &v+ base $ [] 2 -2 shift
+                        &v+ base $ [] 0 0 shift
+                        &v+ base $ [] 2 -2 shift
+                        &v+ base $ [] 1.6 -2 shift
+                        &v+ base $ [] 2 0 shift
+                        &v+ base $ [] 2 -0.4 shift
+                        &v+ base $ [] -0 -2 shift
+                        &v+ base $ [] 2 0 shift
+                        &v+ base $ [] 0 -2 shift
+                        &v+ base $ [] 0 -1.6 shift
+      :ns $ quote
+        ns triadica.comp.stitch $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ group object
+          triadica.math :refer $ &v+ v-cross v-scale v-dot square &v-
+          triadica.core :refer $ %nested-attribute
     |triadica.comp.tabs $ {}
       :defs $ {}
         |comp-tabs $ quote
@@ -1340,13 +1422,9 @@
                 or
                   not= l-move $ [] 0 0
                   not= r-move $ [] 0 0
-                render-canvas!
-        |refine-strength $ quote
-          defn refine-strength (x)
-            &* x $ sqrt
-              js/Math.abs $ &* x 0.02
-        |render-canvas! $ quote
-          defn render-canvas! () $ let
+                paint-canvas!
+        |paint-canvas! $ quote
+          defn paint-canvas! () $ let
               gl @*gl-context
               scaled-width $ * dpr js/window.innerWidth
               scaled-height $ * dpr js/window.innerHeight
@@ -1423,6 +1501,10 @@
                   :draw_tex $ .-0 (.-attachments draw-fb)
                   :effect_x_tex $ .-0 (.-attachments effect-y-fb)
                 twgl/drawBufferInfo gl mix-buffer-info $ .-TRIANGLES gl
+        |refine-strength $ quote
+          defn refine-strength (x)
+            &* x $ sqrt
+              js/Math.abs $ &* x 0.02
         |reset-canvas-size! $ quote
           defn reset-canvas-size! (canvas)
             ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
@@ -1459,7 +1541,6 @@
           touch-control.core :refer $ render-control!
           triadica.global :refer $ *objects-buffer *gl-context *proxied-dispatch *objects-tree *mouse-holding-paths *uniform-data
           triadica.perspective :refer $ *viewer-position *viewer-forward *viewer-upward transform-3d new-lookat-point move-viewer-by! rotate-glance-by! spin-glance-by!
-          triadica.render :refer $ render-canvas!
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
@@ -1573,7 +1654,6 @@
                 position @*viewer-position
               reset! *viewer-position $ &v+ position dv
               ; println ([] x0 y0 z0) |=> $ [] dx dy dz
-              ; render-canvas
         |new-lookat-point $ quote
           defn new-lookat-point () $ v-scale @*viewer-forward 600
         |rotate-glance-by! $ quote
@@ -1598,7 +1678,6 @@
                 reset! *viewer-upward $ &v+
                   v-scale upward $ js/Math.cos da
                   v-scale forward $ negate (js/Math.sin da)
-            ; render-canvas
         |spin-glance-by! $ quote
           defn spin-glance-by! (v)
             if (not= v 0)
