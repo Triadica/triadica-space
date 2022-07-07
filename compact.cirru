@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.3)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.4)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
@@ -399,7 +399,8 @@
                 :drag-point $ comp-drag-point
                   {} $ :position (:p1 store)
                   fn (p d!) (d! :move-p1 p)
-                :stitch $ comp-stitch ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
+                :stitch $ comp-stitch
+                  {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
               if-not hide-tabs? $ memof1-call comp-tabs
                 {}
                   :position $ [] -40 0 0
@@ -1018,9 +1019,10 @@
     |triadica.comp.stitch $ {}
       :defs $ {}
         |comp-stitch $ quote
-          defn comp-stitch (chars)
+          defn comp-stitch (props)
             let
-                position $ [] 0 0 0
+                chars $ either (:chars props) ([] 0x1111)
+                position $ either (:position props) ([] 0 0 0)
                 size 24
                 gap 4
                 s0 $ * 0.1 size
@@ -1059,16 +1061,14 @@
                           let
                               pattern $ .!padStart
                                 .!slice (&number:display-by i 2) 2
-                                , 32
+                                , 32 "\"0"
                             -> (range 32)
                               map $ fn (idx)
-                                map (range 2)
-                                  fn (j)
-                                    repeat
-                                      if
-                                        = "\"1" $ get pattern idx
-                                        , 1 0
-                                      , 6
+                                repeat
+                                  if
+                                    = "\"1" $ get pattern idx
+                                    , 1 0
+                                  , 6
         |stitch-strokes $ quote
           def stitch-strokes $ let
               shift 0.2
@@ -1107,29 +1107,35 @@
                 base-position $ :position props
                 selected $ :selected props
               group ({}) & $ -> entries
-                map $ fn (entry)
+                map-indexed $ fn (idx entry)
                   let
                       key $ &map:get entry :key
                       position $ &v+ base-position (&map:get entry :position)
                       geo dice-shape-points
                       indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
-                    object $ {} (:draw-mode :triangles)
-                      :vertex-shader $ inline-shader "\"tab.vert"
-                      :fragment-shader $ inline-shader "\"tab.frag"
-                      :points $ map geo
-                        fn (p)
-                          -> p
-                            map $ fn (i) (* i 20)
-                            &v+ position
-                      :indices indices
-                      :hit-region $ {} (:position position) (:radius 20)
-                        :on-hit $ fn (e d!) (d! :tab-focus key)
-                      :attributes $ {}
-                        :color_index $ repeat
-                          if
-                            = selected $ &map:get entry :key
-                            , 1 0
-                          count indices
+                    group ({})
+                      object $ {} (:draw-mode :triangles)
+                        :vertex-shader $ inline-shader "\"tab.vert"
+                        :fragment-shader $ inline-shader "\"tab.frag"
+                        :points $ map geo
+                          fn (p)
+                            -> p
+                              map $ fn (i) (* i 20)
+                              &v+ position
+                        :indices indices
+                        :hit-region $ {} (:position position) (:radius 20)
+                          :on-hit $ fn (e d!) (d! :tab-focus key)
+                        :attributes $ {}
+                          :color_index $ repeat
+                            if
+                              = selected $ &map:get entry :key
+                              , 1 0
+                            count indices
+                      let
+                          v $ + 11 (* 13607 idx)
+                        memof1-call-by v comp-stitch $ {}
+                          :position $ &v+ position ([] 30 10 0)
+                          :chars $ [] v
         |dice-shape-points $ quote
           def dice-shape-points $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
       :ns $ quote
@@ -1137,6 +1143,8 @@
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ group object
           triadica.math :refer $ &v+
+          triadica.comp.stitch :refer $ comp-stitch
+          memof.once :refer $ memof1-call-by
     |triadica.config $ {}
       :defs $ {}
         |*shader-programs $ quote
