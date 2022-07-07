@@ -399,7 +399,7 @@
                 :drag-point $ comp-drag-point
                   {} $ :position (:p1 store)
                   fn (p d!) (d! :move-p1 p)
-                :stitch $ comp-stitch
+                :stitch $ comp-stitch ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
               if-not hide-tabs? $ memof1-call comp-tabs
                 {}
                   :position $ [] -40 0 0
@@ -1018,51 +1018,57 @@
     |triadica.comp.stitch $ {}
       :defs $ {}
         |comp-stitch $ quote
-          defn comp-stitch () $ let
-              chars $ [] ([]) ([]) ([]) ([]) ([])
-              position $ [] 0 0 0
-              size 24
-              gap 4
-              s0 $ * 0.1 size
-            group ({})
-              object $ {} (:draw-mode :triangles)
-                :vertex-shader $ inline-shader "\"stitch-bg.vert"
-                :fragment-shader $ inline-shader "\"stitch-bg.frag"
-                :points $ %{} %nested-attribute (:augment 3) (:length nil)
-                  :data $ map-indexed chars
-                    fn (idx c)
-                      ->
-                        [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
-                        map $ fn (x)
-                          &v+
-                            &v+ (v-scale x size) position
-                            v-scale
-                              [] (+ size gap) 0 0
-                              , idx
-              object $ {} (:draw-mode :triangles)
-                :vertex-shader $ inline-shader "\"stitch-line.vert"
-                :fragment-shader $ inline-shader "\"stitch-line.frag"
-                :points $ %{} %nested-attribute (:augment 3) (:length nil)
-                  :data $ map-indexed chars
-                    fn (idx c)
-                      -> stitch-strokes $ map
-                        fn (x)
-                          &v+
-                            &v+ (v-scale x s0) position
-                            v-scale
-                              [] (+ size gap) 0 0
-                              , idx
-                :attributes $ {}
-                  :value $ %{} %nested-attribute (:augment 1) (:length nil)
-                    :data $ map chars
-                      fn (i)
-                        -> (range 32)
-                          map $ fn (idx)
-                            map (range 2)
-                              fn (j)
-                                repeat
-                                  js/Math.round $ js/Math.random
-                                  , 6
+          defn comp-stitch (chars)
+            let
+                position $ [] 0 0 0
+                size 24
+                gap 4
+                s0 $ * 0.1 size
+              group ({})
+                object $ {} (:draw-mode :triangles)
+                  :vertex-shader $ inline-shader "\"stitch-bg.vert"
+                  :fragment-shader $ inline-shader "\"stitch-bg.frag"
+                  :points $ %{} %nested-attribute (:augment 3) (:length nil)
+                    :data $ map-indexed chars
+                      fn (idx c)
+                        ->
+                          [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
+                          map $ fn (x)
+                            &v+
+                              &v+ (v-scale x size) position
+                              v-scale
+                                [] (+ size gap) 0 0
+                                , idx
+                object $ {} (:draw-mode :triangles)
+                  :vertex-shader $ inline-shader "\"stitch-line.vert"
+                  :fragment-shader $ inline-shader "\"stitch-line.frag"
+                  :points $ %{} %nested-attribute (:augment 3) (:length nil)
+                    :data $ map-indexed chars
+                      fn (idx c)
+                        -> stitch-strokes $ map
+                          fn (x)
+                            &v+
+                              &v+ (v-scale x s0) position
+                              v-scale
+                                [] (+ size gap) 0 0
+                                , idx
+                  :attributes $ {}
+                    :value $ %{} %nested-attribute (:augment 1) (:length nil)
+                      :data $ map chars
+                        fn (i)
+                          let
+                              pattern $ .!padStart
+                                .!slice (&number:display-by i 2) 2
+                                , 32
+                            -> (range 32)
+                              map $ fn (idx)
+                                map (range 2)
+                                  fn (j)
+                                    repeat
+                                      if
+                                        = "\"1" $ get pattern idx
+                                        , 1 0
+                                      , 6
         |stitch-strokes $ quote
           def stitch-strokes $ let
               shift 0.2
@@ -1075,18 +1081,18 @@
                           + 1 $ * j 2
                           - (* i -2) 1
                       []
-                        &v+ base $ [] 0 0 shift
-                        &v+ base $ [] 0.4 0 shift
-                        &v+ base $ [] 2 -2 shift
-                        &v+ base $ [] 0 0 shift
-                        &v+ base $ [] 2 -2 shift
-                        &v+ base $ [] 1.6 -2 shift
-                        &v+ base $ [] 2 0 shift
-                        &v+ base $ [] 2 -0.4 shift
-                        &v+ base $ [] -0 -2 shift
-                        &v+ base $ [] 2 0 shift
-                        &v+ base $ [] 0 -2 shift
-                        &v+ base $ [] 0 -1.6 shift
+                        &v+ base $ [] 0.2 0.2 shift
+                        &v+ base $ [] -0.2 -0.2 shift
+                        &v+ base $ [] 2.2 -1.8 shift
+                        &v+ base $ [] -0.2 -0.2 shift
+                        &v+ base $ [] 2.2 -1.8 shift
+                        &v+ base $ [] 1.8 -2.2 shift
+                        &v+ base $ [] 1.8 0.2 shift
+                        &v+ base $ [] 2.2 -0.2 shift
+                        &v+ base $ [] -0.2 -1.8 shift
+                        &v+ base $ [] 2.2 -0.2 shift
+                        &v+ base $ [] 0.2 -2.2 shift
+                        &v+ base $ [] -0.2 -1.8 shift
       :ns $ quote
         ns triadica.comp.stitch $ :require
           triadica.config :refer $ inline-shader
