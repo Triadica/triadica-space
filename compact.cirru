@@ -1,7 +1,7 @@
 
 {} (:package |triadica)
   :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.3)
-    :modules $ [] |touch-control/ |respo.calcit/
+    :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
     |triadica.alias $ {}
@@ -10,9 +10,32 @@
           defn group (options & children)
             {} (:type :group) (:children children)
         |object $ quote
-          defn object (options) (assoc options :type :object)
+          defn object (options)
+            let
+                vs $ :vertex-shader options
+                fs $ :fragment-shader options
+                arrays $ let
+                    ret $ let
+                        ret $ js-object
+                      if-let
+                        points $ :points options
+                        set! (.-position ret) (create-attribute-array points)
+                      if-let
+                        ys $ :indices options
+                        set! (.-indices ret) (js-array & ys)
+                      , ret
+                    attrs $ :attributes options
+                  if-not (empty? attrs)
+                    &doseq
+                      entry $ .to-list attrs
+                      aset ret
+                        turn-string $ nth entry 0
+                        create-attribute-array $ nth entry 1
+                  wo-js-log ret
+              -> options (assoc :type :object) (assoc :arrays arrays)
       :ns $ quote
-        ns triadica.alias $ :require
+        ns triadica.alias $ :require ("\"twgl.js" :as twgl)
+          triadica.core :refer $ create-attribute-array
     |triadica.app.comp.branches $ {}
       :defs $ {}
         |*points-buffer $ quote
@@ -369,50 +392,52 @@
                 :plate-bending $ plate-bending
                 :mushroom $ mushroom-object
                 :branches $ comp-branches (:branch-angle store)
-                :multiple-branches $ comp-multiple-branches
+                :multiple-branches $ memof1-call comp-multiple-branches
                 :lamps $ comp-lamps
-                :line-wave $ comp-line-wave
-                :fireworks $ comp-fireworks
+                :line-wave $ memof1-call comp-line-wave
+                :fireworks $ memof1-call comp-fireworks
                 :drag-point $ comp-drag-point
                   {} $ :position (:p1 store)
                   fn (p d!) (d! :move-p1 p)
-              if-not hide-tabs? $ comp-tabs
+              if-not hide-tabs? $ memof1-call comp-tabs
                 {}
                   :position $ [] -40 0 0
                   :selected $ :tab store
-                []
-                  {} (:key :axis)
-                    :position $ [] -400 240 0
-                  {} (:key :cubes)
-                    :position $ [] -400 200 0
-                  {} (:key :spin-city)
-                    :position $ [] -400 160 0
-                  {} (:key :bg)
-                    :position $ [] -400 120 0
-                  {} (:key :conch)
-                    :position $ [] -400 80 0
-                  {} (:key :curve-ball)
-                    :position $ [] -400 40 0
-                  {} (:key :spin-city)
-                    :position $ [] -400 0 0
-                  {} (:key :fiber-bending)
-                    :position $ [] -400 -40 0
-                  {} (:key :plate-bending)
-                    :position $ [] -400 -80 0
-                  {} (:key :mushroom)
-                    :position $ [] -400 -120 0
-                  {} (:key :branches)
-                    :position $ [] -400 -160 0
-                  {} (:key :lamps)
-                    :position $ [] -300 -0 0
-                  {} (:key :line-wave)
-                    :position $ [] -300 -40 0
-                  {} (:key :fireworks)
-                    :position $ [] -300 -80 0
-                  {} (:key :multiple-branches)
-                    :position $ [] -300 -120 0
-                  {} (:key :drag-point)
-                    :position $ [] -300 -160 0
+                , tab-entries
+        |tab-entries $ quote
+          def tab-entries $ []
+            {} (:key :axis)
+              :position $ [] -400 240 0
+            {} (:key :cubes)
+              :position $ [] -400 200 0
+            {} (:key :spin-city)
+              :position $ [] -400 160 0
+            {} (:key :bg)
+              :position $ [] -400 120 0
+            {} (:key :conch)
+              :position $ [] -400 80 0
+            {} (:key :curve-ball)
+              :position $ [] -400 40 0
+            {} (:key :spin-city)
+              :position $ [] -400 0 0
+            {} (:key :fiber-bending)
+              :position $ [] -400 -40 0
+            {} (:key :plate-bending)
+              :position $ [] -400 -80 0
+            {} (:key :mushroom)
+              :position $ [] -400 -120 0
+            {} (:key :branches)
+              :position $ [] -400 -160 0
+            {} (:key :lamps)
+              :position $ [] -300 -0 0
+            {} (:key :line-wave)
+              :position $ [] -300 -40 0
+            {} (:key :fireworks)
+              :position $ [] -300 -80 0
+            {} (:key :multiple-branches)
+              :position $ [] -300 -120 0
+            {} (:key :drag-point)
+              :position $ [] -300 -160 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -425,6 +450,7 @@
           triadica.app.comp.lamps :refer $ comp-lamps
           triadica.app.comp.fireworks :refer $ comp-fireworks
           triadica.app.comp.line-wave :refer $ comp-line-wave
+          memof.once :refer $ memof1-call memof1-call-by
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
@@ -467,7 +493,7 @@
             setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
-            do (render-app!) (remove-watch *store :change)
+            do (reset-memof1-caches!) (render-app!) (remove-watch *store :change)
               add-watch *store :change $ fn (v _p) (render-app!)
               replace-control-loop! 10 on-control-event
               setup-mouse-events! canvas
@@ -487,6 +513,7 @@
           triadica.global :refer $ *gl-context *uniform-data
           triadica.hud :refer $ inject-hud!
           triadica.app.container :refer $ comp-container
+          memof.once :refer $ reset-memof1-caches!
     |triadica.app.shapes $ {}
       :defs $ {}
         |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
@@ -924,7 +951,7 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       reset! *drag-cache $ {} (:x x) (:y y)
-                  ; :on-mousemove $ fn (e d!)
+                  :on-mousemove $ fn (e d!)
                     let
                         x $ .-clientX e
                         y $ .-clientY e
@@ -965,7 +992,7 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       reset! *drag-cache $ {} (:x x) (:y y)
-                  ; :on-mousemove $ fn (e d!)
+                  :on-mousemove $ fn (e d!)
                     let
                         x $ .-clientX e
                         y $ .-clientY e
@@ -1024,7 +1051,19 @@
           triadica.math :refer $ &v+
     |triadica.config $ {}
       :defs $ {}
+        |*shader-programs $ quote
+          defatom *shader-programs $ {}
         |back-cone-scale $ quote (def back-cone-scale 1)
+        |cached-build-program $ quote
+          defn cached-build-program (gl vs fs)
+            let
+                caches @*shader-programs
+                field $ str vs &newline "\"@@@@@@" &newline fs
+              if (&map:contains? caches field) (&map:get caches field)
+                let
+                    program $ twgl/createProgramInfo gl (js-array vs fs)
+                  swap! *shader-programs assoc field program
+                  , program
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
         |dpr $ quote (def dpr js/window.devicePixelRatio)
@@ -1046,7 +1085,7 @@
         |post-effect? $ quote
           def post-effect? $ &= "\"on" (get-env "\"effect" "\"on")
       :ns $ quote
-        ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect)
+        ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect) ("\"twgl.js" :as twgl)
           triadica.$meta :refer $ calcit-dirname
     |triadica.core $ {}
       :defs $ {}
@@ -1232,27 +1271,9 @@
                   let
                       vs $ :vertex-shader obj
                       fs $ :fragment-shader obj
-                      arrays $ let
-                          ret $ let
-                              ret $ js-object
-                            if-let
-                              points $ :points obj
-                              set! (.-position ret) (create-attribute-array points)
-                            if-let
-                              ys $ :indices obj
-                              set! (.-indices ret) (js-array & ys)
-                            , ret
-                          attrs $ :attributes obj
-                        if-not (empty? attrs)
-                          &doseq
-                            entry $ .to-list attrs
-                            aset ret
-                              turn-string $ nth entry 0
-                              create-attribute-array $ nth entry 1
-                        wo-js-log ret
-                      program-info $ twgl/createProgramInfo gl (js-array vs fs)
-                      buffer-info $ twgl/createBufferInfoFromArrays gl arrays
-                    swap! *objects-buffer conj $ {} (:program program-info) (:buffer buffer-info)
+                      program $ cached-build-program gl vs fs
+                      buffer $ twgl/createBufferInfoFromArrays gl (:arrays obj)
+                    swap! *objects-buffer conj $ {} (:program program) (:buffer buffer)
                       :draw-mode $ :draw-mode obj
         |load-sized-buffer! $ quote
           defn load-sized-buffer! (gl *fb-ref w h)
@@ -1376,10 +1397,8 @@
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
               when post-effect? $ let
-                  effect-x-program $ twgl/createProgramInfo gl
-                    js-array (inline-shader "\"effect-x.vert") (inline-shader "\"effect-x.frag")
-                  mix-program $ twgl/createProgramInfo gl
-                    js-array (inline-shader "\"effect-mix.vert") (inline-shader "\"effect-mix.frag")
+                  effect-x-program $ cached-build-program gl (inline-shader "\"effect-x.vert") (inline-shader "\"effect-x.frag")
+                  mix-program $ cached-build-program gl (inline-shader "\"effect-mix.vert") (inline-shader "\"effect-mix.frag")
                   uv-settings $ js-object
                     :position $ create-attribute-array
                       [][] (-1 -1) (1 -1) (1 1) (-1 -1) (-1 1) (1 1)
@@ -1444,7 +1463,7 @@
           triadica.hud :refer $ hud-display
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
-          triadica.config :refer $ half-pi mobile? post-effect? dpr back-cone-scale inline-shader
+          triadica.config :refer $ half-pi mobile? post-effect? dpr back-cone-scale inline-shader cached-build-program
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)
