@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.4)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.5)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
@@ -469,7 +469,7 @@
           defn dispatch! (op data)
             when dev? $ js/console.log "\"Dispatch:" op data
             if (= op :city-spin)
-              do $ swap! *uniform-data update :spin-city
+              do $ swap! *dirty-uniforms update :spin-city
                 fn (x)
                   + x $ * 0.01 data
               let
@@ -493,7 +493,7 @@
             render-control!
             start-control-loop! 10 on-control-event
             add-watch *store :change $ fn (v _p) (render-app!)
-            add-watch *uniform-data :change $ fn (v _p) (paint-canvas!)
+            add-watch *dirty-uniforms :change $ fn (v _p) (paint-canvas!)
             set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
             setup-mouse-events! canvas
         |reload! $ quote
@@ -515,12 +515,15 @@
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
           triadica.core :refer $ handle-key-event on-control-event load-objects! paint-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
-          triadica.global :refer $ *gl-context *uniform-data
+          triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
           triadica.app.container :refer $ comp-container
           memof.once :refer $ reset-memof1-caches!
+          triadica.app.shapes :refer $ *dirty-uniforms
     |triadica.app.shapes $ {}
       :defs $ {}
+        |*dirty-uniforms $ quote
+          defatom *dirty-uniforms $ {} (:spin-city 0)
         |*prev-mouse-x $ quote (defatom *prev-mouse-x 0)
         |bg-object $ quote
           defn bg-object () $ let
@@ -861,6 +864,9 @@
                   fn (info) (&map:get info :angle)
                 :index $ map data
                   fn (info) (&map:get info :index)
+              :get-uniforms $ fn ()
+                js-object $ :citySpin
+                  wo-log $ :spin-city @*dirty-uniforms
         |tiny-cube-object $ quote
           defn tiny-cube-object (v)
             let
@@ -894,6 +900,7 @@
           triadica.alias :refer $ object
           triadica.math :refer $ &v+
           triadica.core :refer $ %nested-attribute
+          triadica.global :refer $ *dirty-uniforms
     |triadica.comp.axis $ {}
       :defs $ {}
         |comp-axis $ quote
@@ -1371,6 +1378,7 @@
                       buffer $ twgl/createBufferInfoFromArrays gl (:arrays obj)
                     swap! *objects-buffer conj $ {} (:program program) (:buffer buffer)
                       :draw-mode $ :draw-mode obj
+                      :get-uniforms $ :get-uniforms obj
         |load-sized-buffer! $ quote
           defn load-sized-buffer! (gl *fb-ref w h)
             let
@@ -1445,15 +1453,13 @@
             ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
             ; do (hud-display "\"position" @*viewer-position) (hud-display "\"forward" @*viewer-forward) (hud-display "\"upward" @*viewer-upward)
             let
-                offsets $ js-array 0 0 0 1
-                uniforms $ js-object (:offsets offsets)
+                uniforms $ js-object
                   :lookPoint $ js-array & (new-lookat-point)
                   :upwardDirection $ js-array & @*viewer-upward
                   :cameraPosition $ js-array & @*viewer-position
                   :coneBackScale back-cone-scale
-                  :viewportRatio $ / js/window.innerHeight js/window.innerWidth
-                  :citySpin $ wo-log (:spin-city @*uniform-data)
-                  :time $ &- (js/Date.now) start-time
+                  :viewportRatio $ &/ js/window.innerHeight js/window.innerWidth
+                  ; :citySpin $ wo-log (:spin-city @*uniform-data)
                 draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
                 effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
                 effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
@@ -1477,9 +1483,13 @@
                 let
                     program-info $ :program object
                     buffer-info $ :buffer object
+                    current-uniforms $ if-let
+                      get-u $ :get-uniforms object
+                      js/Object.assign (js-object) uniforms $ get-u
+                      , uniforms
                   .!useProgram gl $ .-program program-info
                   twgl/setBuffersAndAttributes gl program-info buffer-info
-                  twgl/setUniforms program-info uniforms
+                  twgl/setUniforms program-info current-uniforms
                   case-default (:draw-mode object)
                     do
                       js/console.warn "\"unknown draw mode:" $ :draw-mode object
@@ -1570,8 +1580,6 @@
           defatom *objects-tree $ noted "\"tree for rendering and events" nil
         |*proxied-dispatch $ quote
           defatom *proxied-dispatch $ fn (op data) (js/console.log "\"not rendered yet")
-        |*uniform-data $ quote
-          defatom *uniform-data $ {} (:spin-city 0)
       :ns $ quote (ns triadica.global)
     |triadica.hud $ {}
       :defs $ {}
