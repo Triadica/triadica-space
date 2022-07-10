@@ -261,6 +261,9 @@
               :vertex-shader $ inline-shader "\"lamps.vert"
               :fragment-shader $ inline-shader "\"lamps.frag"
               :draw-mode :triangles
+              :get-uniforms $ fn ()
+                js-object $ :time
+                  * 0.0001 $ - (js/Date.now) 1657479007394
               :points $ %{} %nested-attribute (:augment 3)
                 :length $ *
                   + (* 8 6) (* 6 3)
@@ -1459,7 +1462,6 @@
                   :cameraPosition $ js-array & @*viewer-position
                   :coneBackScale back-cone-scale
                   :viewportRatio $ &/ js/window.innerHeight js/window.innerWidth
-                  ; :citySpin $ wo-log (:spin-city @*uniform-data)
                 draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
                 effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
                 effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
@@ -1485,7 +1487,7 @@
                     buffer-info $ :buffer object
                     current-uniforms $ if-let
                       get-u $ :get-uniforms object
-                      js/Object.assign (js-object) uniforms $ get-u
+                      js/Object.assign (get-u) uniforms
                       , uniforms
                   .!useProgram gl $ .-program program-info
                   twgl/setBuffersAndAttributes gl program-info buffer-info

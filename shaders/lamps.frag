@@ -7,6 +7,7 @@ varying float v_r;
 varying float v_h;
 
 varying vec3 v_center;
+varying float v_lightness;
 
 // Simplex 2D noise
 //
@@ -104,10 +105,10 @@ void main() {
 
   float rand1 = snoise(v_center.xy / 9000.0 + vec2(v_s*10.0, v_s*100.0));
   // float rand3 = 0.9 * snoise(v_center.zx);
-  gl_FragColor = vec4(hsl2rgb(fract(0.8+0.4*fract(rand1)), 1.0, 0.4 + v_h / 200.0), 1.0);
+  gl_FragColor = vec4(hsl2rgb(fract(0.8+0.4*fract(rand1)), 1.0, 0.4 + v_h / 200.0), 1.0) * v_lightness;
 
   if (v_r > 6.0) {
-    gl_FragColor = gl_FragColor / ((v_r - 6.0) * 0.2 + 1.0);
+    gl_FragColor = gl_FragColor / ((v_r - 6.0) * 0.2 + 1.0) * v_lightness;
   }
 
   // gl_FragColor = vec4(1.0, 1.0, v_h / 4000.0, 1.0);
