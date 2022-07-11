@@ -1,4 +1,3 @@
-uniform vec4 u_offsets;
 
 uniform float coneBackScale;
 uniform vec3 lookPoint; // direction in front, transformed into a specific length

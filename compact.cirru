@@ -6,6 +6,11 @@
   :files $ {}
     |triadica.alias $ {}
       :defs $ {}
+        |build-grouped-attrs $ quote
+          defn build-grouped-attrs (data collect!)
+            if (list? data)
+              &doseq (d data) (build-grouped-attrs d collect!)
+              collect! data
         |group $ quote
           defn group (options & children)
             {} (:type :group) (:children children)
@@ -32,10 +37,54 @@
                         turn-string $ nth entry 0
                         create-attribute-array $ nth entry 1
                   wo-js-log ret
+              if-let
+                grouped-attrs $ :grouped-attributes options
+                let
+                    ret $ js-object
+                    g0 $ pick-grouped-attrs grouped-attrs
+                    names $ .to-list (keys g0)
+                    size $ count-recursive grouped-attrs
+                    collect! $ fn (info)
+                      let
+                          idx @*local-array-counter
+                        swap! *local-array-counter inc
+                        &doseq (name names)
+                          let
+                              d $ get info name
+                            cond
+                                number? d
+                                aset
+                                  aget ret $ turn-string name
+                                  , d
+                              (and (list? d) (= 1 (count d)))
+                                aset
+                                  aget ret $ turn-string name
+                                  , idx $ nth d 0
+                              (and (list? d) (= 3 (count d)))
+                                let
+                                    target $ aget ret (turn-string name)
+                                    pos $ * 3 idx
+                                  aset target pos $ nth d 0
+                                  aset target (+ 1 pos) (nth d 1)
+                                  aset target (+ 2 pos) (nth d 2)
+                              true $ js/console.log "\"Unknown data to build:" name d
+                  reset! *local-array-counter 0
+                  &doseq (name names)
+                    aset ret (turn-string name)
+                      .!createAugmentedTypedArray twgl/primitives
+                        count $ get g0 name
+                        , size
+                  build-grouped-attrs grouped-attrs collect!
+                  js/Object.assign arrays ret
               -> options (assoc :type :object) (assoc :arrays arrays)
+        |pick-grouped-attrs $ quote
+          defn pick-grouped-attrs (grouped-attrs)
+            if (list? grouped-attrs)
+              recur $ nth grouped-attrs 0
+              if (map? grouped-attrs) grouped-attrs $ do (js/console.warn "\"unknown attribute group" pick-grouped-attrs) nil
       :ns $ quote
         ns triadica.alias $ :require ("\"twgl.js" :as twgl)
-          triadica.core :refer $ create-attribute-array
+          triadica.core :refer $ create-attribute-array count-recursive *local-array-counter
     |triadica.app.comp.branches $ {}
       :defs $ {}
         |*points-buffer $ quote
@@ -156,7 +205,7 @@
     |triadica.app.comp.fireworks $ {}
       :defs $ {}
         |build-firework $ quote
-          defn build-firework (position r0 size beta0 seconds)
+          defn build-firework (position r0 size beta0 seconds center)
             let
                 angle0 $ / &PI size
               -> (range size)
@@ -183,10 +232,15 @@
                                   t1 $ + k 1.4
                                   p0 $ &v+ position (calc-parabola v0 t0)
                                   p1 $ &v+ position (calc-parabola v0 t1)
-                                [] p0 p1 $ &v+ p1
-                                  []
-                                    * 12 $ cos (* k beta0)
-                                    , 4 0
+                                []
+                                  {} (:position p0) (:center center)
+                                  {} (:position p1) (:center center)
+                                  {}
+                                    :position $ &v+ p1
+                                      []
+                                        * 12 $ cos (* k beta0)
+                                        , 4 0
+                                    :center center
         |calc-parabola $ quote
           defn calc-parabola (v0 t)
             &v+
@@ -201,40 +255,32 @@
                 noted size 20
                 noted beta0 0.5
                 noted seconds 20
+                noted center $ [] 0 0 0
               f2 $ build-firework
                 noted position $ [] 1200 200 0
                 noted r0 100
                 noted size 10
                 noted beta0 0.5
                 noted seconds 4
+                noted center $ [] 1200 200 0
               f3 $ build-firework
                 noted position $ [] 0 400 1000
                 noted r0 320
                 noted size 10
                 noted beta0 0.5
                 noted seconds 2
+                noted center $ [] 0 400 1000
               f4 $ build-firework
                 noted position $ [] -1600 -200 -800
                 noted r0 110
                 noted size 40
                 noted beta0 0.6
                 noted seconds 40
+                noted center $ [] -1600 -222.5 -800
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"fireworks.vert"
               :fragment-shader $ inline-shader "\"fireworks.frag"
-              :points $ %{} %nested-attribute (:length nil) (:augment 3)
-                :data $ [] f1 f2 f3 f4
-              :attributes $ {}
-                :center $ %{} %nested-attribute (:length nil) (:augment 3)
-                  :data $ []
-                    repeat ([] 0 0 0)
-                      / (count-recursive f1) 3
-                    repeat ([] 1200 200 0)
-                      / (count-recursive f2) 3
-                    repeat ([] 0 400 1000)
-                      / (count-recursive f3) 3
-                    repeat ([] -1600 -222.5 -800)
-                      / (count-recursive f4) 3
+              :grouped-attributes $ [] f1 f2 f3 f4
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
           triadica.core :refer $ %nested-attribute count-recursive
