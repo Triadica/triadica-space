@@ -253,6 +253,27 @@
               :get-uniforms $ fn ()
                 js-object $ :time
                   &* 0.001 $ &- (js/Date.now) 1657530706669
+        |comp-sparklers $ quote
+          defn comp-sparklers () $ object
+            {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"sparklers.vert"
+              :fragment-shader $ inline-shader "\"sparklers.frag"
+              :grouped-attributes $ -> (range 180)
+                map $ fn (i)
+                  []
+                    []
+                      {} (:lv1 i) (:lv2 0) (:index 0) (:kind 0)
+                      {} (:lv1 i) (:lv2 0) (:index 1) (:kind 0)
+                      {} (:lv1 i) (:lv2 0) (:index 2) (:kind 0)
+                    -> (range 40)
+                      map $ fn (j)
+                        []
+                          {} (:lv1 i) (:lv2 j) (:index 0) (:kind 1)
+                          {} (:lv1 i) (:lv2 j) (:index 1) (:kind 1)
+                          {} (:lv1 i) (:lv2 j) (:index 2) (:kind 1)
+              :get-uniforms $ fn ()
+                js-object $ :time
+                  &* 0.001 $ &- (js/Date.now) 1657530706669
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
           triadica.core :refer $ %nested-attribute count-recursive
@@ -423,7 +444,8 @@
                   fn (p d!) (d! :move-p1 p)
                 :stitch $ comp-stitch
                   {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
-              if-not hide-tabs? $ memof1-call comp-tabs
+                :spaklers $ comp-sparklers
+              ; if-not hide-tabs? $ memof1-call comp-tabs
                 {}
                   :position $ [] -40 0 0
                   :selected $ :tab store
@@ -464,6 +486,8 @@
               :position $ [] -300 -160 0
             {} (:key :stitch)
               :position $ [] -300 -200 0
+            {} (:key :spaklers)
+              :position $ [] -300 -240 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -474,7 +498,7 @@
           triadica.config :refer $ hide-tabs?
           triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
           triadica.app.comp.lamps :refer $ comp-lamps
-          triadica.app.comp.fireworks :refer $ comp-fireworks
+          triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
           memof.once :refer $ memof1-call memof1-call-by
