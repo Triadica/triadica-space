@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.5)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.6)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
@@ -52,27 +52,30 @@
                           let
                               d $ get info name
                             cond
-                                number? d
-                                aset
-                                  aget ret $ turn-string name
-                                  , d
-                              (and (list? d) (= 1 (count d)))
-                                aset
-                                  aget ret $ turn-string name
-                                  , idx $ nth d 0
-                              (and (list? d) (= 3 (count d)))
+                                and (list? d)
+                                  = 3 $ count d
                                 let
                                     target $ aget ret (turn-string name)
                                     pos $ * 3 idx
                                   aset target pos $ nth d 0
                                   aset target (+ 1 pos) (nth d 1)
                                   aset target (+ 2 pos) (nth d 2)
+                              (number? d)
+                                aset
+                                  aget ret $ turn-string name
+                                  , idx d
+                              (and (list? d) (= 1 (count d)))
+                                aset
+                                  aget ret $ turn-string name
+                                  , idx $ nth d 0
                               true $ js/console.log "\"Unknown data to build:" name d
                   reset! *local-array-counter 0
                   &doseq (name names)
                     aset ret (turn-string name)
                       .!createAugmentedTypedArray twgl/primitives
-                        count $ get g0 name
+                        &let
+                          v $ get g0 name
+                          if (list? v) (count v) 1
                         , size
                   build-grouped-attrs grouped-attrs collect!
                   js/Object.assign arrays ret
@@ -205,7 +208,7 @@
     |triadica.app.comp.fireworks $ {}
       :defs $ {}
         |build-firework $ quote
-          defn build-firework (position r0 size beta0 seconds center)
+          defn build-firework (center r0 size seconds)
             let
                 angle0 $ / &PI size
               -> (range size)
@@ -216,7 +219,7 @@
                       ry $ * r0
                         cos $ * i angle0
                       ball-size $ js/Math.ceil
-                        + 0.1 $ / rx-delta 0.04
+                        + 0.2 $ * rx-delta rx-delta size
                       angle1 $ / (* 2 &PI) ball-size
                     -> (range ball-size)
                       map $ fn (j)
@@ -225,22 +228,10 @@
                               * rx $ cos (* j angle1)
                               , ry
                                 * rx $ sin (* j angle1)
-                          -> (range seconds)
-                            map $ fn (k)
-                              let
-                                  t0 $ + k 0.5
-                                  t1 $ + k 1.4
-                                  p0 $ &v+ position (calc-parabola v0 t0)
-                                  p1 $ &v+ position (calc-parabola v0 t1)
-                                []
-                                  {} (:position p0) (:center center)
-                                  {} (:position p1) (:center center)
-                                  {}
-                                    :position $ &v+ p1
-                                      []
-                                        * 12 $ cos (* k beta0)
-                                        , 4 0
-                                    :center center
+                          []
+                            {} (:velocity v0) (:center center) (:index 0) (:duration seconds)
+                            {} (:velocity v0) (:center center) (:index 1) (:duration seconds)
+                            {} (:velocity v0) (:center center) (:index 2) (:duration seconds)
         |calc-parabola $ quote
           defn calc-parabola (v0 t)
             &v+
@@ -248,45 +239,27 @@
                 * 0.5 $ * t t
               v-scale v0 t
         |comp-fireworks $ quote
-          defn comp-fireworks () $ let
-              f1 $ build-firework
-                noted position $ [] 0 0 0
-                noted r0 60
-                noted size 20
-                noted beta0 0.5
-                noted seconds 20
-                noted center $ [] 0 0 0
-              f2 $ build-firework
-                noted position $ [] 1200 200 0
-                noted r0 100
-                noted size 10
-                noted beta0 0.5
-                noted seconds 4
-                noted center $ [] 1200 200 0
-              f3 $ build-firework
-                noted position $ [] 0 400 1000
-                noted r0 320
-                noted size 10
-                noted beta0 0.5
-                noted seconds 2
-                noted center $ [] 0 400 1000
-              f4 $ build-firework
-                noted position $ [] -1600 -200 -800
-                noted r0 110
-                noted size 40
-                noted beta0 0.6
-                noted seconds 40
-                noted center $ [] -1600 -222.5 -800
-            object $ {} (:draw-mode :triangles)
+          defn comp-fireworks () $ object
+            {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"fireworks.vert"
               :fragment-shader $ inline-shader "\"fireworks.frag"
-              :grouped-attributes $ [] f1 f2 f3 f4
+              :grouped-attributes $ -> (range 60)
+                map $ fn (i)
+                  build-firework
+                    [] (rand-between -2000 2000) (rand-between -60 60) (rand-between -2000 2000)
+                    noted r $ rand-between 20 200
+                    noted size $ rand-between 8 32
+                    noted seconds $ rand-between 6 12
+              :get-uniforms $ fn ()
+                js-object $ :time
+                  &* 0.001 $ &- (js/Date.now) 1657530706669
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
           triadica.core :refer $ %nested-attribute count-recursive
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object group
           triadica.math :refer $ v-scale &v+
+          "\"@calcit/std" :refer $ rand-between
     |triadica.app.comp.lamps $ {}
       :defs $ {}
         |comp-lamps $ quote
@@ -544,6 +517,7 @@
             add-watch *store :change $ fn (v _p) (render-app!)
             add-watch *dirty-uniforms :change $ fn (v _p) (paint-canvas!)
             set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
+            ; render-loop!
             setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
@@ -558,6 +532,9 @@
           defn render-app! ()
             load-objects! (comp-container @*store) dispatch!
             paint-canvas!
+        |render-loop! $ quote
+          defn render-loop! () $ js/requestAnimationFrame
+            fn (a) (paint-canvas!) (render-loop!)
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
           triadica.config :refer $ dev? dpr

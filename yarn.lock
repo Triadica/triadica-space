@@ -11,6 +11,11 @@
     "@cirru/parser.ts" "^0.0.5"
     "@cirru/writer.ts" "^0.1.3"
 
+"@calcit/std@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@calcit/std/-/std-0.0.1.tgz#8fa4eaf21906910b7b9d54f1602155114768c663"
+  integrity sha512-qX5vmwWEpgM4gm3u67WUmoQIIaFqKOnXTSfNsR1xYBaryolvkCuOxf2TIQupqs9GwvdTSf+e5FWxRTY/zoZnlA==
+
 "@calcit/ternary-tree@0.0.19":
   version "0.0.19"
   resolved "https://registry.yarnpkg.com/@calcit/ternary-tree/-/ternary-tree-0.0.19.tgz#b5b33a3d07a9e603feeef7cd642958c83628122f"

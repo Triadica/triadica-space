@@ -1,6 +1,6 @@
 {
   "name": "triadica-space",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "repository": "git@github.com:Quatrefoil-GL/triadica-space.git",
   "author": "tiye <jiyinyiyong@gmail.com>",
   "license": "MIT",
@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@calcit/procs": "^0.5.47",
+    "@calcit/std": "^0.0.1",
     "@quamolit/touch-control": "^0.0.11",
     "mobile-detect": "^1.4.5",
     "twgl.js": "^4.23.1"
