@@ -1,11 +1,16 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.5)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.6)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
     |triadica.alias $ {}
       :defs $ {}
+        |build-grouped-attrs $ quote
+          defn build-grouped-attrs (data collect!)
+            if (list? data)
+              &doseq (d data) (build-grouped-attrs d collect!)
+              collect! data
         |group $ quote
           defn group (options & children)
             {} (:type :group) (:children children)
@@ -32,10 +37,57 @@
                         turn-string $ nth entry 0
                         create-attribute-array $ nth entry 1
                   wo-js-log ret
+              if-let
+                grouped-attrs $ :grouped-attributes options
+                let
+                    ret $ js-object
+                    g0 $ pick-grouped-attrs grouped-attrs
+                    names $ .to-list (keys g0)
+                    size $ count-recursive grouped-attrs
+                    collect! $ fn (info)
+                      let
+                          idx @*local-array-counter
+                        swap! *local-array-counter inc
+                        &doseq (name names)
+                          let
+                              d $ get info name
+                            cond
+                                and (list? d)
+                                  = 3 $ count d
+                                let
+                                    target $ aget ret (turn-string name)
+                                    pos $ * 3 idx
+                                  aset target pos $ nth d 0
+                                  aset target (+ 1 pos) (nth d 1)
+                                  aset target (+ 2 pos) (nth d 2)
+                              (number? d)
+                                aset
+                                  aget ret $ turn-string name
+                                  , idx d
+                              (and (list? d) (= 1 (count d)))
+                                aset
+                                  aget ret $ turn-string name
+                                  , idx $ nth d 0
+                              true $ js/console.log "\"Unknown data to build:" name d
+                  reset! *local-array-counter 0
+                  &doseq (name names)
+                    aset ret (turn-string name)
+                      .!createAugmentedTypedArray twgl/primitives
+                        &let
+                          v $ get g0 name
+                          if (list? v) (count v) 1
+                        , size
+                  build-grouped-attrs grouped-attrs collect!
+                  js/Object.assign arrays ret
               -> options (assoc :type :object) (assoc :arrays arrays)
+        |pick-grouped-attrs $ quote
+          defn pick-grouped-attrs (grouped-attrs)
+            if (list? grouped-attrs)
+              recur $ nth grouped-attrs 0
+              if (map? grouped-attrs) grouped-attrs $ do (js/console.warn "\"unknown attribute group" pick-grouped-attrs) nil
       :ns $ quote
         ns triadica.alias $ :require ("\"twgl.js" :as twgl)
-          triadica.core :refer $ create-attribute-array
+          triadica.core :refer $ create-attribute-array count-recursive *local-array-counter
     |triadica.app.comp.branches $ {}
       :defs $ {}
         |*points-buffer $ quote
@@ -156,7 +208,7 @@
     |triadica.app.comp.fireworks $ {}
       :defs $ {}
         |build-firework $ quote
-          defn build-firework (position r0 size beta0 seconds)
+          defn build-firework (center r0 size seconds)
             let
                 angle0 $ / &PI size
               -> (range size)
@@ -167,7 +219,7 @@
                       ry $ * r0
                         cos $ * i angle0
                       ball-size $ js/Math.ceil
-                        + 0.1 $ / rx-delta 0.04
+                        + 0.2 $ * rx-delta rx-delta size
                       angle1 $ / (* 2 &PI) ball-size
                     -> (range ball-size)
                       map $ fn (j)
@@ -176,17 +228,10 @@
                               * rx $ cos (* j angle1)
                               , ry
                                 * rx $ sin (* j angle1)
-                          -> (range seconds)
-                            map $ fn (k)
-                              let
-                                  t0 $ + k 0.5
-                                  t1 $ + k 1.4
-                                  p0 $ &v+ position (calc-parabola v0 t0)
-                                  p1 $ &v+ position (calc-parabola v0 t1)
-                                [] p0 p1 $ &v+ p1
-                                  []
-                                    * 12 $ cos (* k beta0)
-                                    , 4 0
+                          []
+                            {} (:velocity v0) (:center center) (:index 0) (:duration seconds)
+                            {} (:velocity v0) (:center center) (:index 1) (:duration seconds)
+                            {} (:velocity v0) (:center center) (:index 2) (:duration seconds)
         |calc-parabola $ quote
           defn calc-parabola (v0 t)
             &v+
@@ -194,53 +239,48 @@
                 * 0.5 $ * t t
               v-scale v0 t
         |comp-fireworks $ quote
-          defn comp-fireworks () $ let
-              f1 $ build-firework
-                noted position $ [] 0 0 0
-                noted r0 60
-                noted size 20
-                noted beta0 0.5
-                noted seconds 20
-              f2 $ build-firework
-                noted position $ [] 1200 200 0
-                noted r0 100
-                noted size 10
-                noted beta0 0.5
-                noted seconds 4
-              f3 $ build-firework
-                noted position $ [] 0 400 1000
-                noted r0 320
-                noted size 10
-                noted beta0 0.5
-                noted seconds 2
-              f4 $ build-firework
-                noted position $ [] -1600 -200 -800
-                noted r0 110
-                noted size 40
-                noted beta0 0.6
-                noted seconds 40
-            object $ {} (:draw-mode :triangles)
+          defn comp-fireworks () $ object
+            {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"fireworks.vert"
               :fragment-shader $ inline-shader "\"fireworks.frag"
-              :points $ %{} %nested-attribute (:length nil) (:augment 3)
-                :data $ [] f1 f2 f3 f4
-              :attributes $ {}
-                :center $ %{} %nested-attribute (:length nil) (:augment 3)
-                  :data $ []
-                    repeat ([] 0 0 0)
-                      / (count-recursive f1) 3
-                    repeat ([] 1200 200 0)
-                      / (count-recursive f2) 3
-                    repeat ([] 0 400 1000)
-                      / (count-recursive f3) 3
-                    repeat ([] -1600 -222.5 -800)
-                      / (count-recursive f4) 3
+              :grouped-attributes $ -> (range 60)
+                map $ fn (i)
+                  build-firework
+                    [] (rand-between -2000 2000) (rand-between -60 60) (rand-between -2000 2000)
+                    noted r $ rand-between 20 200
+                    noted size $ rand-between 8 32
+                    noted seconds $ rand-between 6 12
+              :get-uniforms $ fn ()
+                js-object $ :time
+                  &* 0.001 $ &- (js/Date.now) 1657530706669
+        |comp-sparklers $ quote
+          defn comp-sparklers () $ object
+            {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"sparklers.vert"
+              :fragment-shader $ inline-shader "\"sparklers.frag"
+              :grouped-attributes $ -> (range 200)
+                map $ fn (i)
+                  []
+                    []
+                      {} (:lv1 i) (:lv2 0) (:index 0) (:kind 0)
+                      {} (:lv1 i) (:lv2 0) (:index 1) (:kind 0)
+                      {} (:lv1 i) (:lv2 0) (:index 2) (:kind 0)
+                    -> (range 80)
+                      map $ fn (j)
+                        []
+                          {} (:lv1 i) (:lv2 j) (:index 0) (:kind 1)
+                          {} (:lv1 i) (:lv2 j) (:index 1) (:kind 1)
+                          {} (:lv1 i) (:lv2 j) (:index 2) (:kind 1)
+              :get-uniforms $ fn ()
+                js-object $ :time
+                  &* 0.00737 $ &- (js/Date.now) 1657530706669
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
           triadica.core :refer $ %nested-attribute count-recursive
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object group
           triadica.math :refer $ v-scale &v+
+          "\"@calcit/std" :refer $ rand-between
     |triadica.app.comp.lamps $ {}
       :defs $ {}
         |comp-lamps $ quote
@@ -404,7 +444,8 @@
                   fn (p d!) (d! :move-p1 p)
                 :stitch $ comp-stitch
                   {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
-              if-not hide-tabs? $ memof1-call comp-tabs
+                :sparklers $ comp-sparklers
+              ; if-not hide-tabs? $ memof1-call comp-tabs
                 {}
                   :position $ [] -40 0 0
                   :selected $ :tab store
@@ -445,6 +486,8 @@
               :position $ [] -300 -160 0
             {} (:key :stitch)
               :position $ [] -300 -200 0
+            {} (:key :sparklers)
+              :position $ [] -300 -240 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -455,7 +498,7 @@
           triadica.config :refer $ hide-tabs?
           triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
           triadica.app.comp.lamps :refer $ comp-lamps
-          triadica.app.comp.fireworks :refer $ comp-fireworks
+          triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
           memof.once :refer $ memof1-call memof1-call-by
@@ -498,6 +541,7 @@
             add-watch *store :change $ fn (v _p) (render-app!)
             add-watch *dirty-uniforms :change $ fn (v _p) (paint-canvas!)
             set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
+            ; render-loop!
             setup-mouse-events! canvas
         |reload! $ quote
           defn reload! () $ if (nil? build-errors)
@@ -512,6 +556,9 @@
           defn render-app! ()
             load-objects! (comp-container @*store) dispatch!
             paint-canvas!
+        |render-loop! $ quote
+          defn render-loop! () $ js/requestAnimationFrame
+            fn (a) (paint-canvas!) (render-loop!)
       :ns $ quote
         ns triadica.app.main $ :require ("\"./calcit.build-errors" :default build-errors) ("\"bottom-tip" :default hud!)
           triadica.config :refer $ dev? dpr
@@ -1176,7 +1223,7 @@
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
         |hide-tabs? $ quote
-          def hide-tabs? $ = true (get-env "\"hide-tabs" "\"false")
+          def hide-tabs? $ = "\"true" (get-env "\"hide-tabs" "\"false")
         |inline-shader $ quote
           defmacro inline-shader (name)
             let
