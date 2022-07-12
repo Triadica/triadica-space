@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.6)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.7)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :ir $ {} (:package |triadica)
@@ -3201,7 +3201,6 @@
                               |T $ {} (:at 1657556784062) (:by |u0) (:text |comp-sparklers) (:type :leaf)
                   |l $ {} (:at 1656781509863) (:by |u0) (:type :expr)
                     :data $ {}
-                      |5 $ {} (:at 1657605704753) (:by |u0) (:text |;) (:type :leaf)
                       |D $ {} (:at 1656781513405) (:by |u0) (:text |if-not) (:type :leaf)
                       |L $ {} (:at 1656781518622) (:by |u0) (:text |hide-tabs?) (:type :leaf)
                       |T $ {} (:at 1656164022692) (:by |u0) (:type :expr)
@@ -9355,8 +9354,14 @@
                                       |h $ {} (:at 1657120656976) (:by |u0) (:type :expr)
                                         :data $ {}
                                           |T $ {} (:at 1657120656976) (:by |u0) (:text |js-array) (:type :leaf)
-                                          |b $ {} (:at 1657120656976) (:by |u0) (:text |vs) (:type :leaf)
-                                          |h $ {} (:at 1657120656976) (:by |u0) (:text |fs) (:type :leaf)
+                                          |b $ {} (:at 1657642438207) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1657642438207) (:by |u0) (:text |replace-vertex-shader) (:type :leaf)
+                                              |b $ {} (:at 1657642438207) (:by |u0) (:text |vs) (:type :leaf)
+                                          |h $ {} (:at 1657642441412) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1657642441412) (:by |u0) (:text |replace-fragment-shader) (:type :leaf)
+                                              |b $ {} (:at 1657642441412) (:by |u0) (:text |fs) (:type :leaf)
                           |b $ {} (:at 1657120744821) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1657120752243) (:by |u0) (:text |swap!) (:type :leaf)
@@ -9383,6 +9388,30 @@
               |T $ {} (:at 1654918038840) (:by |u0) (:text |def) (:type :leaf)
               |b $ {} (:at 1654918036876) (:by |u0) (:text |dpr) (:type :leaf)
               |h $ {} (:at 1654918042835) (:by |u0) (:text |js/window.devicePixelRatio) (:type :leaf)
+          |glsl-colors-code $ {} (:at 1657642104297) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1657642104297) (:by |u0) (:text |def) (:type :leaf)
+              |b $ {} (:at 1657642104297) (:by |u0) (:text |glsl-colors-code) (:type :leaf)
+              |h $ {} (:at 1657642105280) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1657642105280) (:by |u0) (:text |inline-shader) (:type :leaf)
+                  |b $ {} (:at 1657643262869) (:by |u0) (:text "|\"triadica-colors.glsl") (:type :leaf)
+          |glsl-noises-code $ {} (:at 1657642076473) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1657642076473) (:by |u0) (:text |def) (:type :leaf)
+              |b $ {} (:at 1657642076473) (:by |u0) (:text |glsl-noises-code) (:type :leaf)
+              |h $ {} (:at 1657642079090) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1657642079090) (:by |u0) (:text |inline-shader) (:type :leaf)
+                  |b $ {} (:at 1657642083565) (:by |u0) (:text "|\"triadica-noises.glsl") (:type :leaf)
+          |glsl-perspective-code $ {} (:at 1657641883554) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1657641887950) (:by |u0) (:text |def) (:type :leaf)
+              |b $ {} (:at 1657641883554) (:by |u0) (:text |glsl-perspective-code) (:type :leaf)
+              |h $ {} (:at 1657641883554) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1657641892493) (:by |u0) (:text |inline-shader) (:type :leaf)
+                  |b $ {} (:at 1657641905197) (:by |u0) (:text "|\"triadica-perspective.glsl") (:type :leaf)
           |half-pi $ {} (:at 1651658419548) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1651658419548) (:by |u0) (:text |def) (:type :leaf)
@@ -9494,6 +9523,48 @@
                       |D $ {} (:at 1656946530313) (:by |u0) (:text |get-env) (:type :leaf)
                       |P $ {} (:at 1656946532210) (:by |u0) (:text "|\"effect") (:type :leaf)
                       |Y $ {} (:at 1656946773965) (:by |u0) (:text "|\"on") (:type :leaf)
+          |replace-fragment-shader $ {} (:at 1657642090235) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1657642090235) (:by |u0) (:text |defn) (:type :leaf)
+              |b $ {} (:at 1657642090235) (:by |u0) (:text |replace-fragment-shader) (:type :leaf)
+              |h $ {} (:at 1657642090235) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1657642090235) (:by |u0) (:text |fs) (:type :leaf)
+              |l $ {} (:at 1657642091659) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1657642091659) (:by |u0) (:text |->) (:type :leaf)
+                  |b $ {} (:at 1657642093993) (:by |u0) (:text |fs) (:type :leaf)
+                  |h $ {} (:at 1657642091659) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1657642091659) (:by |u0) (:text |.!replace) (:type :leaf)
+                      |b $ {} (:at 1657642096863) (:by |u0) (:text "|\"{{triadica_colors}}") (:type :leaf)
+                      |h $ {} (:at 1657642099252) (:by |u0) (:text |glsl-colors-code) (:type :leaf)
+                  |l $ {} (:at 1657642091659) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1657642091659) (:by |u0) (:text |.!replace) (:type :leaf)
+                      |b $ {} (:at 1657642091659) (:by |u0) (:text "|\"{{triadica_noises}}") (:type :leaf)
+                      |h $ {} (:at 1657642091659) (:by |u0) (:text |glsl-noises-code) (:type :leaf)
+          |replace-vertex-shader $ {} (:at 1657642017949) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1657642017949) (:by |u0) (:text |defn) (:type :leaf)
+              |b $ {} (:at 1657642017949) (:by |u0) (:text |replace-vertex-shader) (:type :leaf)
+              |h $ {} (:at 1657642017949) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1657642017949) (:by |u0) (:text |vs) (:type :leaf)
+              |l $ {} (:at 1657642027487) (:by |u0) (:type :expr)
+                :data $ {}
+                  |D $ {} (:at 1657642028050) (:by |u0) (:text |->) (:type :leaf)
+                  |L $ {} (:at 1657642028533) (:by |u0) (:text |vs) (:type :leaf)
+                  |T $ {} (:at 1657642020633) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1657642023862) (:by |u0) (:text |.!replace) (:type :leaf)
+                      |b $ {} (:at 1657642041016) (:by |u0) (:text "|\"{{triadica_perspective}}") (:type :leaf)
+                      |h $ {} (:at 1657642052795) (:by |u0) (:text |glsl-perspective-code) (:type :leaf)
+                  |b $ {} (:at 1657642020633) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1657642023862) (:by |u0) (:text |.!replace) (:type :leaf)
+                      |b $ {} (:at 1657642062196) (:by |u0) (:text "|\"{{triadica_noises}}") (:type :leaf)
+                      |h $ {} (:at 1657642070417) (:by |u0) (:text |glsl-noises-code) (:type :leaf)
         :ns $ {} (:at 1651655780439) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1651655780439) (:by |u0) (:text |ns) (:type :leaf)
