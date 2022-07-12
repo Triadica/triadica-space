@@ -3,8 +3,9 @@
 > toy project rendering 3D with math and shader, without a framework.
 
 - Live Demo https://r.tiye.me/Quatrefoil-GL/triadica-space/
+- Docs https://github.com/triadica/guidebook/
 
-parameters: `effects=on/off & dev=release/dev & tab=axis/lamps/...`
+parameters: `effects=on/off & dev=release/dev & hide-tabs=true/false & tab=axis/lamps/...`
 
 ### Object definition
 
