@@ -258,14 +258,14 @@
             {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"sparklers.vert"
               :fragment-shader $ inline-shader "\"sparklers.frag"
-              :grouped-attributes $ -> (range 180)
+              :grouped-attributes $ -> (range 200)
                 map $ fn (i)
                   []
                     []
                       {} (:lv1 i) (:lv2 0) (:index 0) (:kind 0)
                       {} (:lv1 i) (:lv2 0) (:index 1) (:kind 0)
                       {} (:lv1 i) (:lv2 0) (:index 2) (:kind 0)
-                    -> (range 40)
+                    -> (range 80)
                       map $ fn (j)
                         []
                           {} (:lv1 i) (:lv2 j) (:index 0) (:kind 1)
@@ -273,7 +273,7 @@
                           {} (:lv1 i) (:lv2 j) (:index 2) (:kind 1)
               :get-uniforms $ fn ()
                 js-object $ :time
-                  &* 0.001 $ &- (js/Date.now) 1657530706669
+                  &* 0.00737 $ &- (js/Date.now) 1657530706669
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
           triadica.core :refer $ %nested-attribute count-recursive
@@ -444,7 +444,7 @@
                   fn (p d!) (d! :move-p1 p)
                 :stitch $ comp-stitch
                   {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
-                :spaklers $ comp-sparklers
+                :sparklers $ comp-sparklers
               ; if-not hide-tabs? $ memof1-call comp-tabs
                 {}
                   :position $ [] -40 0 0
@@ -486,7 +486,7 @@
               :position $ [] -300 -160 0
             {} (:key :stitch)
               :position $ [] -300 -200 0
-            {} (:key :spaklers)
+            {} (:key :sparklers)
               :position $ [] -300 -240 0
       :ns $ quote
         ns triadica.app.container $ :require
@@ -1223,7 +1223,7 @@
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
         |hide-tabs? $ quote
-          def hide-tabs? $ = true (get-env "\"hide-tabs" "\"false")
+          def hide-tabs? $ = "\"true" (get-env "\"hide-tabs" "\"false")
         |inline-shader $ quote
           defmacro inline-shader (name)
             let
