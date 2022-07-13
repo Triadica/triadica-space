@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.6)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.7)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
@@ -445,7 +445,7 @@
                 :stitch $ comp-stitch
                   {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
                 :sparklers $ comp-sparklers
-              ; if-not hide-tabs? $ memof1-call comp-tabs
+              if-not hide-tabs? $ memof1-call comp-tabs
                 {}
                   :position $ [] -40 0 0
                   :selected $ :tab store
@@ -1214,12 +1214,19 @@
                 field $ str vs &newline "\"@@@@@@" &newline fs
               if (&map:contains? caches field) (&map:get caches field)
                 let
-                    program $ twgl/createProgramInfo gl (js-array vs fs)
+                    program $ twgl/createProgramInfo gl
+                      js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
                   swap! *shader-programs assoc field program
                   , program
         |dev? $ quote
           def dev? $ = "\"dev" (get-env "\"mode" "\"release")
         |dpr $ quote (def dpr js/window.devicePixelRatio)
+        |glsl-colors-code $ quote
+          def glsl-colors-code $ inline-shader "\"triadica-colors.glsl"
+        |glsl-noises-code $ quote
+          def glsl-noises-code $ inline-shader "\"triadica-noises.glsl"
+        |glsl-perspective-code $ quote
+          def glsl-perspective-code $ inline-shader "\"triadica-perspective.glsl"
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
         |hide-tabs? $ quote
@@ -1237,6 +1244,12 @@
           def mobile? $ .!mobile (new mobile-detect js/window.navigator.userAgent)
         |post-effect? $ quote
           def post-effect? $ &= "\"on" (get-env "\"effect" "\"on")
+        |replace-fragment-shader $ quote
+          defn replace-fragment-shader (fs)
+            -> fs (.!replace "\"{{triadica_colors}}" glsl-colors-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code)
+        |replace-vertex-shader $ quote
+          defn replace-vertex-shader (vs)
+            -> vs (.!replace "\"{{triadica_perspective}}" glsl-perspective-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code)
       :ns $ quote
         ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect) ("\"twgl.js" :as twgl)
           triadica.$meta :refer $ calcit-dirname
