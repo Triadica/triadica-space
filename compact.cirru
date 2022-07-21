@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.7)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.8)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
@@ -440,7 +440,8 @@
                 :line-wave $ memof1-call comp-line-wave
                 :fireworks $ memof1-call comp-fireworks
                 :drag-point $ comp-drag-point
-                  {} $ :position (:p1 store)
+                  {} (:ignore-moving? false)
+                    :position $ :p1 store
                   fn (p d!) (d! :move-p1 p)
                 :stitch $ comp-stitch
                   {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
@@ -973,6 +974,7 @@
           defn comp-drag-point (props on-move)
             let
                 position $ &map:get props :position
+                ignore-moving? $ &map:get props :ignore-moving?
                 geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
@@ -1013,12 +1015,13 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       reset! *drag-cache $ {} (:x x) (:y y)
-                  :on-mousemove $ fn (e d!)
-                    let
-                        x $ .-clientX e
-                        y $ .-clientY e
-                      handle-drag! x y d!
-                      reset! *drag-cache $ {} (:x x) (:y y)
+                  :on-mousemove $ if-not ignore-moving?
+                    fn (e d!)
+                      let
+                          x $ .-clientX e
+                          y $ .-clientY e
+                        handle-drag! x y d!
+                        reset! *drag-cache $ {} (:x x) (:y y)
                   :on-mouseup $ fn (e d!)
                     let
                         x $ .-clientX e
