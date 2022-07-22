@@ -439,10 +439,16 @@
                 :lamps $ comp-lamps
                 :line-wave $ memof1-call comp-line-wave
                 :fireworks $ memof1-call comp-fireworks
-                :drag-point $ comp-drag-point
-                  {} (:ignore-moving? false)
-                    :position $ :p1 store
-                  fn (p d!) (d! :move-p1 p)
+                :drag-point $ group ({})
+                  comp-drag-point
+                    {} (:ignore-moving? false)
+                      :position $ :p1 store
+                    fn (p d!) (d! :move-p1 p)
+                  comp-button
+                    {}
+                      :position $ [] 100 100 0
+                      :size 10
+                    fn (e d!) (println "\"clicked")
                 :stitch $ comp-stitch
                   {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
                 :sparklers $ comp-sparklers
@@ -493,7 +499,7 @@
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
-          triadica.comp.drag-point :refer $ comp-drag-point
+          triadica.comp.drag-point :refer $ comp-drag-point comp-button
           triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending plate-bending mushroom-object line-wave
           triadica.comp.axis :refer $ comp-axis
           triadica.config :refer $ hide-tabs?
@@ -970,6 +976,26 @@
       :defs $ {}
         |*drag-cache $ quote
           defatom *drag-cache $ {} (:x 0) (:y 0)
+        |comp-button $ quote
+          defn comp-button (props on-click)
+            let
+                position $ &map:get props :position
+                size $ either (&map:get props :size) 20
+                geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
+              object $ {} (:draw-mode :triangles)
+                :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
+                :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
+                :points $ map geo
+                  fn (p)
+                    -> p
+                      map $ fn (i) (&* i size)
+                      &v+ position
+                :indices indices
+                :hit-region $ {} (:position position) (:radius size)
+                  :on-hit $ fn (e d!) (on-click e d!)
+                :attributes $ {}
+                  :color_index $ repeat 0 (count indices)
         |comp-drag-point $ quote
           defn comp-drag-point (props on-move)
             let
