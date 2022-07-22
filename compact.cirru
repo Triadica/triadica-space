@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.8)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.9)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
@@ -158,9 +158,13 @@
                                 &/ 1 $ js/Math.cos branch-angle
               [] main-branch side-branches
         |comp-branches $ quote
-          defn comp-branches (branch-angle)
+          defn comp-branches (states)
             let-sugar
+                cursor $ :cursor states
+                state $ either (:data states)
+                  {} $ :angle 0.7
                 max-level 3
+                branch-angle $ :angle state
                 points $ build-path max-level branch-angle
                   {}
                     :position $ [] 0 0 0
@@ -175,8 +179,8 @@
                 comp-slider
                   {} $ :position ([] 200 0 0)
                   fn (data d!)
-                    d! :set-branch-angle $ + branch-angle
-                      * 0.001 $ first data
+                    d! cursor $ assoc state :angle
+                      + branch-angle $ * 0.001 (first data)
         |comp-multiple-branches $ quote
           defn comp-multiple-branches () $ let-sugar
               max-level 6
@@ -417,46 +421,50 @@
       :defs $ {}
         |comp-container $ quote
           defn comp-container (store)
-            group ({})
-              case-default (:tab store)
-                do
-                  println "\"unknown tab" $ :tab store
-                  comp-axis
-                :axis $ comp-axis
-                :cubes $ cubes-object
-                :spin-city $ group ({})
-                  tiny-cube-object $ :v store
-                  spin-city
-                :bg $ bg-object
-                :conch $ conch-object
-                :curve-ball $ curve-ball
-                :spin-city $ spin-city
-                :fiber-bending $ fiber-bending
-                :plate-bending $ plate-bending
-                :mushroom $ mushroom-object
-                :branches $ comp-branches (:branch-angle store)
-                :multiple-branches $ memof1-call comp-multiple-branches
-                :lamps $ comp-lamps
-                :line-wave $ memof1-call comp-line-wave
-                :fireworks $ memof1-call comp-fireworks
-                :drag-point $ group ({})
-                  comp-drag-point
-                    {} (:ignore-moving? false)
-                      :position $ :p1 store
-                    fn (p d!) (d! :move-p1 p)
-                  comp-button
-                    {} (:size 10)
-                      :position $ [] 100 100 0
-                      :color $ [] 0.24 0.8 0.5
-                    fn (e d!) (println "\"clicked")
-                :stitch $ comp-stitch
-                  {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
-                :sparklers $ comp-sparklers
-              if-not hide-tabs? $ memof1-call comp-tabs
-                {}
-                  :position $ [] -40 0 0
-                  :selected $ :tab store
-                , tab-entries
+            let
+                states $ :states store
+                cursor $ []
+                state $ either (:data states) ({})
+              group ({})
+                case-default (:tab store)
+                  do
+                    println "\"unknown tab" $ :tab store
+                    comp-axis
+                  :axis $ comp-axis
+                  :cubes $ cubes-object
+                  :spin-city $ group ({})
+                    tiny-cube-object $ :v store
+                    spin-city
+                  :bg $ bg-object
+                  :conch $ conch-object
+                  :curve-ball $ curve-ball
+                  :spin-city $ spin-city
+                  :fiber-bending $ fiber-bending
+                  :plate-bending $ plate-bending
+                  :mushroom $ mushroom-object
+                  :branches $ comp-branches (>> states :branches)
+                  :multiple-branches $ memof1-call comp-multiple-branches
+                  :lamps $ comp-lamps
+                  :line-wave $ memof1-call comp-line-wave
+                  :fireworks $ memof1-call comp-fireworks
+                  :drag-point $ group ({})
+                    comp-drag-point
+                      {} (:ignore-moving? false)
+                        :position $ :p1 store
+                      fn (p d!) (d! :move-p1 p)
+                    comp-button
+                      {} (:size 10)
+                        :position $ [] 100 100 0
+                        :color $ [] 0.24 0.8 0.5
+                      fn (e d!) (println "\"clicked")
+                  :stitch $ comp-stitch
+                    {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
+                  :sparklers $ comp-sparklers
+                if-not hide-tabs? $ memof1-call comp-tabs
+                  {}
+                    :position $ [] -40 0 0
+                    :selected $ :tab store
+                  , tab-entries
         |tab-entries $ quote
           def tab-entries $ []
             {} (:key :axis)
@@ -508,6 +516,7 @@
           triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
+          triadica.core :refer $ >>
           memof.once :refer $ memof1-call memof1-call-by
     |triadica.app.main $ {}
       :defs $ {}
@@ -515,7 +524,7 @@
           defatom *store $ {} (:v 0)
             :tab $ turn-keyword (get-env "\"tab" "\"axis")
             :p1 $ [] 0 0 0
-            :branch-angle 0.7
+            :states $ {}
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
@@ -527,12 +536,13 @@
                   + x $ * 0.01 data
               let
                   store @*store
-                  next $ case-default op
-                    do (js/console.warn "\"unknown op" op) nil
-                    :cube-right $ update store :v inc
-                    :tab-focus $ assoc store :tab data
-                    :move-p1 $ assoc store :p1 data
-                    :set-branch-angle $ assoc store :branch-angle data
+                  next $ if (list? op)
+                    update-states store $ [] op data
+                    case-default op
+                      do (js/console.warn "\"unknown op" op) nil
+                      :cube-right $ update store :v inc
+                      :tab-focus $ assoc store :tab data
+                      :move-p1 $ assoc store :p1 data
                 if (some? next) (reset! *store next)
         |main! $ quote
           defn main! ()
@@ -571,7 +581,7 @@
           triadica.config :refer $ dev? dpr
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
-          triadica.core :refer $ handle-key-event on-control-event load-objects! paint-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
+          triadica.core :refer $ handle-key-event on-control-event load-objects! paint-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size! update-states
           triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
           triadica.app.container :refer $ comp-container
@@ -1294,6 +1304,12 @@
           defatom *hit-targets-buffer $ []
         |*local-array-counter $ quote (defatom *local-array-counter 0)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |>> $ quote
+          defn >> (states k)
+            let
+                parent-cursor $ either (:cursor states) ([])
+                branch $ either (get states k) ({})
+              assoc branch :cursor $ conj parent-cursor k
         |blur-at-direction $ quote
           defn blur-at-direction (gl from-fb to-fb direction program buffer) (twgl/resizeFramebufferInfo gl to-fb)
             twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
@@ -1411,7 +1427,6 @@
                             &/ (inc back-cone-scale) (&+ r back-cone-scale)
                           distance $ c-distance screen-position ([] x y)
                         ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
-                        println "\"r" r
                         if
                           and
                             <= distance $ &max touch-deviation mapped-radius
@@ -1691,6 +1706,12 @@
                             child $ nth xs 0
                           traverse-tree child (conj coord idx) cb
                           recur (inc idx) (rest xs)
+        |update-states $ quote
+          defn update-states (store pair)
+            let
+                cursor $ nth pair 0
+                new-state $ nth pair 1
+              assoc-in store ([] :states & cursor :data) new-state
       :ns $ quote
         ns triadica.core $ :require
           touch-control.core :refer $ render-control!
