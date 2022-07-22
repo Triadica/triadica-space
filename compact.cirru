@@ -1290,6 +1290,8 @@
         |*draw-fb $ quote (defatom *draw-fb nil)
         |*effect-x-fb $ quote (defatom *effect-x-fb nil)
         |*effect-y-fb $ quote (defatom *effect-y-fb nil)
+        |*hit-targets-buffer $ quote
+          defatom *hit-targets-buffer $ []
         |*local-array-counter $ quote (defatom *local-array-counter 0)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
         |blur-at-direction $ quote
@@ -1365,6 +1367,20 @@
                       , position-array
                   true $ do (js/console.error "\"unknown attributes data:" points)
                     .!createAugmentedTypedArray twgl/primitives 1 $ count points
+        |find-nearest $ quote
+          defn find-nearest (r prev coord xs)
+            if (empty? xs)
+              if (some? prev) ([] prev coord) nil
+              let
+                  x0 $ nth xs 0
+                  r0 $ nth x0 0
+                  t0 $ nth x0 1
+                  c0 $ nth x0 2
+                if (nil? prev)
+                  recur r0 t0 c0 $ rest xs
+                  if (< r0 r)
+                    recur r0 t0 c0 $ rest xs
+                    recur r prev coord $ rest xs
         |flatten-objects $ quote
           defn flatten-objects (tree)
             case-default (:type tree)
@@ -1379,6 +1395,7 @@
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
                 scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
+              reset! *hit-targets-buffer $ []
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   if-let
@@ -1394,11 +1411,17 @@
                             &/ (inc back-cone-scale) (&+ r back-cone-scale)
                           distance $ c-distance screen-position ([] x y)
                         ; js/console.log "\"comparing" screen-position ([] x y) mapped-radius distance
+                        println "\"r" r
                         if
                           and
                             <= distance $ &max touch-deviation mapped-radius
                             noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
-                          on-hit event @*proxied-dispatch
+                          swap! *hit-targets-buffer conj $ [] r on-hit nil
+              if-let
+                nearest $ find-nearest nil nil nil @*hit-targets-buffer
+                let
+                    on-hit $ nth nearest 0
+                  on-hit event @*proxied-dispatch
         |handle-screen-mousedown! $ quote
           defn handle-screen-mousedown! (event)
             let
@@ -1407,6 +1430,7 @@
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
                 scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
+              reset! *hit-targets-buffer $ []
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   if-let
@@ -1426,7 +1450,14 @@
                           and
                             <= distance $ &max touch-deviation mapped-radius
                             noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
-                          do (on-mousedown event @*proxied-dispatch) (swap! *mouse-holding-paths conj coord)
+                          swap! *hit-targets-buffer conj $ [] r on-mousedown coord
+              if-let
+                nearest $ find-nearest nil nil nil @*hit-targets-buffer
+                let
+                    on-mousedown $ nth nearest 0
+                    coord $ nth nearest 1
+                  on-mousedown event @*proxied-dispatch
+                  swap! *mouse-holding-paths conj coord
         |handle-screen-mousemove! $ quote
           defn handle-screen-mousemove! (event)
             let
