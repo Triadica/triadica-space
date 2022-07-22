@@ -445,9 +445,9 @@
                       :position $ :p1 store
                     fn (p d!) (d! :move-p1 p)
                   comp-button
-                    {}
+                    {} (:size 10)
                       :position $ [] 100 100 0
-                      :size 10
+                      :color $ [] 0.24 0.8 0.5
                     fn (e d!) (println "\"clicked")
                 :stitch $ comp-stitch
                   {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
@@ -981,27 +981,29 @@
             let
                 position $ &map:get props :position
                 size $ either (&map:get props :size) 20
+                color $ either (&map:get props :color) ([] 0.6 1 0.56)
                 geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
-                :points $ map geo
-                  fn (p)
-                    -> p
-                      map $ fn (i) (&* i size)
-                      &v+ position
-                :indices indices
                 :hit-region $ {} (:position position) (:radius size)
                   :on-hit $ fn (e d!) (on-click e d!)
-                :attributes $ {}
-                  :color_index $ repeat 0 (count indices)
+                :grouped-attributes $ -> indices
+                  map $ fn (i)
+                    {}
+                      :position $ -> (nth geo i)
+                        map $ fn (x) (* x size)
+                        &v+ position
+                      :color color
         |comp-drag-point $ quote
           defn comp-drag-point (props on-move)
             let
                 position $ &map:get props :position
                 ignore-moving? $ &map:get props :ignore-moving?
                 geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                size $ either (&map:get props :size) 20
+                color $ either (&map:get props :color) ([] 0.6 1 0.56)
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
                   let
@@ -1029,13 +1031,7 @@
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
-                :points $ map geo
-                  fn (p)
-                    -> p
-                      map $ fn (i) (* i 20)
-                      &v+ position
-                :indices indices
-                :hit-region $ {} (:position position) (:radius 20)
+                :hit-region $ {} (:position position) (:radius size)
                   :on-mousedown $ fn (e d!)
                     let
                         x $ .-clientX e
@@ -1053,13 +1049,20 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       handle-drag! x y d!
-                :attributes $ {}
-                  :color_index $ repeat 0 (count indices)
+                :grouped-attributes $ -> indices
+                  map $ fn (i)
+                    {}
+                      :position $ -> (nth geo i)
+                        map $ fn (x) (* x size)
+                        &v+ position
+                      :color color
         |comp-slider $ quote
           defn comp-slider (props on-move)
             let
                 position $ :position props
                 geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                size $ either (&map:get props :size) 20
+                color $ either (&map:get props :color) ([] 0.6 1 0.56)
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
                   let
@@ -1071,12 +1074,6 @@
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
-                :points $ map geo
-                  fn (p)
-                    -> p
-                      map $ fn (i) (* i 20)
-                      &v+ position
-                :indices indices
                 :hit-region $ {} (:position position) (:radius 20)
                   :on-mousedown $ fn (e d!)
                     let
@@ -1094,8 +1091,13 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       handle-drag! x y d!
-                :attributes $ {}
-                  :color_index $ repeat 0 (count indices)
+                :grouped-attributes $ -> indices
+                  map $ fn (i)
+                    {}
+                      :position $ -> (nth geo i)
+                        map $ fn (x) (* x size)
+                        &v+ position
+                      :color color
       :ns $ quote
         ns triadica.comp.drag-point $ :require
           triadica.config :refer $ inline-shader back-cone-scale
@@ -1649,8 +1651,15 @@
                 :object $ cb (dissoc tree :children) coord
                 :group $ if-let
                   children $ :children tree
-                  map-indexed children $ fn (idx child)
+                  ; map-indexed children $ fn (idx child)
                     traverse-tree child (conj coord idx) cb
+                  apply-args (0 children)
+                    fn (idx xs)
+                      if-not (empty? xs)
+                        let
+                            child $ nth xs 0
+                          traverse-tree child (conj coord idx) cb
+                          recur (inc idx) (rest xs)
       :ns $ quote
         ns triadica.core $ :require
           touch-control.core :refer $ render-control!
