@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.8)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.9)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/
   :entries $ {}
   :files $ {}
@@ -158,9 +158,13 @@
                                 &/ 1 $ js/Math.cos branch-angle
               [] main-branch side-branches
         |comp-branches $ quote
-          defn comp-branches (branch-angle)
+          defn comp-branches (states)
             let-sugar
+                cursor $ :cursor states
+                state $ either (:data states)
+                  {} $ :angle 0.7
                 max-level 3
+                branch-angle $ :angle state
                 points $ build-path max-level branch-angle
                   {}
                     :position $ [] 0 0 0
@@ -175,8 +179,8 @@
                 comp-slider
                   {} $ :position ([] 200 0 0)
                   fn (data d!)
-                    d! :set-branch-angle $ + branch-angle
-                      * 0.001 $ first data
+                    d! cursor $ assoc state :angle
+                      + branch-angle $ * 0.001 (first data)
         |comp-multiple-branches $ quote
           defn comp-multiple-branches () $ let-sugar
               max-level 6
@@ -417,40 +421,50 @@
       :defs $ {}
         |comp-container $ quote
           defn comp-container (store)
-            group ({})
-              case-default (:tab store)
-                do
-                  println "\"unknown tab" $ :tab store
-                  comp-axis
-                :axis $ comp-axis
-                :cubes $ cubes-object
-                :spin-city $ group ({})
-                  tiny-cube-object $ :v store
-                  spin-city
-                :bg $ bg-object
-                :conch $ conch-object
-                :curve-ball $ curve-ball
-                :spin-city $ spin-city
-                :fiber-bending $ fiber-bending
-                :plate-bending $ plate-bending
-                :mushroom $ mushroom-object
-                :branches $ comp-branches (:branch-angle store)
-                :multiple-branches $ memof1-call comp-multiple-branches
-                :lamps $ comp-lamps
-                :line-wave $ memof1-call comp-line-wave
-                :fireworks $ memof1-call comp-fireworks
-                :drag-point $ comp-drag-point
-                  {} (:ignore-moving? false)
-                    :position $ :p1 store
-                  fn (p d!) (d! :move-p1 p)
-                :stitch $ comp-stitch
-                  {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
-                :sparklers $ comp-sparklers
-              if-not hide-tabs? $ memof1-call comp-tabs
-                {}
-                  :position $ [] -40 0 0
-                  :selected $ :tab store
-                , tab-entries
+            let
+                states $ :states store
+                cursor $ []
+                state $ either (:data states) ({})
+              group ({})
+                case-default (:tab store)
+                  do
+                    println "\"unknown tab" $ :tab store
+                    comp-axis
+                  :axis $ comp-axis
+                  :cubes $ cubes-object
+                  :spin-city $ group ({})
+                    tiny-cube-object $ :v store
+                    spin-city
+                  :bg $ bg-object
+                  :conch $ conch-object
+                  :curve-ball $ curve-ball
+                  :spin-city $ spin-city
+                  :fiber-bending $ fiber-bending
+                  :plate-bending $ plate-bending
+                  :mushroom $ mushroom-object
+                  :branches $ comp-branches (>> states :branches)
+                  :multiple-branches $ memof1-call comp-multiple-branches
+                  :lamps $ comp-lamps
+                  :line-wave $ memof1-call comp-line-wave
+                  :fireworks $ memof1-call comp-fireworks
+                  :drag-point $ group ({})
+                    comp-drag-point
+                      {} (:ignore-moving? false)
+                        :position $ :p1 store
+                      fn (p d!) (d! :move-p1 p)
+                    comp-button
+                      {} (:size 10)
+                        :position $ [] 100 100 0
+                        :color $ [] 0.24 0.8 0.5
+                      fn (e d!) (println "\"clicked")
+                  :stitch $ comp-stitch
+                    {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
+                  :sparklers $ comp-sparklers
+                if-not hide-tabs? $ memof1-call comp-tabs
+                  {}
+                    :position $ [] -40 0 0
+                    :selected $ :tab store
+                  , tab-entries
         |tab-entries $ quote
           def tab-entries $ []
             {} (:key :axis)
@@ -493,7 +507,7 @@
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
           triadica.comp.tabs :refer $ comp-tabs
-          triadica.comp.drag-point :refer $ comp-drag-point
+          triadica.comp.drag-point :refer $ comp-drag-point comp-button
           triadica.app.shapes :refer $ bg-object cubes-object conch-object tiny-cube-object curve-ball spin-city fiber-bending plate-bending mushroom-object line-wave
           triadica.comp.axis :refer $ comp-axis
           triadica.config :refer $ hide-tabs?
@@ -502,6 +516,7 @@
           triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
+          triadica.core :refer $ >>
           memof.once :refer $ memof1-call memof1-call-by
     |triadica.app.main $ {}
       :defs $ {}
@@ -509,7 +524,7 @@
           defatom *store $ {} (:v 0)
             :tab $ turn-keyword (get-env "\"tab" "\"axis")
             :p1 $ [] 0 0 0
-            :branch-angle 0.7
+            :states $ {}
         |canvas $ quote
           def canvas $ js/document.querySelector "\"canvas"
         |dispatch! $ quote
@@ -521,12 +536,13 @@
                   + x $ * 0.01 data
               let
                   store @*store
-                  next $ case-default op
-                    do (js/console.warn "\"unknown op" op) nil
-                    :cube-right $ update store :v inc
-                    :tab-focus $ assoc store :tab data
-                    :move-p1 $ assoc store :p1 data
-                    :set-branch-angle $ assoc store :branch-angle data
+                  next $ if (list? op)
+                    update-states store $ [] op data
+                    case-default op
+                      do (js/console.warn "\"unknown op" op) nil
+                      :cube-right $ update store :v inc
+                      :tab-focus $ assoc store :tab data
+                      :move-p1 $ assoc store :p1 data
                 if (some? next) (reset! *store next)
         |main! $ quote
           defn main! ()
@@ -565,7 +581,7 @@
           triadica.config :refer $ dev? dpr
           "\"twgl.js" :as twgl
           touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
-          triadica.core :refer $ handle-key-event on-control-event load-objects! paint-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size!
+          triadica.core :refer $ handle-key-event on-control-event load-objects! paint-canvas! handle-screen-click! setup-mouse-events! reset-canvas-size! update-states
           triadica.global :refer $ *gl-context
           triadica.hud :refer $ inject-hud!
           triadica.app.container :refer $ comp-container
@@ -970,12 +986,34 @@
       :defs $ {}
         |*drag-cache $ quote
           defatom *drag-cache $ {} (:x 0) (:y 0)
+        |comp-button $ quote
+          defn comp-button (props on-click)
+            let
+                position $ &map:get props :position
+                size $ either (&map:get props :size) 20
+                color $ either (&map:get props :color) ([] 0.6 1 0.56)
+                geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
+              object $ {} (:draw-mode :triangles)
+                :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
+                :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
+                :hit-region $ {} (:position position) (:radius size)
+                  :on-hit $ fn (e d!) (on-click e d!)
+                :grouped-attributes $ -> indices
+                  map $ fn (i)
+                    {}
+                      :position $ -> (nth geo i)
+                        map $ fn (x) (* x size)
+                        &v+ position
+                      :color color
         |comp-drag-point $ quote
           defn comp-drag-point (props on-move)
             let
                 position $ &map:get props :position
                 ignore-moving? $ &map:get props :ignore-moving?
                 geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                size $ either (&map:get props :size) 20
+                color $ either (&map:get props :color) ([] 0.6 1 0.56)
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
                   let
@@ -1003,13 +1041,7 @@
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
-                :points $ map geo
-                  fn (p)
-                    -> p
-                      map $ fn (i) (* i 20)
-                      &v+ position
-                :indices indices
-                :hit-region $ {} (:position position) (:radius 20)
+                :hit-region $ {} (:position position) (:radius size)
                   :on-mousedown $ fn (e d!)
                     let
                         x $ .-clientX e
@@ -1027,13 +1059,20 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       handle-drag! x y d!
-                :attributes $ {}
-                  :color_index $ repeat 0 (count indices)
+                :grouped-attributes $ -> indices
+                  map $ fn (i)
+                    {}
+                      :position $ -> (nth geo i)
+                        map $ fn (x) (* x size)
+                        &v+ position
+                      :color color
         |comp-slider $ quote
           defn comp-slider (props on-move)
             let
                 position $ :position props
                 geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
+                size $ either (&map:get props :size) 20
+                color $ either (&map:get props :color) ([] 0.6 1 0.56)
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
                   let
@@ -1045,12 +1084,6 @@
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader "\"drag-point.vert")
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
-                :points $ map geo
-                  fn (p)
-                    -> p
-                      map $ fn (i) (* i 20)
-                      &v+ position
-                :indices indices
                 :hit-region $ {} (:position position) (:radius 20)
                   :on-mousedown $ fn (e d!)
                     let
@@ -1068,8 +1101,13 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       handle-drag! x y d!
-                :attributes $ {}
-                  :color_index $ repeat 0 (count indices)
+                :grouped-attributes $ -> indices
+                  map $ fn (i)
+                    {}
+                      :position $ -> (nth geo i)
+                        map $ fn (x) (* x size)
+                        &v+ position
+                      :color color
       :ns $ quote
         ns triadica.comp.drag-point $ :require
           triadica.config :refer $ inline-shader back-cone-scale
@@ -1262,8 +1300,16 @@
         |*draw-fb $ quote (defatom *draw-fb nil)
         |*effect-x-fb $ quote (defatom *effect-x-fb nil)
         |*effect-y-fb $ quote (defatom *effect-y-fb nil)
+        |*hit-targets-buffer $ quote
+          defatom *hit-targets-buffer $ []
         |*local-array-counter $ quote (defatom *local-array-counter 0)
         |*tmp-changes $ quote (defatom *tmp-changes nil)
+        |>> $ quote
+          defn >> (states k)
+            let
+                parent-cursor $ either (:cursor states) ([])
+                branch $ either (get states k) ({})
+              assoc branch :cursor $ conj parent-cursor k
         |blur-at-direction $ quote
           defn blur-at-direction (gl from-fb to-fb direction program buffer) (twgl/resizeFramebufferInfo gl to-fb)
             twgl/resizeCanvasToDisplaySize (.-canvas gl) dpr
@@ -1337,6 +1383,20 @@
                       , position-array
                   true $ do (js/console.error "\"unknown attributes data:" points)
                     .!createAugmentedTypedArray twgl/primitives 1 $ count points
+        |find-nearest $ quote
+          defn find-nearest (r prev coord xs)
+            if (empty? xs)
+              if (some? prev) ([] prev coord) nil
+              let
+                  x0 $ nth xs 0
+                  r0 $ nth x0 0
+                  t0 $ nth x0 1
+                  c0 $ nth x0 2
+                if (nil? prev)
+                  recur r0 t0 c0 $ rest xs
+                  if (< r0 r)
+                    recur r0 t0 c0 $ rest xs
+                    recur r prev coord $ rest xs
         |flatten-objects $ quote
           defn flatten-objects (tree)
             case-default (:type tree)
@@ -1351,6 +1411,7 @@
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
                 scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
+              reset! *hit-targets-buffer $ []
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   if-let
@@ -1370,7 +1431,12 @@
                           and
                             <= distance $ &max touch-deviation mapped-radius
                             noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
-                          on-hit event @*proxied-dispatch
+                          swap! *hit-targets-buffer conj $ [] r on-hit nil
+              if-let
+                nearest $ find-nearest nil nil nil @*hit-targets-buffer
+                let
+                    on-hit $ nth nearest 0
+                  on-hit event @*proxied-dispatch
         |handle-screen-mousedown! $ quote
           defn handle-screen-mousedown! (event)
             let
@@ -1379,6 +1445,7 @@
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
                 scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
+              reset! *hit-targets-buffer $ []
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   if-let
@@ -1398,7 +1465,14 @@
                           and
                             <= distance $ &max touch-deviation mapped-radius
                             noted "\"visible at front" $ > r (* -0.8 back-cone-scale)
-                          do (on-mousedown event @*proxied-dispatch) (swap! *mouse-holding-paths conj coord)
+                          swap! *hit-targets-buffer conj $ [] r on-mousedown coord
+              if-let
+                nearest $ find-nearest nil nil nil @*hit-targets-buffer
+                let
+                    on-mousedown $ nth nearest 0
+                    coord $ nth nearest 1
+                  on-mousedown event @*proxied-dispatch
+                  swap! *mouse-holding-paths conj coord
         |handle-screen-mousemove! $ quote
           defn handle-screen-mousemove! (event)
             let
@@ -1623,8 +1697,21 @@
                 :object $ cb (dissoc tree :children) coord
                 :group $ if-let
                   children $ :children tree
-                  map-indexed children $ fn (idx child)
+                  ; map-indexed children $ fn (idx child)
                     traverse-tree child (conj coord idx) cb
+                  apply-args (0 children)
+                    fn (idx xs)
+                      if-not (empty? xs)
+                        let
+                            child $ nth xs 0
+                          traverse-tree child (conj coord idx) cb
+                          recur (inc idx) (rest xs)
+        |update-states $ quote
+          defn update-states (store pair)
+            let
+                cursor $ nth pair 0
+                new-state $ nth pair 1
+              assoc-in store ([] :states & cursor :data) new-state
       :ns $ quote
         ns triadica.core $ :require
           touch-control.core :refer $ render-control!
