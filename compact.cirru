@@ -256,7 +256,7 @@
                     noted seconds $ rand-between 6 12
               :get-uniforms $ fn ()
                 js-object $ :time
-                  &* 0.001 $ &- (js/Date.now) 1657530706669
+                  &* 0.001 $ js/performance.now
         |comp-sparklers $ quote
           defn comp-sparklers () $ object
             {} (:draw-mode :triangles)
@@ -277,7 +277,7 @@
                           {} (:lv1 i) (:lv2 j) (:index 2) (:kind 1)
               :get-uniforms $ fn ()
                 js-object $ :time
-                  &* 0.00737 $ &- (js/Date.now) 1657530706669
+                  &* 0.00737 $ js/performance.now
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
           triadica.core :refer $ %nested-attribute count-recursive
@@ -307,7 +307,7 @@
               :draw-mode :triangles
               :get-uniforms $ fn ()
                 js-object $ :time
-                  * 0.0001 $ - (js/Date.now) 1657479007394
+                  &* 0.0001 $ js/performance.now
               :points $ %{} %nested-attribute (:augment 3)
                 :length $ *
                   + (* 8 6) (* 6 3)
@@ -1685,8 +1685,6 @@
           defn shift-viewer-by! (x)
             if (= x false) (reset! *viewer-y-shift 0)
               swap! *viewer-y-shift &+ $ * 2 x
-        |start-time $ quote
-          def start-time $ js/Date.now
         |traverse-tree $ quote
           defn traverse-tree (tree coord cb)
             when (some? tree)

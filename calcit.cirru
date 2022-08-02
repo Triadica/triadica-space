@@ -1846,17 +1846,13 @@
                                   |b $ {} (:at 1657530689058) (:by |u0) (:type :expr)
                                     :data $ {}
                                       |T $ {} (:at 1657530692030) (:by |u0) (:text |:time) (:type :leaf)
-                                      |b $ {} (:at 1657530723776) (:by |u0) (:type :expr)
+                                      |b $ {} (:at 1659432066516) (:by |u0) (:type :expr)
                                         :data $ {}
-                                          |D $ {} (:at 1657530724959) (:by |u0) (:text |&*) (:type :leaf)
-                                          |L $ {} (:at 1657532580757) (:by |u0) (:text |0.001) (:type :leaf)
-                                          |T $ {} (:at 1657530716468) (:by |u0) (:type :expr)
+                                          |D $ {} (:at 1659432208061) (:by |u0) (:text |&*) (:type :leaf)
+                                          |L $ {} (:at 1659432305632) (:by |u0) (:text |0.001) (:type :leaf)
+                                          |T $ {} (:at 1657530710397) (:by |u0) (:type :expr)
                                             :data $ {}
-                                              |D $ {} (:at 1657530718721) (:by |u0) (:text |&-) (:type :leaf)
-                                              |T $ {} (:at 1657530710397) (:by |u0) (:type :expr)
-                                                :data $ {}
-                                                  |T $ {} (:at 1657530713720) (:by |u0) (:text |js/Date.now) (:type :leaf)
-                                              |b $ {} (:at 1657530719560) (:by |u0) (:text |1657530706669) (:type :leaf)
+                                              |T $ {} (:at 1659431996255) (:by |u0) (:text |js/performance.now) (:type :leaf)
           |comp-sparklers $ {} (:at 1657556661076) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1657556661076) (:by |u0) (:text |defn) (:type :leaf)
@@ -2063,13 +2059,9 @@
                                         :data $ {}
                                           |T $ {} (:at 1657556682961) (:by |u0) (:text |&*) (:type :leaf)
                                           |b $ {} (:at 1657607773044) (:by |u0) (:text |0.00737) (:type :leaf)
-                                          |h $ {} (:at 1657556682961) (:by |u0) (:type :expr)
+                                          |h $ {} (:at 1659432347771) (:by |u0) (:type :expr)
                                             :data $ {}
-                                              |T $ {} (:at 1657556682961) (:by |u0) (:text |&-) (:type :leaf)
-                                              |b $ {} (:at 1657556682961) (:by |u0) (:type :expr)
-                                                :data $ {}
-                                                  |T $ {} (:at 1657556682961) (:by |u0) (:text |js/Date.now) (:type :leaf)
-                                              |h $ {} (:at 1657556682961) (:by |u0) (:text |1657530706669) (:type :leaf)
+                                              |T $ {} (:at 1659432347771) (:by |u0) (:text |js/performance.now) (:type :leaf)
         :ns $ {} (:at 1656691387976) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1656691387976) (:by |u0) (:text |ns) (:type :leaf)
@@ -2253,17 +2245,13 @@
                                       |b $ {} (:at 1657478336679) (:by |u0) (:type :expr)
                                         :data $ {}
                                           |T $ {} (:at 1657478339201) (:by |u0) (:text |:time) (:type :leaf)
-                                          |b $ {} (:at 1657478761987) (:by |u0) (:type :expr)
+                                          |b $ {} (:at 1659432228765) (:by |u0) (:type :expr)
                                             :data $ {}
-                                              |D $ {} (:at 1657479037964) (:by |u0) (:text |*) (:type :leaf)
-                                              |L $ {} (:at 1657479128435) (:by |u0) (:text |0.0001) (:type :leaf)
-                                              |T $ {} (:at 1657478396095) (:by |u0) (:type :expr)
+                                              |T $ {} (:at 1659432228765) (:by |u0) (:text |&*) (:type :leaf)
+                                              |b $ {} (:at 1659432263178) (:by |u0) (:text |0.0001) (:type :leaf)
+                                              |h $ {} (:at 1659432228765) (:by |u0) (:type :expr)
                                                 :data $ {}
-                                                  |L $ {} (:at 1657479012919) (:by |u0) (:text |-) (:type :leaf)
-                                                  |T $ {} (:at 1657478343582) (:by |u0) (:type :expr)
-                                                    :data $ {}
-                                                      |T $ {} (:at 1657478344007) (:by |u0) (:text |js/Date.now) (:type :leaf)
-                                                  |b $ {} (:at 1657479013957) (:by |u0) (:text |1657479007394) (:type :leaf)
+                                                  |T $ {} (:at 1659432228765) (:by |u0) (:text |js/performance.now) (:type :leaf)
                           |o $ {} (:at 1656515690653) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1656515690653) (:by |u0) (:text |:points) (:type :leaf)
@@ -12863,13 +12851,6 @@
                           |T $ {} (:at 1651658419548) (:by |u0) (:text |*) (:type :leaf)
                           |b $ {} (:at 1651658419548) (:by |u0) (:text |2) (:type :leaf)
                           |h $ {} (:at 1651658419548) (:by |u0) (:text |x) (:type :leaf)
-          |start-time $ {} (:at 1656671587558) (:by |u0) (:type :expr)
-            :data $ {}
-              |T $ {} (:at 1656671587558) (:by |u0) (:text |def) (:type :leaf)
-              |b $ {} (:at 1656671587558) (:by |u0) (:text |start-time) (:type :leaf)
-              |h $ {} (:at 1656671587558) (:by |u0) (:type :expr)
-                :data $ {}
-                  |T $ {} (:at 1656671591064) (:by |u0) (:text |js/Date.now) (:type :leaf)
           |traverse-tree $ {} (:at 1654198174465) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1654198174465) (:by |u0) (:text |defn) (:type :leaf)
