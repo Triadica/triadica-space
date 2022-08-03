@@ -1,7 +1,7 @@
 
 {} (:package |triadica)
   :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.9)
-    :modules $ [] |touch-control/ |respo.calcit/ |memof/
+    :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
     |triadica.alias $ {}
@@ -256,7 +256,13 @@
                     noted seconds $ rand-between 6 12
               :get-uniforms $ fn ()
                 js-object $ :time
-                  &* 0.001 $ &- (js/Date.now) 1657530706669
+                  &* 0.001 $ js/performance.now
+        |comp-fountain $ quote
+          defn comp-fountain () $ object
+            {} (:draw-mode :lines)
+              :vertex-shader $ inline-shader "\"fountain.vert"
+              :fragment-shader $ inline-shader "\"fountain.frag"
+              :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
         |comp-sparklers $ quote
           defn comp-sparklers () $ object
             {} (:draw-mode :triangles)
@@ -277,7 +283,7 @@
                           {} (:lv1 i) (:lv2 j) (:index 2) (:kind 1)
               :get-uniforms $ fn ()
                 js-object $ :time
-                  &* 0.00737 $ &- (js/Date.now) 1657530706669
+                  &* 0.00737 $ js/performance.now
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
           triadica.core :refer $ %nested-attribute count-recursive
@@ -307,7 +313,7 @@
               :draw-mode :triangles
               :get-uniforms $ fn ()
                 js-object $ :time
-                  * 0.0001 $ - (js/Date.now) 1657479007394
+                  &* 0.0001 $ js/performance.now
               :points $ %{} %nested-attribute (:augment 3)
                 :length $ *
                   + (* 8 6) (* 6 3)
@@ -370,12 +376,111 @@
                     map $ fn (position)
                       repeat (v-scale position 600)
                         + (* 8 6) (* 6 3)
+        |comp-lotus $ quote
+          defn comp-lotus () $ let
+              r 200
+              points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"lotus.vert"
+              :fragment-shader $ inline-shader "\"lotus.frag"
+              :grouped-attributes $ -> (range 8)
+                map $ fn (idx)
+                  let
+                      angle $ * idx 0.8
+                      seg 10
+                      r-vec $ []
+                        * r $ cos angle
+                        , 120
+                          * r $ sin angle
+                      down 80
+                    -> (range seg)
+                      map $ fn (si)
+                        let
+                            s-ratio $ / si seg
+                            side 8
+                            tile 12
+                          ->
+                            range (negate side) side
+                            map $ fn (di)
+                              let
+                                  angle-perp $ + angle (* 0.5 &PI)
+                                  dr $ * di tile
+                                  w-ratio $ / di side
+                                  dw $ []
+                                    * dr $ cos angle-perp
+                                    * down $ f-drop w-ratio 1
+                                    * dr $ sin angle-perp
+                                  p1 $ let
+                                      t0 $ &let
+                                        t $ / si seg
+                                        f-petal t 2
+                                    v+
+                                      take (v-scale dw t0) 3
+                                      take
+                                        v-scale r-vec $ / si seg
+                                        , 3
+                                  p2 $ let
+                                      t1 $ &let
+                                        t $ / (inc si) seg
+                                        f-petal t 2
+                                    v+
+                                      take (v-scale dw t1) 3
+                                      take
+                                        v-scale r-vec $ / (inc si) seg
+                                        , 3
+                                  p3 $ let
+                                      dr $ * (inc di) tile
+                                      w-ratio $ / (inc di) side
+                                      dw $ []
+                                        * dr $ cos angle-perp
+                                        * down $ f-drop w-ratio 1
+                                        * dr $ sin angle-perp
+                                      t0 $ &let
+                                        t $ / si seg
+                                        f-petal t 2
+                                    v+
+                                      take (v-scale dw t0) 3
+                                      take
+                                        v-scale r-vec $ / si seg
+                                        , 3
+                                  p4 $ let
+                                      dr $ * (inc di) tile
+                                      w-ratio $ / (inc di) side
+                                      dw $ []
+                                        * dr $ cos angle-perp
+                                        * down $ f-drop w-ratio 1
+                                        * dr $ sin angle-perp
+                                      t1 $ &let
+                                        t $ / (inc si) seg
+                                        f-petal t 2
+                                    v+
+                                      take (v-scale dw t1) 3
+                                      take
+                                        v-scale r-vec $ / (inc si) seg
+                                        , 3
+                                []
+                                  {} (:position p1) (:di di)
+                                  {} (:position p2) (:di di)
+                                  {} (:position p3)
+                                    :di $ inc di
+                                  {} (:position p3)
+                                    :di $ inc di
+                                  {} (:position p4)
+                                    :di $ inc di
+                                  {} (:position p2) (:di di)
+        |f-drop $ quote
+          defn f-drop (x r)
+            * r $ - (pow x 2) 1
+        |f-petal $ quote
+          defn f-petal (t r)
+            * r $ - t (pow t 2)
       :ns $ quote
         ns triadica.app.comp.lamps $ :require
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object
           triadica.math :refer $ &v+ v-scale
           triadica.core :refer $ %nested-attribute
+          quaternion.core :refer $ v-scale v+
     |triadica.app.comp.line-wave $ {}
       :defs $ {}
         |comp-line-wave $ quote
@@ -447,6 +552,8 @@
                   :lamps $ comp-lamps
                   :line-wave $ memof1-call comp-line-wave
                   :fireworks $ memof1-call comp-fireworks
+                  :fountain $ comp-fountain
+                  :lotus $ comp-lotus
                   :drag-point $ group ({})
                     comp-drag-point
                       {} (:ignore-moving? false)
@@ -490,18 +597,22 @@
             {} (:key :branches)
               :position $ [] -400 -160 0
             {} (:key :lamps)
-              :position $ [] -300 -0 0
+              :position $ [] -300 80 0
             {} (:key :line-wave)
-              :position $ [] -300 -40 0
+              :position $ [] -300 40 0
             {} (:key :fireworks)
-              :position $ [] -300 -80 0
+              :position $ [] -300 0 0
             {} (:key :multiple-branches)
-              :position $ [] -300 -120 0
+              :position $ [] -300 -40 0
             {} (:key :drag-point)
-              :position $ [] -300 -160 0
+              :position $ [] -300 -80 0
             {} (:key :stitch)
-              :position $ [] -300 -200 0
+              :position $ [] -300 -120 0
             {} (:key :sparklers)
+              :position $ [] -300 -160 0
+            {} (:key :lotus)
+              :position $ [] -300 -200 0
+            {} (:key :fountain)
               :position $ [] -300 -240 0
       :ns $ quote
         ns triadica.app.container $ :require
@@ -512,8 +623,8 @@
           triadica.comp.axis :refer $ comp-axis
           triadica.config :refer $ hide-tabs?
           triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
-          triadica.app.comp.lamps :refer $ comp-lamps
-          triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers
+          triadica.app.comp.lamps :refer $ comp-lamps comp-lotus
+          triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
           triadica.core :refer $ >>
@@ -1685,8 +1796,6 @@
           defn shift-viewer-by! (x)
             if (= x false) (reset! *viewer-y-shift 0)
               swap! *viewer-y-shift &+ $ * 2 x
-        |start-time $ quote
-          def start-time $ js/Date.now
         |traverse-tree $ quote
           defn traverse-tree (tree coord cb)
             when (some? tree)

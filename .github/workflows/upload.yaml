@@ -30,6 +30,7 @@ jobs:
         && git clone https://github.com/mvc-works/pointed-prompt.git
         && git clone https://github.com/Respo/respo.calcit.git
         && git clone https://github.com/calcit-lang/memof.git
+        && git clone https://github.com/calcit-lang/quaternion.git
 
     - name: "compiles to js"
       run: >

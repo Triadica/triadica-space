@@ -23,7 +23,7 @@ PointResult transform_perspective(vec3 p) {
   float square_length = lookPoint.x*lookPoint.x + lookPoint.y*lookPoint.y + lookPoint.z*lookPoint.z;
   float r = dot(moved_point, lookPoint) / square_length;
 
-  if (r < (s * -0.8)) {
+  if (r < (s * -0.9)) {
     // make it disappear with depth test since it's probably behind the camera
     return PointResult(vec3(0.0, 0.0, 10000.), r, s);
   }
