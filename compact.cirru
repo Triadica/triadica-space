@@ -60,6 +60,12 @@
                                   aset target pos $ nth d 0
                                   aset target (+ 1 pos) (nth d 1)
                                   aset target (+ 2 pos) (nth d 2)
+                              (and (list? d) (= 2 (count d)))
+                                let
+                                    target $ aget ret (turn-string name)
+                                    pos $ * 2 idx
+                                  aset target pos $ nth d 0
+                                  aset target (+ 1 pos) (nth d 1)
                               (number? d)
                                 aset
                                   aget ret $ turn-string name
@@ -377,95 +383,126 @@
                       repeat (v-scale position 600)
                         + (* 8 6) (* 6 3)
         |comp-lotus $ quote
-          defn comp-lotus () $ let
-              r 200
-              points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
+          defn comp-lotus () $ group ({})
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"lotus.vert"
               :fragment-shader $ inline-shader "\"lotus.frag"
-              :grouped-attributes $ -> (range 8)
-                map $ fn (idx)
-                  let
-                      angle $ * idx 0.8
-                      seg 10
-                      r-vec $ []
-                        * r $ cos angle
-                        , 120
-                          * r $ sin angle
-                      down 80
-                    -> (range seg)
-                      map $ fn (si)
-                        let
-                            s-ratio $ / si seg
-                            side 8
-                            tile 12
-                          ->
-                            range (negate side) side
-                            map $ fn (di)
-                              let
-                                  angle-perp $ + angle (* 0.5 &PI)
-                                  dr $ * di tile
-                                  w-ratio $ / di side
-                                  dw $ []
-                                    * dr $ cos angle-perp
-                                    * down $ f-drop w-ratio 1
-                                    * dr $ sin angle-perp
-                                  p1 $ let
-                                      t0 $ &let
-                                        t $ / si seg
-                                        f-petal t 2
-                                    v+ (v-scale dw t0)
-                                      v-scale r-vec $ / si seg
-                                  p2 $ let
-                                      t1 $ &let
-                                        t $ / (inc si) seg
-                                        f-petal t 2
-                                    v+ (v-scale dw t1)
-                                      v-scale r-vec $ / (inc si) seg
-                                  p3 $ let
-                                      dr $ * (inc di) tile
-                                      w-ratio $ / (inc di) side
-                                      dw $ []
-                                        * dr $ cos angle-perp
-                                        * down $ f-drop w-ratio 1
-                                        * dr $ sin angle-perp
-                                      t0 $ &let
-                                        t $ / si seg
-                                        f-petal t 2
-                                    v+ (v-scale dw t0)
-                                      v-scale r-vec $ / si seg
-                                  p4 $ let
-                                      dr $ * (inc di) tile
-                                      w-ratio $ / (inc di) side
-                                      dw $ []
-                                        * dr $ cos angle-perp
-                                        * down $ f-drop w-ratio 1
-                                        * dr $ sin angle-perp
-                                      t1 $ &let
-                                        t $ / (inc si) seg
-                                        f-petal t 2
-                                    v+ (v-scale dw t1)
-                                      v-scale r-vec $ / (inc si) seg
-                                []
-                                  {} (:position p1) (:di di)
-                                  {} (:position p2) (:di di)
-                                  {} (:position p3)
-                                    :di $ inc di
-                                  {} (:position p3)
-                                    :di $ inc di
-                                  {} (:position p4)
-                                    :di $ inc di
-                                  {} (:position p2) (:di di)
+              :grouped-attributes $ [] (render-petals 200 80 120 12 0) (render-petals 120 80 110 6 0.36)
+            comp-pistil
+        |comp-pistil $ quote
+          defn comp-pistil () $ object
+            {} (:draw-mode :lines)
+              :vertex-shader $ inline-shader "\"lotus-pistil.vert"
+              :fragment-shader $ inline-shader "\"lotus-pistil.frag"
+              :grouped-attributes $ -> (range-balanced 20)
+                filter $ fn (xy)
+                  < (xy-length xy) 20
+                map $ fn (xy)
+                  let[] (x y) xy $ []
+                    {}
+                      :position $ v-scale ([] x 0 y) 0.7
+                      :xy $ [] x y
+                    {}
+                      :position $ v-scale ([] x 20 y) 2.4
+                      :xy $ [] x y
         |f-drop $ quote
           defn f-drop (x r)
             * r $ - (pow x 2) 1
         |f-petal $ quote
           defn f-petal (t r)
             * r $ - t (pow t 2)
+        |range-balanced $ quote
+          defn range-balanced (x)
+            let
+                xs $ range (negate x) (inc x)
+              -> xs $ mapcat
+                fn (i)
+                  -> xs $ map
+                    fn (j) ([] j i)
+        |render-petals $ quote
+          defn render-petals (r down thick tile-size phi)
+            -> (range 8)
+              map $ fn (idx)
+                let
+                    angle $ + (* idx 0.8) phi
+                    seg 10
+                    out 0.1
+                    r-vec $ []
+                      * r $ cos angle
+                      , thick
+                        * r $ sin angle
+                  -> (range seg)
+                    map $ fn (si)
+                      let
+                          s-ratio $ / si seg
+                          side 8
+                        ->
+                          range (negate side) side
+                          map $ fn (di)
+                            let
+                                angle-perp $ + angle (* 0.5 &PI)
+                                dr $ * di tile-size
+                                w-ratio $ / di side
+                                dw $ []
+                                  * dr $ cos angle-perp
+                                  * down $ f-drop w-ratio 1
+                                  * dr $ sin angle-perp
+                                p1 $ let
+                                    t0 $ &let
+                                      t $ / si seg
+                                      f-petal t 2
+                                  v+ (v-scale dw t0)
+                                    v-scale r-vec $ + out (/ si seg)
+                                p2 $ let
+                                    t1 $ &let
+                                      t $ / (inc si) seg
+                                      f-petal t 2
+                                  v+ (v-scale dw t1)
+                                    v-scale r-vec $ + out
+                                      / (inc si) seg
+                                p3 $ let
+                                    dr $ * (inc di) tile-size
+                                    w-ratio $ / (inc di) side
+                                    dw $ []
+                                      * dr $ cos angle-perp
+                                      * down $ f-drop w-ratio 1
+                                      * dr $ sin angle-perp
+                                    t0 $ &let
+                                      t $ / si seg
+                                      f-petal t 2
+                                  v+ (v-scale dw t0)
+                                    v-scale r-vec $ + out (/ si seg)
+                                p4 $ let
+                                    dr $ * (inc di) tile-size
+                                    w-ratio $ / (inc di) side
+                                    dw $ []
+                                      * dr $ cos angle-perp
+                                      * down $ f-drop w-ratio 1
+                                      * dr $ sin angle-perp
+                                    t1 $ &let
+                                      t $ / (inc si) seg
+                                      f-petal t 2
+                                  v+ (v-scale dw t1)
+                                    v-scale r-vec $ + out
+                                      / (inc si) seg
+                              []
+                                {} (:position p1) (:di di)
+                                {} (:position p2) (:di di)
+                                {} (:position p3)
+                                  :di $ inc di
+                                {} (:position p3)
+                                  :di $ inc di
+                                {} (:position p4)
+                                  :di $ inc di
+                                {} (:position p2) (:di di)
+        |xy-length $ quote
+          defn xy-length (xy)
+            let[] (x y) xy $ sqrt
+              + (pow x 2) (pow y 2)
       :ns $ quote
         ns triadica.app.comp.lamps $ :require
           triadica.config :refer $ inline-shader
-          triadica.alias :refer $ object
+          triadica.alias :refer $ object group
           triadica.math :refer $ &v+ v-scale
           triadica.core :refer $ %nested-attribute
           quaternion.core :refer $ v-scale v+
@@ -555,7 +592,7 @@
                   :stitch $ comp-stitch
                     {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
                   :sparklers $ comp-sparklers
-                if-not hide-tabs? $ memof1-call comp-tabs
+                ; if-not hide-tabs? $ memof1-call comp-tabs
                   {}
                     :position $ [] -40 0 0
                     :selected $ :tab store
