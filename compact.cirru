@@ -414,20 +414,14 @@
                                       t0 $ &let
                                         t $ / si seg
                                         f-petal t 2
-                                    v+
-                                      take (v-scale dw t0) 3
-                                      take
-                                        v-scale r-vec $ / si seg
-                                        , 3
+                                    v+ (v-scale dw t0)
+                                      v-scale r-vec $ / si seg
                                   p2 $ let
                                       t1 $ &let
                                         t $ / (inc si) seg
                                         f-petal t 2
-                                    v+
-                                      take (v-scale dw t1) 3
-                                      take
-                                        v-scale r-vec $ / (inc si) seg
-                                        , 3
+                                    v+ (v-scale dw t1)
+                                      v-scale r-vec $ / (inc si) seg
                                   p3 $ let
                                       dr $ * (inc di) tile
                                       w-ratio $ / (inc di) side
@@ -438,11 +432,8 @@
                                       t0 $ &let
                                         t $ / si seg
                                         f-petal t 2
-                                    v+
-                                      take (v-scale dw t0) 3
-                                      take
-                                        v-scale r-vec $ / si seg
-                                        , 3
+                                    v+ (v-scale dw t0)
+                                      v-scale r-vec $ / si seg
                                   p4 $ let
                                       dr $ * (inc di) tile
                                       w-ratio $ / (inc di) side
@@ -453,11 +444,8 @@
                                       t1 $ &let
                                         t $ / (inc si) seg
                                         f-petal t 2
-                                    v+
-                                      take (v-scale dw t1) 3
-                                      take
-                                        v-scale r-vec $ / (inc si) seg
-                                        , 3
+                                    v+ (v-scale dw t1)
+                                      v-scale r-vec $ / (inc si) seg
                                 []
                                   {} (:position p1) (:di di)
                                   {} (:position p2) (:di di)
