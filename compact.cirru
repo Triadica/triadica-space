@@ -405,12 +405,69 @@
                     {}
                       :position $ v-scale ([] x 20 y) 2.4
                       :xy $ [] x y
+        |comp-rose $ quote
+          defn comp-rose () $ group ({}) (; comp-axis)
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"rose.vert"
+              :fragment-shader $ inline-shader "\"rose.frag"
+              :grouped-attributes $ let
+                  petal-size 16
+                -> (range petal-size) (map render-rose-petal)
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"rose-stem.vert"
+              :fragment-shader $ inline-shader "\"rose-stem.frag"
+              :grouped-attributes $ let
+                  nodes $ [] ([] 0 0 0) ([] 11 -40 -11) ([] 20 -120 0) ([] 0 -180 -10) ([] -18 -240 2) ([] 18 -340 2) ([] 0 -400 0)
+                  ring-size 8
+                  d 5
+                ->
+                  range $ dec (count nodes)
+                  map $ fn (idx)
+                    -> (range ring-size)
+                      map $ fn (ring-idx)
+                        let
+                            p $ nth nodes idx
+                            p-next $ nth nodes (+ idx 1)
+                            radian $ / (* 2 &PI ring-idx) ring-size
+                            radian-next $ /
+                              * 2 &PI $ inc ring-idx
+                              , ring-size
+                            p0 $ v+ p
+                              []
+                                * d $ cos radian
+                                , 0 $ * d (sin radian)
+                            p1 $ v+ p
+                              []
+                                * d $ cos radian-next
+                                , 0 $ * d (sin radian-next)
+                            p2 $ v+ p-next
+                              []
+                                * d $ cos radian
+                                , 0 $ * d (sin radian)
+                            p3 $ v+ p-next
+                              []
+                                * d $ cos radian-next
+                                , 0 $ * d (sin radian-next)
+                          []
+                            {} $ :position p0
+                            {} $ :position p1
+                            {} $ :position p2
+                            {} $ :position p2
+                            {} $ :position p1
+                            {} $ :position p3
         |f-drop $ quote
           defn f-drop (x r)
             * r $ - (pow x 2) 1
         |f-petal $ quote
           defn f-petal (t r)
             * r $ - t (pow t 2)
+        |f-top-bend $ quote
+          defn f-top-bend (ratio)
+            let
+                v $ - ratio 0.7
+              if (> v 0)
+                * v $ pow (+ v 1) 0.3
+                , 0
         |range-balanced $ quote
           defn range-balanced (x)
             let
@@ -495,6 +552,114 @@
                                 {} (:position p4)
                                   :di $ inc di
                                 {} (:position p2) (:di di)
+        |render-rose-petal $ quote
+          defn render-rose-petal (idx)
+            let
+                center-height $ + 100 (* 2 idx)
+                center-radius $ + 60 (* 8 idx)
+                center-y-radian $ - (* 0.5 &PI) (* idx 0.08)
+                direction-radian $ + 2
+                  * 18 $ js/Math.log (+ 8 idx)
+                patel-width-ratio $ + 0.7 (* idx 0.08)
+                ring-size 8
+                sector-size 8
+                direction-vector $ []
+                  * center-radius (cos direction-radian) (sin center-y-radian)
+                  * -1 center-height $ cos center-y-radian
+                  * center-radius (sin direction-radian) (sin center-y-radian)
+                center-vector $ v+ ([] 0 center-height 0) direction-vector
+                direction-radian-perp $ + direction-radian (* 0.5 &PI)
+                radius-horizontal-perp $ v-scale
+                  [] (cos direction-radian-perp) 0 $ sin direction-radian-perp
+                  , patel-width-ratio
+                up-vector $ v-normalize (v-cross radius-horizontal-perp direction-vector)
+                direction-length $ v-length direction-vector
+              ; js/console.log idx center-vector center-radius
+              ; js/console.log up-vector
+              -> (range ring-size)
+                map $ fn (ring-idx)
+                  -> (range sector-size)
+                    map $ fn (sector-idx)
+                      let
+                          this-radian $ * center-y-radian (/ ring-idx ring-size)
+                          next-radian $ * center-y-radian
+                            / (inc ring-idx) ring-size
+                          ring-radius $ * direction-length (js/Math.tan this-radian)
+                          ring-radius-next $ * direction-length (js/Math.tan next-radian)
+                          sector-radian $ * 2 &PI (/ sector-idx sector-size)
+                          sector-radian-next $ * 2 &PI
+                            / (inc sector-idx) sector-size
+                          p0 $ let
+                              ring-y-ratio $ * (/ ring-idx ring-size) (sin sector-radian)
+                            v+ ([] 0 center-height 0)
+                              v-scale
+                                v+ direction-vector
+                                  v-scale radius-horizontal-perp $ * ring-radius (cos sector-radian)
+                                  v-scale up-vector $ * ring-radius (sin sector-radian)
+                                js/Math.cos this-radian
+                              v-scale direction-vector $ f-top-bend ring-y-ratio
+                          p1 $ let
+                              ring-y-ratio $ * (/ ring-idx ring-size) (sin sector-radian-next)
+                            v+ ([] 0 center-height 0)
+                              v-scale
+                                v+ direction-vector
+                                  v-scale radius-horizontal-perp $ * ring-radius (cos sector-radian-next)
+                                  v-scale up-vector $ * ring-radius (sin sector-radian-next)
+                                js/Math.cos this-radian
+                              v-scale direction-vector $ f-top-bend ring-y-ratio
+                          p2 $ let
+                              ring-y-ratio $ *
+                                / (inc ring-idx) ring-size
+                                sin sector-radian
+                            v+ ([] 0 center-height 0)
+                              v-scale
+                                v+ direction-vector
+                                  v-scale radius-horizontal-perp $ * ring-radius-next (cos sector-radian)
+                                  v-scale up-vector $ * ring-radius-next (sin sector-radian)
+                                js/Math.cos next-radian
+                              v-scale direction-vector $ f-top-bend ring-y-ratio
+                          p3 $ let
+                              ring-y-ratio $ *
+                                / (inc ring-idx) ring-size
+                                sin sector-radian-next
+                            v+ ([] 0 center-height 0)
+                              v-scale
+                                v+ direction-vector
+                                  v-scale radius-horizontal-perp $ * ring-radius-next (cos sector-radian-next)
+                                  v-scale up-vector $ * ring-radius-next (sin sector-radian-next)
+                                js/Math.cos next-radian
+                              v-scale direction-vector $ f-top-bend ring-y-ratio
+                        []
+                          {} (:idx 1) (:position p0)
+                          {} (:idx 1) (:position p1)
+                          {} (:idx 1) (:position p2)
+                          {} (:idx 1) (:position p2)
+                          {} (:idx 1) (:position p1)
+                          {} (:idx 1) (:position p3)
+        |v-cross $ quote
+          defn v-cross (a b)
+            let-sugar
+                  [] a1 a2 a3
+                  , a
+                ([] b1 b2 b3) b
+              []
+                - (* a2 b3) (* a3 b2)
+                - (* a3 b1) (* a1 b3)
+                - (* a1 b2) (* a2 b1)
+        |v-length $ quote
+          defn v-length (a)
+            let-sugar
+                  [] x y z
+                  , a
+              sqrt $ + (pow x 2) (pow y 2) (pow z 2)
+        |v-normalize $ quote
+          defn v-normalize (a)
+            let-sugar
+                  [] x y z
+                  , a
+                l $ sqrt
+                  + (pow x 2) (pow y 2) (pow z 2)
+              v-scale a $ / 1 l
         |xy-length $ quote
           defn xy-length (xy)
             let[] (x y) xy $ sqrt
@@ -505,6 +670,7 @@
           triadica.alias :refer $ object group
           triadica.math :refer $ &v+ v-scale
           triadica.core :refer $ %nested-attribute
+          triadica.comp.axis :refer $ comp-axis
           quaternion.core :refer $ v-scale v+
     |triadica.app.comp.line-wave $ {}
       :defs $ {}
@@ -579,6 +745,7 @@
                   :fireworks $ memof1-call comp-fireworks
                   :fountain $ comp-fountain
                   :lotus $ comp-lotus
+                  :rose $ comp-rose
                   :drag-point $ group ({})
                     comp-drag-point
                       {} (:ignore-moving? false)
@@ -592,7 +759,7 @@
                   :stitch $ comp-stitch
                     {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
                   :sparklers $ comp-sparklers
-                ; if-not hide-tabs? $ memof1-call comp-tabs
+                if-not hide-tabs? $ memof1-call comp-tabs
                   {}
                     :position $ [] -40 0 0
                     :selected $ :tab store
@@ -637,8 +804,10 @@
               :position $ [] -300 -160 0
             {} (:key :lotus)
               :position $ [] -300 -200 0
+            {} (:key :rose)
+              :position $ [] -200 0 0
             {} (:key :fountain)
-              :position $ [] -300 -240 0
+              :position $ [] -200 -40 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -648,7 +817,7 @@
           triadica.comp.axis :refer $ comp-axis
           triadica.config :refer $ hide-tabs?
           triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
-          triadica.app.comp.lamps :refer $ comp-lamps comp-lotus
+          triadica.app.comp.lamps :refer $ comp-lamps comp-lotus comp-rose
           triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
