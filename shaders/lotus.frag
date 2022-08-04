@@ -23,6 +23,11 @@ void main() {
   // float vv = 1.0/z;
   // gl_FragColor = vec4(vv, vv, vv, 1.0);
 
+  if (abs(v_di) >= 7.7) {
+    gl_FragColor = vec4(hsl2rgb(0.1, 0.8, 0.4), 1.0);
+    return;
+  }
+
   float dd = fract(v_di * 2.8);
 
   if (dd > 0.1) {
