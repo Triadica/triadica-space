@@ -630,12 +630,12 @@
                                 js/Math.cos next-radian
                               v-scale direction-vector $ f-top-bend ring-y-ratio
                         []
-                          {} (:idx 1) (:position p0)
-                          {} (:idx 1) (:position p1)
-                          {} (:idx 1) (:position p2)
-                          {} (:idx 1) (:position p2)
-                          {} (:idx 1) (:position p1)
-                          {} (:idx 1) (:position p3)
+                          {} $ :position p0
+                          {} $ :position p1
+                          {} $ :position p2
+                          {} $ :position p2
+                          {} $ :position p1
+                          {} $ :position p3
         |v-cross $ quote
           defn v-cross (a b)
             let-sugar
