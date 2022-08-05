@@ -213,7 +213,7 @@
           triadica.alias :refer $ group object
           triadica.core :refer $ %nested-attribute
           triadica.config :refer $ inline-shader
-          triadica.math :refer $ &v+ v-scale v-cross &v- v-normalize
+          quaternion.core :refer $ &v+ v-scale v-cross &v- v-normalize
           triadica.comp.drag-point :refer $ comp-slider
     |triadica.app.comp.fireworks $ {}
       :defs $ {}
@@ -636,30 +636,6 @@
                           {} $ :position p2
                           {} $ :position p1
                           {} $ :position p3
-        |v-cross $ quote
-          defn v-cross (a b)
-            let-sugar
-                  [] a1 a2 a3
-                  , a
-                ([] b1 b2 b3) b
-              []
-                - (* a2 b3) (* a3 b2)
-                - (* a3 b1) (* a1 b3)
-                - (* a1 b2) (* a2 b1)
-        |v-length $ quote
-          defn v-length (a)
-            let-sugar
-                  [] x y z
-                  , a
-              sqrt $ + (pow x 2) (pow y 2) (pow z 2)
-        |v-normalize $ quote
-          defn v-normalize (a)
-            let-sugar
-                  [] x y z
-                  , a
-                l $ sqrt
-                  + (pow x 2) (pow y 2) (pow z 2)
-              v-scale a $ / 1 l
         |xy-length $ quote
           defn xy-length (xy)
             let[] (x y) xy $ sqrt
@@ -668,10 +644,9 @@
         ns triadica.app.comp.lamps $ :require
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object group
-          triadica.math :refer $ &v+ v-scale
           triadica.core :refer $ %nested-attribute
           triadica.comp.axis :refer $ comp-axis
-          quaternion.core :refer $ v-scale v+
+          quaternion.core :refer $ v-scale v+ &v+ v-scale v-cross v-length v-normalize
     |triadica.app.comp.line-wave $ {}
       :defs $ {}
         |comp-line-wave $ quote
@@ -709,7 +684,7 @@
                     dec n
       :ns $ quote
         ns triadica.app.comp.line-wave $ :require
-          triadica.math :refer $ v-scale
+          quaternion.core :refer $ v-scale
           triadica.alias :refer $ group object
           triadica.core :refer $ %nested-attribute
           triadica.config :refer $ inline-shader
@@ -1417,7 +1392,8 @@
         ns triadica.comp.drag-point $ :require
           triadica.config :refer $ inline-shader back-cone-scale
           triadica.alias :refer $ group object
-          triadica.math :refer $ &v+ v-cross v-scale v-dot square &v-
+          triadica.math :refer $ square
+          quaternion.core :refer $ &v+ v-cross v-scale v-dot &v-
           triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
     |triadica.comp.stitch $ {}
       :defs $ {}
@@ -1500,7 +1476,8 @@
         ns triadica.comp.stitch $ :require
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ group object
-          triadica.math :refer $ &v+ v-cross v-scale v-dot square &v-
+          quaternion.core :refer $ &v+ v-cross v-scale v-dot &v-
+          triadica.math :refer $ square
           triadica.core :refer $ %nested-attribute
     |triadica.comp.tabs $ {}
       :defs $ {}
@@ -2084,32 +2061,6 @@
         |sum-squares $ quote
           defn sum-squares (a b)
             &+ (&* a a) (&* b b)
-        |v-cross $ quote
-          defn v-cross (v1 v2)
-            let-sugar
-                  [] x1 y1 z1
-                  , v1
-                ([] x2 y2 z2) v2
-              []
-                &- (&* y1 z2) (&* y2 z1)
-                &- (&* x2 z1) (&* x1 z2)
-                &- (&* x1 y2) (&* x2 y1)
-        |v-dot $ quote
-          defn v-dot (v1 v2)
-            let-sugar
-                  [] x1 y1 z1
-                  , v1
-                ([] x2 y2 z2) v2
-              + (&* x1 x2) (&* y1 y2) (&* z1 z2)
-        |v-normalize $ quote
-          defn v-normalize (v)
-            let[] (x y z) v $ let
-                length $ sqrt
-                  + (&* x x) (&* y y) (&* z z)
-              v-scale v $ / 1 length
-        |v-scale $ quote
-          defn v-scale (v s)
-            let[] (x y z) v $ [] (&* x s) (&* y s) (&* z s)
       :ns $ quote
         ns triadica.math $ :require
           triadica.core :refer $ new-lookat-point &v- &v+
@@ -2204,5 +2155,6 @@
               [] x' y' z'
       :ns $ quote
         ns triadica.perspective $ :require
-          triadica.math :refer $ square sum-squares &v- &v+ v-cross v-scale v-dot
+          quaternion.core :refer $ v-cross v-scale v-dot &v- &v+
+          triadica.math :refer $ square sum-squares
           triadica.config :refer $ back-cone-scale half-pi
