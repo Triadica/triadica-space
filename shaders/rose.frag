@@ -6,7 +6,6 @@ precision mediump float;
 
 varying float v_s;
 varying float v_r;
-varying float v_idx;
 varying vec3 v_original_position;
 
 void main() {
