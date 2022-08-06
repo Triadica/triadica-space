@@ -44,6 +44,7 @@
                     g0 $ pick-grouped-attrs grouped-attrs
                     names $ .to-list (keys g0)
                     size $ count-recursive grouped-attrs
+                    *local-array-counter $ atom 0
                     collect! $ fn (info)
                       let
                           idx @*local-array-counter
@@ -75,7 +76,6 @@
                                   aget ret $ turn-string name
                                   , idx $ nth d 0
                               true $ js/console.log "\"Unknown data to build:" name d
-                  reset! *local-array-counter 0
                   &doseq (name names)
                     aset ret (turn-string name)
                       .!createAugmentedTypedArray twgl/primitives
@@ -96,8 +96,6 @@
           triadica.core :refer $ create-attribute-array count-recursive *local-array-counter
     |triadica.app.comp.branches $ {}
       :defs $ {}
-        |*points-buffer $ quote
-          defatom *points-buffer $ []
         |build-multiple-path $ quote
           defn build-multiple-path (max-level parts info)
             let-sugar
@@ -1582,10 +1580,6 @@
         |*draw-fb $ quote (defatom *draw-fb nil)
         |*effect-x-fb $ quote (defatom *effect-x-fb nil)
         |*effect-y-fb $ quote (defatom *effect-y-fb nil)
-        |*hit-targets-buffer $ quote
-          defatom *hit-targets-buffer $ []
-        |*local-array-counter $ quote (defatom *local-array-counter 0)
-        |*tmp-changes $ quote (defatom *tmp-changes nil)
         |>> $ quote
           defn >> (states k)
             let
@@ -1623,6 +1617,7 @@
                     &/ (count-recursive data) augment
                   total $ * augment length
                   position-array $ .!createAugmentedTypedArray twgl/primitives augment length
+                  *local-array-counter $ atom 0
                   write-array! $ fn (v)
                     let
                         i @*local-array-counter
@@ -1630,7 +1625,6 @@
                         raise $ str "\"too large index to write for augmented array:" i "\" >= " total
                       aset position-array i v
                     swap! *local-array-counter inc
-                reset! *local-array-counter 0
                 mutably-write-array! data write-array!
                 if (not= @*local-array-counter total) (js/console.warn "\"expected size" @*local-array-counter "\"written to array with size" total)
                 , position-array
@@ -1693,7 +1687,7 @@
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
                 scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
-              reset! *hit-targets-buffer $ []
+                *hit-targets-buffer $ atom ([])
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   if-let
@@ -1727,7 +1721,7 @@
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
                 scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
-              reset! *hit-targets-buffer $ []
+                *hit-targets-buffer $ atom ([])
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   if-let
