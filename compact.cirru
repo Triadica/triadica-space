@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.9)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.10)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -411,6 +411,9 @@
               :grouped-attributes $ let
                   petal-size 16
                 -> (range petal-size) (map render-rose-petal)
+              :get-uniforms $ fn ()
+                js-object $ :time
+                  &* 0.001 $ js/performance.now
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"rose-stem.vert"
               :fragment-shader $ inline-shader "\"rose-stem.frag"
@@ -628,12 +631,12 @@
                                 js/Math.cos next-radian
                               v-scale direction-vector $ f-top-bend ring-y-ratio
                         []
-                          {} $ :position p0
-                          {} $ :position p1
-                          {} $ :position p2
-                          {} $ :position p2
-                          {} $ :position p1
-                          {} $ :position p3
+                          {} (:position p0) (:direction direction-vector)
+                          {} (:position p1) (:direction direction-vector)
+                          {} (:position p2) (:direction direction-vector)
+                          {} (:position p2) (:direction direction-vector)
+                          {} (:position p1) (:direction direction-vector)
+                          {} (:position p3) (:direction direction-vector)
         |xy-length $ quote
           defn xy-length (xy)
             let[] (x y) xy $ sqrt
@@ -1527,7 +1530,7 @@
       :defs $ {}
         |*shader-programs $ quote
           defatom *shader-programs $ {}
-        |back-cone-scale $ quote (def back-cone-scale 1)
+        |back-cone-scale $ quote (def back-cone-scale 0.5)
         |cached-build-program $ quote
           defn cached-build-program (gl vs fs)
             let
@@ -1548,6 +1551,8 @@
           def glsl-noises-code $ inline-shader "\"triadica-noises.glsl"
         |glsl-perspective-code $ quote
           def glsl-perspective-code $ inline-shader "\"triadica-perspective.glsl"
+        |glsl-rotation-code $ quote
+          def glsl-rotation-code $ inline-shader "\"triadica-rotation.glsl"
         |half-pi $ quote
           def half-pi $ * 0.5 &PI
         |hide-tabs? $ quote
@@ -1570,7 +1575,7 @@
             -> fs (.!replace "\"{{triadica_colors}}" glsl-colors-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code)
         |replace-vertex-shader $ quote
           defn replace-vertex-shader (vs)
-            -> vs (.!replace "\"{{triadica_perspective}}" glsl-perspective-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code)
+            -> vs (.!replace "\"{{triadica_perspective}}" glsl-perspective-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code) (.!replace "\"{{triadica_rotation}}" glsl-rotation-code)
       :ns $ quote
         ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect) ("\"twgl.js" :as twgl)
           triadica.$meta :refer $ calcit-dirname
