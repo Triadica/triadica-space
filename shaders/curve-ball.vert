@@ -12,14 +12,6 @@ float square(float a) {
   return a * a;
 }
 
-float sumSquares2(float a, float b) {
-  return a * a + b * b;
-}
-
-float sumSquares3(float a, float b, float c) {
-  return a * a + b * b + c * c;
-}
-
 const float PI = 3.14159265358979323846;
 
 float normal_distribution(float d, float sigma) {
@@ -42,7 +34,7 @@ vec3 spin(vec3 v, vec3 axis, float rotation, float sigma) {
   float a = axis.x;
   float b = axis.y;
   float c = axis.z;
-  float r = (a*x + b*y + c*z) / sumSquares3(a, b, c);
+  float r = (a*x + b*y + c*z) / (a*a + b*b + c*c);
   vec3 perpendicular = vec3(a*r, b*r, c*r);
 
   vec3 x_of_rot = v - perpendicular;

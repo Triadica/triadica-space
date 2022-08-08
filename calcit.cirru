@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.9)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.10)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :ir $ {} (:package |triadica)
@@ -3074,6 +3074,27 @@
                                         :data $ {}
                                           |D $ {} (:at 1659587112057) (:by |u0) (:text |map) (:type :leaf)
                                           |P $ {} (:at 1659596991563) (:by |u0) (:text |render-rose-petal) (:type :leaf)
+                          |q $ {} (:at 1659869614313) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1659869614313) (:by |u0) (:text |:get-uniforms) (:type :leaf)
+                              |b $ {} (:at 1659869614313) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1659869614313) (:by |u0) (:text |fn) (:type :leaf)
+                                  |b $ {} (:at 1659869614313) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                  |h $ {} (:at 1659869614313) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1659869614313) (:by |u0) (:text |js-object) (:type :leaf)
+                                      |b $ {} (:at 1659869614313) (:by |u0) (:type :expr)
+                                        :data $ {}
+                                          |T $ {} (:at 1659869614313) (:by |u0) (:text |:time) (:type :leaf)
+                                          |b $ {} (:at 1659869614313) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1659869614313) (:by |u0) (:text |&*) (:type :leaf)
+                                              |b $ {} (:at 1659869614313) (:by |u0) (:text |0.001) (:type :leaf)
+                                              |h $ {} (:at 1659869614313) (:by |u0) (:type :expr)
+                                                :data $ {}
+                                                  |T $ {} (:at 1659869614313) (:by |u0) (:text |js/performance.now) (:type :leaf)
                   |l $ {} (:at 1659585182132) (:by |u0) (:type :expr)
                     :data $ {}
                       |T $ {} (:at 1659585182132) (:by |u0) (:text |object) (:type :leaf)
@@ -4763,6 +4784,10 @@
                                                         :data $ {}
                                                           |T $ {} (:at 1659600121011) (:by |u0) (:text |:position) (:type :leaf)
                                                           |b $ {} (:at 1659602979401) (:by |u0) (:text |p0) (:type :leaf)
+                                                      |l $ {} (:at 1659869171866) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1659869175078) (:by |u0) (:text |:direction) (:type :leaf)
+                                                          |b $ {} (:at 1659869175920) (:by |u0) (:text |direction-vector) (:type :leaf)
                                                   |V $ {} (:at 1659600121011) (:by |u0) (:type :expr)
                                                     :data $ {}
                                                       |T $ {} (:at 1659600121011) (:by |u0) (:text |{}) (:type :leaf)
@@ -4770,6 +4795,10 @@
                                                         :data $ {}
                                                           |T $ {} (:at 1659600121011) (:by |u0) (:text |:position) (:type :leaf)
                                                           |b $ {} (:at 1659602981275) (:by |u0) (:text |p1) (:type :leaf)
+                                                      |l $ {} (:at 1659869182163) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1659869182163) (:by |u0) (:text |:direction) (:type :leaf)
+                                                          |b $ {} (:at 1659869182163) (:by |u0) (:text |direction-vector) (:type :leaf)
                                                   |c $ {} (:at 1659600121011) (:by |u0) (:type :expr)
                                                     :data $ {}
                                                       |T $ {} (:at 1659600121011) (:by |u0) (:text |{}) (:type :leaf)
@@ -4777,6 +4806,10 @@
                                                         :data $ {}
                                                           |T $ {} (:at 1659600121011) (:by |u0) (:text |:position) (:type :leaf)
                                                           |b $ {} (:at 1659602982573) (:by |u0) (:text |p2) (:type :leaf)
+                                                      |l $ {} (:at 1659869183117) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1659869183117) (:by |u0) (:text |:direction) (:type :leaf)
+                                                          |b $ {} (:at 1659869183117) (:by |u0) (:text |direction-vector) (:type :leaf)
                                                   |h $ {} (:at 1659600121011) (:by |u0) (:type :expr)
                                                     :data $ {}
                                                       |T $ {} (:at 1659600121011) (:by |u0) (:text |{}) (:type :leaf)
@@ -4784,6 +4817,10 @@
                                                         :data $ {}
                                                           |T $ {} (:at 1659600121011) (:by |u0) (:text |:position) (:type :leaf)
                                                           |b $ {} (:at 1659602984111) (:by |u0) (:text |p2) (:type :leaf)
+                                                      |l $ {} (:at 1659869184255) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1659869184255) (:by |u0) (:text |:direction) (:type :leaf)
+                                                          |b $ {} (:at 1659869184255) (:by |u0) (:text |direction-vector) (:type :leaf)
                                                   |l $ {} (:at 1659600121011) (:by |u0) (:type :expr)
                                                     :data $ {}
                                                       |T $ {} (:at 1659600121011) (:by |u0) (:text |{}) (:type :leaf)
@@ -4791,6 +4828,10 @@
                                                         :data $ {}
                                                           |T $ {} (:at 1659600121011) (:by |u0) (:text |:position) (:type :leaf)
                                                           |b $ {} (:at 1659602985493) (:by |u0) (:text |p1) (:type :leaf)
+                                                      |l $ {} (:at 1659869185541) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1659869185541) (:by |u0) (:text |:direction) (:type :leaf)
+                                                          |b $ {} (:at 1659869185541) (:by |u0) (:text |direction-vector) (:type :leaf)
                                                   |o $ {} (:at 1659600121011) (:by |u0) (:type :expr)
                                                     :data $ {}
                                                       |T $ {} (:at 1659600121011) (:by |u0) (:text |{}) (:type :leaf)
@@ -4798,6 +4839,10 @@
                                                         :data $ {}
                                                           |T $ {} (:at 1659600121011) (:by |u0) (:text |:position) (:type :leaf)
                                                           |b $ {} (:at 1659602986978) (:by |u0) (:text |p3) (:type :leaf)
+                                                      |l $ {} (:at 1659869187482) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1659869187482) (:by |u0) (:text |:direction) (:type :leaf)
+                                                          |b $ {} (:at 1659869187482) (:by |u0) (:text |direction-vector) (:type :leaf)
           |xy-length $ {} (:at 1659546128092) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1659546129679) (:by |u0) (:text |defn) (:type :leaf)
@@ -11942,7 +11987,7 @@
             :data $ {}
               |T $ {} (:at 1654954275017) (:by |u0) (:text |def) (:type :leaf)
               |b $ {} (:at 1654954273477) (:by |u0) (:text |back-cone-scale) (:type :leaf)
-              |h $ {} (:at 1656607336473) (:by |u0) (:text |1) (:type :leaf)
+              |h $ {} (:at 1659870473797) (:by |u0) (:text |0.5) (:type :leaf)
           |cached-build-program $ {} (:at 1657120637191) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1657120637191) (:by |u0) (:text |defn) (:type :leaf)
@@ -12058,6 +12103,14 @@
                 :data $ {}
                   |T $ {} (:at 1657641892493) (:by |u0) (:text |inline-shader) (:type :leaf)
                   |b $ {} (:at 1657641905197) (:by |u0) (:text "|\"triadica-perspective.glsl") (:type :leaf)
+          |glsl-rotation-code $ {} (:at 1659869375258) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1659869375258) (:by |u0) (:text |def) (:type :leaf)
+              |b $ {} (:at 1659869375258) (:by |u0) (:text |glsl-rotation-code) (:type :leaf)
+              |h $ {} (:at 1659869377538) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1659869377538) (:by |u0) (:text |inline-shader) (:type :leaf)
+                  |b $ {} (:at 1659869383443) (:by |u0) (:text "|\"triadica-rotation.glsl") (:type :leaf)
           |half-pi $ {} (:at 1651658419548) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1651658419548) (:by |u0) (:text |def) (:type :leaf)
@@ -12211,6 +12264,11 @@
                       |T $ {} (:at 1657642023862) (:by |u0) (:text |.!replace) (:type :leaf)
                       |b $ {} (:at 1657642062196) (:by |u0) (:text "|\"{{triadica_noises}}") (:type :leaf)
                       |h $ {} (:at 1657642070417) (:by |u0) (:text |glsl-noises-code) (:type :leaf)
+                  |h $ {} (:at 1657642020633) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1657642023862) (:by |u0) (:text |.!replace) (:type :leaf)
+                      |b $ {} (:at 1659869368022) (:by |u0) (:text "|\"{{triadica_rotation}}") (:type :leaf)
+                      |h $ {} (:at 1659869374922) (:by |u0) (:text |glsl-rotation-code) (:type :leaf)
         :ns $ {} (:at 1651655780439) (:by |u0) (:type :expr)
           :data $ {}
             |T $ {} (:at 1651655780439) (:by |u0) (:text |ns) (:type :leaf)
