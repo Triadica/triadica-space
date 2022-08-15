@@ -105,8 +105,12 @@
                 regress 0.38
                 delta-angle $ / (* 2 &PI) parts
                 branch-angle 1.57
+                color-index max-level
                 main-branch $ wo-log
-                  [] position $ &v+ position (v-scale forward length)
+                  []
+                    {} (:color_index color-index) (:position position)
+                    {} (:color_index color-index)
+                      :position $ &v+ position (v-scale forward length)
                 side-branches $ ->
                   range 1 $ inc parts
                   map $ fn (n)
@@ -137,7 +141,10 @@
                 regress 0.74
                 segments 4
                 main-branch $ wo-log
-                  [] position $ &v+ position (v-scale forward length)
+                  []
+                    {} $ :position position
+                    {} $ :position
+                      &v+ position $ v-scale forward length
                 side-branches $ ->
                   range 1 $ inc segments
                   map $ fn (n)
@@ -154,7 +161,9 @@
                           v-scale forward $ js/Math.cos branch-angle
                           v-scale side-base $ js/Math.sin branch-angle
                         branch $ -> side-forward (v-scale side-length)
-                      [] base (&v+ base branch)
+                      []
+                        {} $ :position base
+                        {} $ :position (&v+ base branch)
                         if (<= max-level 0) ([])
                           build-path (dec max-level) branch-angle $ {} (:position base) (:length side-length) (:forward side-forward)
                             :upward $ v-normalize
@@ -169,17 +178,16 @@
                   {} $ :angle 0.7
                 max-level 3
                 branch-angle $ :angle state
-                points $ build-path max-level branch-angle
-                  {}
-                    :position $ [] 0 0 0
-                    :length 800
-                    :forward $ [] 0 1 0
-                    :upward $ [] 1 0 0
               group ({})
                 object $ {} (:draw-mode :lines)
                   :vertex-shader $ inline-shader "\"lines.vert"
                   :fragment-shader $ inline-shader "\"lines.frag"
-                  :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
+                  :grouped-attributes $ build-path max-level branch-angle
+                    {}
+                      :position $ [] 0 0 0
+                      :length 800
+                      :forward $ [] 0 1 0
+                      :upward $ [] 1 0 0
                 comp-slider
                   {} $ :position ([] 200 0 0)
                   fn (data d!)
@@ -189,27 +197,19 @@
           defn comp-multiple-branches () $ let-sugar
               max-level 6
               parts 8
-              points $ build-multiple-path max-level parts
-                {}
-                  :position $ [] 0 -400 0
-                  :length 400
-                  :forward $ [] 0 1 0
-                  :upward $ [] 1 0 0
             group ({})
               object $ {} (:draw-mode :lines)
                 :vertex-shader $ inline-shader "\"branches.vert"
                 :fragment-shader $ inline-shader "\"branches.frag"
-                :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
-                :attributes $ {}
-                  :color_index $ %{} %nested-attribute (:augment 1) (:length nil)
-                    :data $ ->
-                      range $ inc max-level
-                      map $ fn (n)
-                        repeat ([] n n) (pow parts n)
+                :grouped-attributes $ build-multiple-path max-level parts
+                  {}
+                    :position $ [] 0 -400 0
+                    :length 400
+                    :forward $ [] 0 1 0
+                    :upward $ [] 1 0 0
       :ns $ quote
         ns triadica.app.comp.branches $ :require
           triadica.alias :refer $ group object
-          triadica.core :refer $ %nested-attribute
           triadica.config :refer $ inline-shader
           quaternion.core :refer $ &v+ v-scale v-cross &v- v-normalize
           triadica.comp.drag-point :refer $ comp-slider
@@ -290,7 +290,7 @@
                   &* 0.00737 $ js/performance.now
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
-          triadica.core :refer $ %nested-attribute count-recursive
+          triadica.core :refer $ count-recursive
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object group
           triadica.math :refer $ v-scale &v+
@@ -318,68 +318,64 @@
               :get-uniforms $ fn ()
                 js-object $ :time
                   &* 0.0001 $ js/performance.now
-              :points $ %{} %nested-attribute (:augment 3)
-                :length $ *
-                  + (* 8 6) (* 6 3)
-                  count grid
-                :data $ -> grid
-                  map $ fn (position)
-                    let
-                        base $ v-scale position 600
-                      []
-                        -> (range 8)
-                          map $ fn (i)
-                            let
-                                i' $ inc i
-                                p0 $ &v+ base
-                                  []
-                                    * r-bottom $ cos (* i angle0)
-                                    , 0 $ * r-bottom
-                                      sin $ * i angle0
-                                p1 $ &v+ base
-                                  []
-                                    * r-bottom $ cos (* i' angle0)
-                                    , 0 $ * r-bottom
-                                      sin $ * i' angle0
-                                p2 $ &v+ base
-                                  []
-                                    * r-top $ cos (* i angle0)
-                                    , h $ * r-top
-                                      sin $ * i angle0
-                                p3 $ &v+ base
-                                  []
-                                    * r-top $ cos (* i' angle0)
-                                    , h $ * r-top
-                                      sin $ * i' angle0
-                              [] p0 p1 p2 p1 p3 p2
-                        -> (range 6)
-                          map $ fn (i)
+              :grouped-attributes $ -> grid
+                map $ fn (position)
+                  let
+                      base $ v-scale position 600
+                    []
+                      -> (range 8)
+                        map $ fn (i)
+                          let
+                              i' $ inc i
+                              p0 $ &v+ base
+                                []
+                                  * r-bottom $ cos (* i angle0)
+                                  , 0 $ * r-bottom
+                                    sin $ * i angle0
+                              p1 $ &v+ base
+                                []
+                                  * r-bottom $ cos (* i' angle0)
+                                  , 0 $ * r-bottom
+                                    sin $ * i' angle0
+                              p2 $ &v+ base
+                                []
+                                  * r-top $ cos (* i angle0)
+                                  , h $ * r-top
+                                    sin $ * i angle0
+                              p3 $ &v+ base
+                                []
+                                  * r-top $ cos (* i' angle0)
+                                  , h $ * r-top
+                                    sin $ * i' angle0
                             []
-                              &v+ base $ []
-                                * r-top $ cos 0
-                                , h
-                                  * r-top $ sin 0
-                              &v+ base $ []
-                                * r-top $ cos
-                                  * (inc i) angle0
-                                , h
-                                  * r-top $ sin
+                              {} (:position p0) (:center base)
+                              {} (:position p1) (:center base)
+                              {} (:position p2) (:center base)
+                              {} (:position p1) (:center base)
+                              {} (:position p3) (:center base)
+                              {} (:position p2) (:center base)
+                      -> (range 6)
+                        map $ fn (i)
+                          []
+                            {} (:center base)
+                              :position $ &v+ base
+                                []
+                                  * r-top $ cos 0
+                                  , h $ * r-top (sin 0)
+                            {} (:center base)
+                              :position $ &v+ base
+                                []
+                                  * r-top $ cos
                                     * (inc i) angle0
-                              &v+ base $ []
-                                * r-top $ cos
-                                  * (+ 2 i) angle0
-                                , h
-                                  * r-top $ sin
+                                  , h $ * r-top
+                                    sin $ * (inc i) angle0
+                            {} (:center base)
+                              :position $ &v+ base
+                                []
+                                  * r-top $ cos
                                     * (+ 2 i) angle0
-              :attributes $ {}
-                :center $ %{} %nested-attribute (:augment 3)
-                  :length $ *
-                    + (* 8 6) (* 6 3)
-                    count grid
-                  :data $ -> grid
-                    map $ fn (position)
-                      repeat (v-scale position 600)
-                        + (* 8 6) (* 6 3)
+                                  , h $ * r-top
+                                    sin $ * (+ 2 i) angle0
         |comp-lotus $ quote
           defn comp-lotus () $ group ({})
             object $ {} (:draw-mode :triangles)
@@ -645,7 +641,6 @@
         ns triadica.app.comp.lamps $ :require
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object group
-          triadica.core :refer $ %nested-attribute
           triadica.comp.axis :refer $ comp-axis
           quaternion.core :refer $ v-scale v+ &v+ v-scale v-cross v-length v-normalize
     |triadica.app.comp.line-wave $ {}
@@ -654,14 +649,10 @@
           defn comp-line-wave () (; js/console.log "\"data" data)
             let
                 size 400000
-                points $ gen-lorenz-seq size 0.004 10 28 (/ 8 3) 40
               object $ {} (:draw-mode :line-strip)
                 :vertex-shader $ inline-shader "\"line-wave.vert"
                 :fragment-shader $ inline-shader "\"line-wave.frag"
-                :points $ %{} %nested-attribute (:augment 3) (:length nil) (:data points)
-                :attributes $ {}
-                  :color_index $ map (range size)
-                    fn (x) (&/ x size)
+                :grouped-attributes $ gen-lorenz-seq size 0.004 10 28 (/ 8 3) 40
         |gen-lorenz-seq $ quote
           defn gen-lorenz-seq (steps dt a b c scale)
             apply-args
@@ -678,7 +669,9 @@
                     dz $ &* dt
                       &- (&* x y) (&* c z)
                   recur
-                    conj acc $ v-scale ([] x y z) scale
+                    conj acc $ {}
+                      :position $ v-scale ([] x y z) scale
+                      :color_index $ - 1 (/ n steps)
                     &+ x dx
                     &+ y dy
                     &+ z dz
@@ -687,7 +680,6 @@
         ns triadica.app.comp.line-wave $ :require
           quaternion.core :refer $ v-scale
           triadica.alias :refer $ group object
-          triadica.core :refer $ %nested-attribute
           triadica.config :refer $ inline-shader
     |triadica.app.container $ {}
       :defs $ {}
@@ -989,19 +981,18 @@
                         , -100
                       p+d $ &v+ p ([] 4 4 0)
                       p'+d $ &v+ p' ([] 4 4 0)
-                    [] p p' p'+d p p+d p'+d
+                    []
+                      {} (:position p) (:radian i)
+                      {} (:position p') (:radian i)
+                      {} (:position p'+d) (:radian i)
+                      {} (:position p) (:radian i)
+                      {} (:position p+d) (:radian i)
+                      {} (:position p'+d) (:radian i)
               position $ [] 0 0 0
             object $ {} (:draw-mode :triangles) (; :draw-mode :line-strip)
               :vertex-shader $ inline-shader "\"curve-ball.vert"
               :fragment-shader $ inline-shader "\"curve-ball.frag"
-              :points $ %{} %nested-attribute (:augment 3)
-                :length $ * 6 size
-                :data geo
-              :attributes $ {}
-                :radian $ %{} %nested-attribute (:augment 1)
-                  :length $ * 6 size
-                  :data $ -> radians
-                    map $ fn (i) ([] i i i i i i)
+              :grouped-attributes geo
         |fiber-bending $ quote
           defn fiber-bending () $ let
               size 300
@@ -1036,24 +1027,25 @@
                               &* rw-next $ cos (* rj+1-next 2 &PI)
                               , rh-next
                                 &* rw-next $ sin (* rj+1-next 2 &PI)
-                          [] p0
-                            []
-                              &* rw $ cos (* rj+1 2 &PI)
-                              , rh $ &* rw
-                                sin $ * rj+1 2 &PI
-                            , p4 p0
+                          []
+                            {} $ :position p0
+                            {} $ :position
+                              []
+                                &* rw $ cos (* rj+1 2 &PI)
+                                , rh $ &* rw
+                                  sin $ * rj+1 2 &PI
+                            {} $ :position p4
+                            {} $ :position p0
+                            {} $ :position
                               []
                                 &* rw-next $ cos (* rj-next 2 &PI)
                                 , rh-next $ &* rw-next
                                   sin $ * rj-next 2 &PI
-                              , p4
+                            {} $ :position p4
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"fiber-bending.vert"
               :fragment-shader $ inline-shader "\"fiber-bending.frag"
-              :points $ %{} %nested-attribute
-                :length $ * 6 seg-size (count segments)
-                :augment 3
-                :data segments
+              :grouped-attributes segments
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -1110,32 +1102,25 @@
                               &* rw-next $ cos (* rj+1-next 2 &PI)
                               , 0
                                 &* rw-next $ sin (* rj+1-next 2 &PI)
-                          [] p0
-                            []
-                              &* rw $ cos (* rj+1 2 &PI)
-                              , 0 $ &* rw
-                                sin $ * rj+1 2 &PI
-                            , p4 p0
+                          []
+                            {} $ :position p0
+                            {} $ :position
+                              []
+                                &* rw $ cos (* rj+1 2 &PI)
+                                , 0 $ &* rw
+                                  sin $ * rj+1 2 &PI
+                            {} $ :position p4
+                            {} $ :position p0
+                            {} $ :position
                               []
                                 &* rw-next $ cos (* rj-next 2 &PI)
                                 , 0 $ &* rw-next
                                   sin $ * rj-next 2 &PI
-                              , p4
+                            {} $ :position p4
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"mushroom.vert"
               :fragment-shader $ inline-shader "\"mushroom.frag"
-              :points $ %{} %nested-attribute
-                :length $ * 6 seg-size (count segments)
-                :augment 3
-                :data segments
-              ; :attributes $ {}
-                :number $ %{} %nested-attribute
-                  :length $ * 3 6 seg-size (count segments)
-                  :augment 1
-                  :data $ []
-                    repeat 0 $ * 6 seg-size (count segments)
-                    repeat 1 $ * 6 seg-size (count segments)
-                    repeat 2 $ * 6 seg-size (count segments)
+              :grouped-attributes segments
         |plate-bending $ quote
           defn plate-bending () $ let
               size 600
@@ -1166,24 +1151,25 @@
                               &* rw-next $ cos (* rj+1-next 2 &PI)
                               , 0
                                 &* rw-next $ sin (* rj+1-next 2 &PI)
-                          [] p0
-                            []
-                              &* rw $ cos (* rj+1 2 &PI)
-                              , 0 $ &* rw
-                                sin $ * rj+1 2 &PI
-                            , p4 p0
+                          []
+                            {} $ :position p0
+                            {} $ :position
+                              []
+                                &* rw $ cos (* rj+1 2 &PI)
+                                , 0 $ &* rw
+                                  sin $ * rj+1 2 &PI
+                            {} $ :position p4
+                            {} $ :position p0
+                            {} $ :position
                               []
                                 &* rw-next $ cos (* rj-next 2 &PI)
                                 , 0 $ &* rw-next
                                   sin $ * rj-next 2 &PI
-                              , p4
+                            {} $ :position p4
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"plate-bending.vert"
               :fragment-shader $ inline-shader "\"plate-bending.frag"
-              :points $ %{} %nested-attribute
-                :length $ * 6 seg-size (count segments)
-                :augment 3
-                :data segments
+              :grouped-attributes segments
         |spin-city $ quote
           defn spin-city () $ let
               seed $ [] ([] 4 1) ([] 5 1) ([] 6 2) ([] 8 1) ([] 9 3) ([] 12 1) ([] 13 1) ([] 14 2) ([] 16 2)
@@ -1247,7 +1233,6 @@
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object
           triadica.math :refer $ &v+
-          triadica.core :refer $ %nested-attribute
           triadica.global :refer $ *dirty-uniforms
     |triadica.comp.axis $ {}
       :defs $ {}
@@ -1262,7 +1247,6 @@
           triadica.alias :refer $ group object
           triadica.config :refer $ inline-shader
           triadica.math :refer $ &v+
-          triadica.core :refer $ %nested-attribute
     |triadica.comp.drag-point $ {}
       :defs $ {}
         |*drag-cache $ quote
@@ -1410,12 +1394,12 @@
                 object $ {} (:draw-mode :triangles)
                   :vertex-shader $ inline-shader "\"stitch-bg.vert"
                   :fragment-shader $ inline-shader "\"stitch-bg.frag"
-                  :points $ %{} %nested-attribute (:augment 3) (:length nil)
-                    :data $ map-indexed chars
-                      fn (idx c)
-                        ->
-                          [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
-                          map $ fn (x)
+                  :grouped-attributes $ map-indexed chars
+                    fn (idx c)
+                      ->
+                        [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
+                        map $ fn (x)
+                          {} $ :position
                             &v+
                               &v+ (v-scale x size) position
                               v-scale
@@ -1424,31 +1408,26 @@
                 object $ {} (:draw-mode :triangles)
                   :vertex-shader $ inline-shader "\"stitch-line.vert"
                   :fragment-shader $ inline-shader "\"stitch-line.frag"
-                  :points $ %{} %nested-attribute (:augment 3) (:length nil)
-                    :data $ map-indexed chars
-                      fn (idx c)
+                  :grouped-attributes $ map-indexed chars
+                    fn (idx c)
+                      let
+                          pattern $ .!padStart
+                            .!slice (&number:display-by c 2) 2
+                            , 32 "\"0"
                         -> stitch-strokes $ map
-                          fn (x)
-                            &v+
-                              &v+ (v-scale x s0) position
-                              v-scale
-                                [] (+ size gap) 0 0
-                                , idx
-                  :attributes $ {}
-                    :value $ %{} %nested-attribute (:augment 1) (:length nil)
-                      :data $ map chars
-                        fn (i)
-                          let
-                              pattern $ .!padStart
-                                .!slice (&number:display-by i 2) 2
-                                , 32 "\"0"
-                            -> (range 32)
-                              map $ fn (idx)
-                                repeat
-                                  if
-                                    = "\"1" $ get pattern idx
-                                    , 1 0
-                                  , 6
+                          fn (info)
+                            let
+                                x $ :position info
+                                data-idx $ :data info
+                              {}
+                                :position $ &v+
+                                  &v+ (v-scale x s0) position
+                                  v-scale
+                                    [] (+ size gap) 0 0
+                                    , idx
+                                :value $ if
+                                  = "\"1" $ get pattern data-idx
+                                  , 1 0
         |stitch-strokes $ quote
           def stitch-strokes $ let
               shift 0.2
@@ -1460,26 +1439,51 @@
                         base $ []
                           + 1 $ * j 2
                           - (* i -2) 1
+                        base-idx $ * 2
+                          + (* i 4) j
                       []
-                        &v+ base $ [] 0.2 0.2 shift
-                        &v+ base $ [] -0.2 -0.2 shift
-                        &v+ base $ [] 2.2 -1.8 shift
-                        &v+ base $ [] -0.2 -0.2 shift
-                        &v+ base $ [] 2.2 -1.8 shift
-                        &v+ base $ [] 1.8 -2.2 shift
-                        &v+ base $ [] 1.8 0.2 shift
-                        &v+ base $ [] 2.2 -0.2 shift
-                        &v+ base $ [] -0.2 -1.8 shift
-                        &v+ base $ [] 2.2 -0.2 shift
-                        &v+ base $ [] 0.2 -2.2 shift
-                        &v+ base $ [] -0.2 -1.8 shift
+                        {}
+                          :position $ &v+ base ([] 0.2 0.2 shift)
+                          :data base-idx
+                        {}
+                          :position $ &v+ base ([] -0.2 -0.2 shift)
+                          :data base-idx
+                        {}
+                          :position $ &v+ base ([] 2.2 -1.8 shift)
+                          :data base-idx
+                        {}
+                          :position $ &v+ base ([] -0.2 -0.2 shift)
+                          :data base-idx
+                        {}
+                          :position $ &v+ base ([] 2.2 -1.8 shift)
+                          :data base-idx
+                        {}
+                          :position $ &v+ base ([] 1.8 -2.2 shift)
+                          :data base-idx
+                        {}
+                          :position $ &v+ base ([] 1.8 0.2 shift)
+                          :data $ inc base-idx
+                        {}
+                          :position $ &v+ base ([] 2.2 -0.2 shift)
+                          :data $ inc base-idx
+                        {}
+                          :position $ &v+ base ([] -0.2 -1.8 shift)
+                          :data $ inc base-idx
+                        {}
+                          :position $ &v+ base ([] 2.2 -0.2 shift)
+                          :data $ inc base-idx
+                        {}
+                          :position $ &v+ base ([] 0.2 -2.2 shift)
+                          :data $ inc base-idx
+                        {}
+                          :position $ &v+ base ([] -0.2 -1.8 shift)
+                          :data $ inc base-idx
       :ns $ quote
         ns triadica.comp.stitch $ :require
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ group object
           quaternion.core :refer $ &v+ v-cross v-scale v-dot &v-
           triadica.math :refer $ square
-          triadica.core :refer $ %nested-attribute
     |triadica.comp.tabs $ {}
       :defs $ {}
         |comp-tabs $ quote
@@ -1581,7 +1585,6 @@
           triadica.$meta :refer $ calcit-dirname
     |triadica.core $ {}
       :defs $ {}
-        |%nested-attribute $ quote (defrecord %nested-attribute :augment :length :data)
         |*draw-fb $ quote (defatom *draw-fb nil)
         |*effect-x-fb $ quote (defatom *effect-x-fb nil)
         |*effect-y-fb $ quote (defatom *effect-y-fb nil)
@@ -1613,57 +1616,37 @@
               , 1
         |create-attribute-array $ quote
           defn create-attribute-array (points)
-            if
-              and (record? points) (&record:matches? %nested-attribute points)
-              let
-                  augment $ &record:get points :augment
-                  data $ &record:get points :data
-                  length $ or (&record:get points :length)
-                    &/ (count-recursive data) augment
-                  total $ * augment length
-                  position-array $ .!createAugmentedTypedArray twgl/primitives augment length
-                  *local-array-counter $ atom 0
-                  write-array! $ fn (v)
-                    let
-                        i @*local-array-counter
-                      if (>= i total)
-                        raise $ str "\"too large index to write for augmented array:" i "\" >= " total
-                      aset position-array i v
-                    swap! *local-array-counter inc
-                mutably-write-array! data write-array!
-                if (not= @*local-array-counter total) (js/console.warn "\"expected size" @*local-array-counter "\"written to array with size" total)
-                , position-array
-              let
-                  p0 $ first points
-                cond
-                    list? p0
-                    let
-                        pps $ &list:flatten points
-                        num $ count p0
-                        position-array $ .!createAugmentedTypedArray twgl/primitives num (count points)
-                      loop
-                          idx 0
-                          xs pps
-                        if
-                          not $ empty? xs
-                          do
-                            aset position-array idx $ first xs
-                            recur (inc idx) (rest xs)
-                      , position-array
-                  (number? p0)
-                    let
-                        position-array $ .!createAugmentedTypedArray twgl/primitives 1 (count points)
-                      loop
-                          idx 0
-                          xs points
-                        if
-                          not $ empty? xs
-                          do
-                            aset position-array idx $ first xs
-                            recur (inc idx) (rest xs)
-                      , position-array
-                  true $ do (js/console.error "\"unknown attributes data:" points)
-                    .!createAugmentedTypedArray twgl/primitives 1 $ count points
+            let
+                p0 $ first points
+              cond
+                  list? p0
+                  let
+                      pps $ &list:flatten points
+                      num $ count p0
+                      position-array $ .!createAugmentedTypedArray twgl/primitives num (count points)
+                    loop
+                        idx 0
+                        xs pps
+                      if
+                        not $ empty? xs
+                        do
+                          aset position-array idx $ first xs
+                          recur (inc idx) (rest xs)
+                    , position-array
+                (number? p0)
+                  let
+                      position-array $ .!createAugmentedTypedArray twgl/primitives 1 (count points)
+                    loop
+                        idx 0
+                        xs points
+                      if
+                        not $ empty? xs
+                        do
+                          aset position-array idx $ first xs
+                          recur (inc idx) (rest xs)
+                    , position-array
+                true $ do (js/console.error "\"unknown attributes data:" points)
+                  .!createAugmentedTypedArray twgl/primitives 1 $ count points
         |find-nearest $ quote
           defn find-nearest (r prev coord xs)
             if (empty? xs)
