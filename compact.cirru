@@ -41,7 +41,7 @@
                 grouped-attrs $ :grouped-attributes options
                 let
                     ret $ js-object
-                    g0 $ pick-grouped-attrs grouped-attrs
+                    g0 $ peek-grouped-attrs grouped-attrs
                     names $ .to-list (keys g0)
                     size $ count-recursive grouped-attrs
                     *local-array-counter $ atom 0
@@ -86,11 +86,11 @@
                   build-grouped-attrs grouped-attrs collect!
                   js/Object.assign arrays ret
               -> options (assoc :type :object) (assoc :arrays arrays)
-        |pick-grouped-attrs $ quote
-          defn pick-grouped-attrs (grouped-attrs)
+        |peek-grouped-attrs $ quote
+          defn peek-grouped-attrs (grouped-attrs)
             if (list? grouped-attrs)
               recur $ nth grouped-attrs 0
-              if (map? grouped-attrs) grouped-attrs $ do (js/console.warn "\"unknown attribute group" pick-grouped-attrs) nil
+              if (map? grouped-attrs) grouped-attrs $ do (js/console.warn "\"unknown attribute group" peek-grouped-attrs) nil
       :ns $ quote
         ns triadica.alias $ :require ("\"twgl.js" :as twgl)
           triadica.core :refer $ create-attribute-array count-recursive *local-array-counter
@@ -385,7 +385,7 @@
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"lotus.vert"
               :fragment-shader $ inline-shader "\"lotus.frag"
-              :grouped-attributes $ [] (render-petals 200 80 120 12 0) (render-petals 120 80 110 6 0.36)
+              :grouped-attributes $ [] (render-petals 200 80 120 12 0) (render-petals 160 80 160 8 0.36) (render-petals 80 120 120 6 0.6)
             comp-pistil
         |comp-pistil $ quote
           defn comp-pistil () $ object
@@ -1690,7 +1690,7 @@
                 x $ &- (.-clientX event) (* 0.5 js/window.innerWidth)
                 y $ negate
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
-                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
+                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.002 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
                 *hit-targets-buffer $ atom ([])
               traverse-tree @*objects-tree ([])
@@ -1724,7 +1724,7 @@
                 x $ &- (.-clientX event) (* 0.5 js/window.innerWidth)
                 y $ negate
                   &- (.-clientY event) (* 0.5 js/window.innerHeight)
-                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
+                scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.002 0.5 js/window.innerWidth)
                 touch-deviation $ noted "\"finger not very accurate on pad screen" (if mobile? 16 4)
                 *hit-targets-buffer $ atom ([])
               traverse-tree @*objects-tree ([])
@@ -2071,7 +2071,7 @@
         |*viewer-forward $ quote
           defatom *viewer-forward $ [] 0 0 -1
         |*viewer-position $ quote
-          defatom *viewer-position $ [] 0 0 0
+          defatom *viewer-position $ [] 0 0 400
         |*viewer-upward $ quote
           defatom *viewer-upward $ [] 0 1 0
         |move-viewer-by! $ quote
