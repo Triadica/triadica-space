@@ -23,7 +23,7 @@ void main() {
   v_s = result.s;
 
   if (result.r > 0.0) {
-    gl_Position = vec4(pos_next * 0.001, 1.0);
+    gl_Position = vec4(pos_next * 0.002, 1.0);
   } else {
     gl_Position = vec4(0.0, -100.0, -100.0, 0.0);
   }

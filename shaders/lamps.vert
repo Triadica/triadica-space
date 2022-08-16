@@ -39,6 +39,6 @@ void main() {
 
   v_lightness = 0.9 + 0.2 * snoise(vec2(time * 3.0, a_center.z));
 
-  gl_Position = vec4(pos_next * 0.001, 1.0);
+  gl_Position = vec4(pos_next * 0.002, 1.0);
   // gl_Position = vec4(a_position/10000.0, 1.0);
 }

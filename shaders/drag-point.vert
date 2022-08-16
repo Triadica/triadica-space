@@ -20,5 +20,5 @@ void main() {
   // v_r = result.r;
   v_color = a_color;
 
-  gl_Position = vec4(pos_next * 0.001, 1.0);
+  gl_Position = vec4(pos_next * 0.002, 1.0);
 }
