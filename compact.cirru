@@ -1,15 +1,15 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.10)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.11)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
     |triadica.alias $ {}
       :defs $ {}
-        |build-grouped-attrs $ quote
-          defn build-grouped-attrs (data collect!)
+        |build-packed-attrs $ quote
+          defn build-packed-attrs (data collect!)
             if (list? data)
-              &doseq (d data) (build-grouped-attrs d collect!)
+              &doseq (d data) (build-packed-attrs d collect!)
               collect! data
         |group $ quote
           defn group (options & children)
@@ -38,12 +38,12 @@
                         create-attribute-array $ nth entry 1
                   wo-js-log ret
               if-let
-                grouped-attrs $ :grouped-attributes options
+                packed-attrs $ :packed-attrs options
                 let
                     ret $ js-object
-                    g0 $ peek-grouped-attrs grouped-attrs
+                    g0 $ peek-packed-attrs packed-attrs
                     names $ .to-list (keys g0)
-                    size $ count-recursive grouped-attrs
+                    size $ count-recursive packed-attrs
                     *local-array-counter $ atom 0
                     collect! $ fn (info)
                       let
@@ -83,14 +83,14 @@
                           v $ get g0 name
                           if (list? v) (count v) 1
                         , size
-                  build-grouped-attrs grouped-attrs collect!
+                  build-packed-attrs packed-attrs collect!
                   js/Object.assign arrays ret
               -> options (assoc :type :object) (assoc :arrays arrays)
-        |peek-grouped-attrs $ quote
-          defn peek-grouped-attrs (grouped-attrs)
-            if (list? grouped-attrs)
-              recur $ nth grouped-attrs 0
-              if (map? grouped-attrs) grouped-attrs $ do (js/console.warn "\"unknown attribute group" peek-grouped-attrs) nil
+        |peek-packed-attrs $ quote
+          defn peek-packed-attrs (packed-attrs)
+            if (list? packed-attrs)
+              recur $ nth packed-attrs 0
+              if (map? packed-attrs) packed-attrs $ do (js/console.warn "\"unknown attribute group" packed-attrs) nil
       :ns $ quote
         ns triadica.alias $ :require ("\"twgl.js" :as twgl)
           triadica.core :refer $ create-attribute-array count-recursive *local-array-counter
@@ -182,7 +182,7 @@
                 object $ {} (:draw-mode :lines)
                   :vertex-shader $ inline-shader "\"lines.vert"
                   :fragment-shader $ inline-shader "\"lines.frag"
-                  :grouped-attributes $ build-path max-level branch-angle
+                  :packed-attrs $ build-path max-level branch-angle
                     {}
                       :position $ [] 0 0 0
                       :length 800
@@ -201,7 +201,7 @@
               object $ {} (:draw-mode :lines)
                 :vertex-shader $ inline-shader "\"branches.vert"
                 :fragment-shader $ inline-shader "\"branches.frag"
-                :grouped-attributes $ build-multiple-path max-level parts
+                :packed-attrs $ build-multiple-path max-level parts
                   {}
                     :position $ [] 0 -400 0
                     :length 400
@@ -251,7 +251,7 @@
             {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"fireworks.vert"
               :fragment-shader $ inline-shader "\"fireworks.frag"
-              :grouped-attributes $ -> (range 60)
+              :packed-attrs $ -> (range 60)
                 map $ fn (i)
                   build-firework
                     [] (rand-between -2000 2000) (rand-between -60 60) (rand-between -2000 2000)
@@ -272,7 +272,7 @@
             {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"sparklers.vert"
               :fragment-shader $ inline-shader "\"sparklers.frag"
-              :grouped-attributes $ -> (range 200)
+              :packed-attrs $ -> (range 200)
                 map $ fn (i)
                   []
                     []
@@ -318,7 +318,7 @@
               :get-uniforms $ fn ()
                 js-object $ :time
                   &* 0.0001 $ js/performance.now
-              :grouped-attributes $ -> grid
+              :packed-attrs $ -> grid
                 map $ fn (position)
                   let
                       base $ v-scale position 600
@@ -381,14 +381,14 @@
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"lotus.vert"
               :fragment-shader $ inline-shader "\"lotus.frag"
-              :grouped-attributes $ [] (render-petals 200 80 120 12 0) (render-petals 160 80 160 8 0.36) (render-petals 80 120 120 6 0.6)
+              :packed-attrs $ [] (render-petals 200 80 120 12 0) (render-petals 160 80 160 8 0.36) (render-petals 80 120 120 6 0.6)
             comp-pistil
         |comp-pistil $ quote
           defn comp-pistil () $ object
             {} (:draw-mode :lines)
               :vertex-shader $ inline-shader "\"lotus-pistil.vert"
               :fragment-shader $ inline-shader "\"lotus-pistil.frag"
-              :grouped-attributes $ -> (range-balanced 20)
+              :packed-attrs $ -> (range-balanced 20)
                 filter $ fn (xy)
                   < (xy-length xy) 20
                 map $ fn (xy)
@@ -404,7 +404,7 @@
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"rose.vert"
               :fragment-shader $ inline-shader "\"rose.frag"
-              :grouped-attributes $ let
+              :packed-attrs $ let
                   petal-size 16
                 -> (range petal-size) (map render-rose-petal)
               :get-uniforms $ fn ()
@@ -413,7 +413,7 @@
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"rose-stem.vert"
               :fragment-shader $ inline-shader "\"rose-stem.frag"
-              :grouped-attributes $ let
+              :packed-attrs $ let
                   nodes $ [] ([] 0 0 0) ([] 11 -40 -11) ([] 20 -120 0) ([] 0 -180 -10) ([] -18 -240 2) ([] 18 -340 2) ([] 0 -400 0)
                   ring-size 8
                   d 5
@@ -652,7 +652,7 @@
               object $ {} (:draw-mode :line-strip)
                 :vertex-shader $ inline-shader "\"line-wave.vert"
                 :fragment-shader $ inline-shader "\"line-wave.frag"
-                :grouped-attributes $ gen-lorenz-seq size 0.004 10 28 (/ 8 3) 40
+                :packed-attrs $ gen-lorenz-seq size 0.004 10 28 (/ 8 3) 40
         |gen-lorenz-seq $ quote
           defn gen-lorenz-seq (steps dt a b c scale)
             apply-args
@@ -992,7 +992,7 @@
             object $ {} (:draw-mode :triangles) (; :draw-mode :line-strip)
               :vertex-shader $ inline-shader "\"curve-ball.vert"
               :fragment-shader $ inline-shader "\"curve-ball.frag"
-              :grouped-attributes geo
+              :packed-attrs geo
         |fiber-bending $ quote
           defn fiber-bending () $ let
               size 300
@@ -1045,7 +1045,7 @@
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"fiber-bending.vert"
               :fragment-shader $ inline-shader "\"fiber-bending.frag"
-              :grouped-attributes segments
+              :packed-attrs segments
         |move-point $ quote
           defn move-point (p)
             -> p
@@ -1120,7 +1120,7 @@
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"mushroom.vert"
               :fragment-shader $ inline-shader "\"mushroom.frag"
-              :grouped-attributes segments
+              :packed-attrs segments
         |plate-bending $ quote
           defn plate-bending () $ let
               size 600
@@ -1169,7 +1169,7 @@
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"plate-bending.vert"
               :fragment-shader $ inline-shader "\"plate-bending.frag"
-              :grouped-attributes segments
+              :packed-attrs segments
         |spin-city $ quote
           defn spin-city () $ let
               seed $ [] ([] 4 1) ([] 5 1) ([] 6 2) ([] 8 1) ([] 9 3) ([] 12 1) ([] 13 1) ([] 14 2) ([] 16 2)
@@ -1264,7 +1264,7 @@
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader "\"drag-point.frag")
                 :hit-region $ {} (:position position) (:radius size)
                   :on-hit $ fn (e d!) (on-click e d!)
-                :grouped-attributes $ -> indices
+                :packed-attrs $ -> indices
                   map $ fn (i)
                     {}
                       :position $ -> (nth geo i)
@@ -1324,7 +1324,7 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       handle-drag! x y d!
-                :grouped-attributes $ -> indices
+                :packed-attrs $ -> indices
                   map $ fn (i)
                     {}
                       :position $ -> (nth geo i)
@@ -1366,7 +1366,7 @@
                         x $ .-clientX e
                         y $ .-clientY e
                       handle-drag! x y d!
-                :grouped-attributes $ -> indices
+                :packed-attrs $ -> indices
                   map $ fn (i)
                     {}
                       :position $ -> (nth geo i)
@@ -1394,7 +1394,7 @@
                 object $ {} (:draw-mode :triangles)
                   :vertex-shader $ inline-shader "\"stitch-bg.vert"
                   :fragment-shader $ inline-shader "\"stitch-bg.frag"
-                  :grouped-attributes $ map-indexed chars
+                  :packed-attrs $ map-indexed chars
                     fn (idx c)
                       ->
                         [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
@@ -1408,7 +1408,7 @@
                 object $ {} (:draw-mode :triangles)
                   :vertex-shader $ inline-shader "\"stitch-line.vert"
                   :fragment-shader $ inline-shader "\"stitch-line.frag"
-                  :grouped-attributes $ map-indexed chars
+                  :packed-attrs $ map-indexed chars
                     fn (idx c)
                       let
                           pattern $ .!padStart
