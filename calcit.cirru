@@ -7102,7 +7102,7 @@
                           |P $ {} (:at 1653325187007) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1653325187007) (:by |u0) (:text |:draw-mode) (:type :leaf)
-                              |b $ {} (:at 1653570093527) (:by |u0) (:text |:lines) (:type :leaf)
+                              |b $ {} (:at 1660708699832) (:by |u0) (:text |:lines) (:type :leaf)
                           |T $ {} (:at 1651810621924) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1653325156202) (:by |u0) (:text |:vertex-shader) (:type :leaf)
@@ -14456,6 +14456,30 @@
                                           |o $ {} (:at 1651814839967) (:by |u0) (:type :expr)
                                             :data $ {}
                                               |T $ {} (:at 1651814839967) (:by |u0) (:text |.-TRIANGLES) (:type :leaf)
+                                              |b $ {} (:at 1651814839967) (:by |u0) (:text |gl) (:type :leaf)
+                                  |X $ {} (:at 1653323272495) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |D $ {} (:at 1660708666346) (:by |u0) (:text |:triangle-strip) (:type :leaf)
+                                      |T $ {} (:at 1651815157798) (:by |u0) (:type :expr)
+                                        :data $ {}
+                                          |b $ {} (:at 1651814839967) (:by |u0) (:text |twgl/drawBufferInfo) (:type :leaf)
+                                          |h $ {} (:at 1651814839967) (:by |u0) (:text |gl) (:type :leaf)
+                                          |l $ {} (:at 1651814839967) (:by |u0) (:text |buffer-info) (:type :leaf)
+                                          |o $ {} (:at 1651814839967) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1660708672044) (:by |u0) (:text |.-TRIANGLE_STRIP) (:type :leaf)
+                                              |b $ {} (:at 1651814839967) (:by |u0) (:text |gl) (:type :leaf)
+                                  |Z $ {} (:at 1653323272495) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |D $ {} (:at 1660708675864) (:by |u0) (:text |:triangle-fan) (:type :leaf)
+                                      |T $ {} (:at 1651815157798) (:by |u0) (:type :expr)
+                                        :data $ {}
+                                          |b $ {} (:at 1651814839967) (:by |u0) (:text |twgl/drawBufferInfo) (:type :leaf)
+                                          |h $ {} (:at 1651814839967) (:by |u0) (:text |gl) (:type :leaf)
+                                          |l $ {} (:at 1651814839967) (:by |u0) (:text |buffer-info) (:type :leaf)
+                                          |o $ {} (:at 1651814839967) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1660708678539) (:by |u0) (:text |.-TRIANGLE_FAN) (:type :leaf)
                                               |b $ {} (:at 1651814839967) (:by |u0) (:text |gl) (:type :leaf)
                                   |b $ {} (:at 1653323272495) (:by |u0) (:type :expr)
                                     :data $ {}

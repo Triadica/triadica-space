@@ -1898,6 +1898,8 @@
                       js/console.warn "\"unknown draw mode:" $ :draw-mode object
                       twgl/drawBufferInfo gl buffer-info $ .-LINES gl
                     :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
+                    :triangle-strip $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLE_STRIP gl)
+                    :triangle-fan $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLE_FAN gl)
                     :lines $ twgl/drawBufferInfo gl buffer-info (.-LINES gl)
                     :line-strip $ twgl/drawBufferInfo gl buffer-info (.-LINE_STRIP gl)
                     :line-loop $ twgl/drawBufferInfo gl buffer-info (.-LINE_LOOP gl)
