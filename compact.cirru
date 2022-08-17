@@ -1295,7 +1295,7 @@
                           square $ nth look-distance 0
                           square $ nth look-distance 1
                           square $ nth look-distance 2
-                      scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.001 0.5 js/window.innerWidth)
+                      scale-radio $ noted "\"webgl canvas maps to [-1,1], need scaling" (* 0.002 0.5 js/window.innerWidth)
                       screen_scale $ &/ (&+ r s) (&+ s 1)
                     ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
                     on-move
