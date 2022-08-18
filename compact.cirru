@@ -11,6 +11,12 @@
             if (list? data)
               &doseq (d data) (build-packed-attrs d collect!)
               collect! data
+        |call-labeled $ quote
+          defmacro call-labeled (f & args)
+            quasiquote $ ~f
+              ~@ $ map args
+                fn (item)
+                  if (list? item) (last item) item
         |group $ quote
           defn group (options & children)
             {} (:type :group) (:children children)
@@ -381,7 +387,10 @@
             object $ {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"lotus.vert"
               :fragment-shader $ inline-shader "\"lotus.frag"
-              :packed-attrs $ [] (render-petals 200 80 120 12 0) (render-petals 160 80 160 8 0.36) (render-petals 80 120 120 6 0.6)
+              :packed-attrs $ []
+                call-labeled render-petals (:r 200) (:down 80) (:thick 120) (:tile-size 12) (:phi 0)
+                call-labeled render-petals (:r 160) (:down 80) (:thick 160) (:tile-size 8) (:phi 0.36)
+                call-labeled render-petals (:r 80) (:down 120) (:thick 120) (:tile-size 6) (:phi 0.6)
             comp-pistil
         |comp-pistil $ quote
           defn comp-pistil () $ object
@@ -640,7 +649,7 @@
       :ns $ quote
         ns triadica.app.comp.lamps $ :require
           triadica.config :refer $ inline-shader
-          triadica.alias :refer $ object group
+          triadica.alias :refer $ object group call-labeled
           triadica.comp.axis :refer $ comp-axis
           quaternion.core :refer $ v-scale v+ &v+ v-scale v-cross v-length v-normalize
     |triadica.app.comp.line-wave $ {}
@@ -1439,6 +1448,7 @@
                         base $ []
                           + 1 $ * j 2
                           - (* i -2) 1
+                          , 0
                         base-idx $ * 2
                           + (* i 4) j
                       []
