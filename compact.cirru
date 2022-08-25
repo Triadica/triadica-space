@@ -269,10 +269,28 @@
                   &* 0.001 $ js/performance.now
         |comp-fountain $ quote
           defn comp-fountain () $ object
-            {} (:draw-mode :lines)
+            {} (:draw-mode :triangles)
               :vertex-shader $ inline-shader "\"fountain.vert"
               :fragment-shader $ inline-shader "\"fountain.frag"
-              :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
+              :packed-attrs $ -> (grid-n 8)
+                filter $ fn (xy)
+                  <=
+                    +
+                      pow (nth xy 0) 2
+                      pow (nth xy 1) 2
+                    , 49
+                map $ fn (xy)
+                  -> (range 30)
+                    map $ fn (phase)
+                      let
+                          data $ {}
+                            :position $ [] (nth xy 0) 30 (nth xy 1)
+                            :phase phase
+                        map ([] 0 1 2 0 2 3 0 3 4 0 4 1)
+                          fn (d) (assoc data :pointer d)
+              :get-uniforms $ fn ()
+                js-object $ :time
+                  &* 0.1 $ js/performance.now
         |comp-sparklers $ quote
           defn comp-sparklers () $ object
             {} (:draw-mode :triangles)
@@ -294,6 +312,12 @@
               :get-uniforms $ fn ()
                 js-object $ :time
                   &* 0.00737 $ js/performance.now
+        |grid-n $ quote
+          defn grid-n (n)
+            -> (range-bothway n)
+              mapcat $ fn (idx)
+                -> (range-bothway n)
+                  map $ fn (y-idx) ([] idx y-idx)
       :ns $ quote
         ns triadica.app.comp.fireworks $ :require
           triadica.core :refer $ count-recursive

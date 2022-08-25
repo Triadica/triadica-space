@@ -16,7 +16,7 @@ struct PointResult {
 PointResult transform_perspective(vec3 p) {
   vec3 moved_point = p - cameraPosition;
   // trying to get right direction at length 1
-  vec3 rightward = cross(upwardDirection, lookPoint) / 600.0;
+  vec3 rightward = normalize(cross(upwardDirection, lookPoint));
 
   float s = coneBackScale;
 
