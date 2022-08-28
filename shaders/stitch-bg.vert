@@ -1,13 +1,17 @@
 
 {{triadica_perspective}}
 
+attribute vec3 a_base;
 attribute vec3 a_position;
 
 varying float v_r;
 varying float v_s;
 
 void main() {
-  PointResult result = transform_perspective(a_position);
+  vec3 upward = upwardDirection;
+  vec3 rightward = normalize(cross(lookPoint, upwardDirection));
+  vec3 p = a_base + rightward * a_position.x + upward * a_position.y;
+  PointResult result = transform_perspective(p);
   vec3 pos_next = result.point;
 
   v_s = result.s;

@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.11)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.12)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -1432,9 +1432,8 @@
                       ->
                         [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
                         map $ fn (x)
-                          {} $ :position
-                            &v+
-                              &v+ (v-scale x size) position
+                          {} (:base position)
+                            :position $ &v+ (v-scale x size)
                               v-scale
                                 [] (+ size gap) 0 0
                                 , idx
@@ -1452,9 +1451,8 @@
                             let
                                 x $ :position info
                                 data-idx $ :data info
-                              {}
-                                :position $ &v+
-                                  &v+ (v-scale x s0) position
+                              {} (:base position)
+                                :position $ &v+ (v-scale x s0)
                                   v-scale
                                     [] (+ size gap) 0 0
                                     , idx
