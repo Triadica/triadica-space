@@ -769,7 +769,7 @@
         |comp-tube-demo $ quote
           defn comp-tube-demo () $ group ({})
             comp-tube $ {} (:draw-mode :line-loop)
-              :line $ -> (range 200)
+              :curve $ -> (range 200)
                 map $ fn (idx)
                   let
                       angle $ * 0.04 idx
@@ -780,7 +780,7 @@
                       * idx 0.6
               :normal0 $ [] 0 0 1
             comp-brush $ {} (; :draw-mode :line-strip)
-              :line $ -> (range 200)
+              :curve $ -> (range 200)
                 map $ fn (idx)
                   let
                       angle $ * 0.06 idx
@@ -1598,7 +1598,7 @@
         |comp-brush $ quote
           defn comp-brush (options)
             let
-                points $ &map:get options :line
+                points $ &map:get options :curve
                 brush $ either (&map:get options :brush) ([] 8 0)
                 brush1 $ &map:get options :brush1
                 brush2 $ &map:get options :brush2
@@ -1641,7 +1641,7 @@
         |comp-tube $ quote
           defn comp-tube (options)
             let
-                points $ &map:get options :line
+                points $ &map:get options :curve
                 radius $ either (&map:get options :radius) 10
                 normal0 $ &map:get options :normal0
                 circle-step $ either (&map:get options :circle-step) 8

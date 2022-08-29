@@ -5708,7 +5708,7 @@
                               |b $ {} (:at 1661764138150) (:by |u0) (:text |:line-loop) (:type :leaf)
                           |b $ {} (:at 1661762062111) (:by |u0) (:type :expr)
                             :data $ {}
-                              |T $ {} (:at 1661762062111) (:by |u0) (:text |:line) (:type :leaf)
+                              |T $ {} (:at 1661794400177) (:by |u0) (:text |:curve) (:type :leaf)
                               |b $ {} (:at 1661762062111) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1661762062111) (:by |u0) (:text |->) (:type :leaf)
@@ -5788,7 +5788,7 @@
                               |b $ {} (:at 1661773103873) (:by |u0) (:text |:line-strip) (:type :leaf)
                           |o $ {} (:at 1661772461724) (:by |u0) (:type :expr)
                             :data $ {}
-                              |T $ {} (:at 1661772461724) (:by |u0) (:text |:line) (:type :leaf)
+                              |T $ {} (:at 1661794416633) (:by |u0) (:text |:curve) (:type :leaf)
                               |b $ {} (:at 1661772461724) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1661772461724) (:by |u0) (:text |->) (:type :leaf)
@@ -12390,7 +12390,7 @@
                             :data $ {}
                               |T $ {} (:at 1661765904795) (:by |u0) (:text |&map:get) (:type :leaf)
                               |b $ {} (:at 1661765904795) (:by |u0) (:text |options) (:type :leaf)
-                              |h $ {} (:at 1661765904795) (:by |u0) (:text |:line) (:type :leaf)
+                              |h $ {} (:at 1661794419741) (:by |u0) (:text |:curve) (:type :leaf)
                       |h $ {} (:at 1661765904795) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1661772223900) (:by |u0) (:text |brush) (:type :leaf)
@@ -12769,7 +12769,7 @@
                             :data $ {}
                               |T $ {} (:at 1661762097331) (:by |u0) (:text |&map:get) (:type :leaf)
                               |b $ {} (:at 1661762098556) (:by |u0) (:text |options) (:type :leaf)
-                              |h $ {} (:at 1661763239661) (:by |u0) (:text |:line) (:type :leaf)
+                              |h $ {} (:at 1661794403341) (:by |u0) (:text |:curve) (:type :leaf)
                       |X $ {} (:at 1661762671490) (:by |u0) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1661762675810) (:by |u0) (:text |radius) (:type :leaf)
