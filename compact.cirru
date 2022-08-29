@@ -760,11 +760,27 @@
                   :stitch $ comp-stitch
                     {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
                   :sparklers $ comp-sparklers
+                  :tube $ comp-tube-demo
                 if-not hide-tabs? $ memof1-call comp-tabs
                   {}
                     :position $ [] -40 0 0
                     :selected $ :tab store
                   , tab-entries
+        |comp-tube-demo $ quote
+          defn comp-tube-demo () $ comp-tube
+            {} (:draw-mode :line-loop)
+              ; :vertex-shader $ inline-shader "\"tube.vert"
+              ; :fragment-shader $ inline-shader "\"tube.frag"
+              :line $ -> (range 200)
+                map $ fn (idx)
+                  let
+                      angle $ * 0.04 idx
+                      r 200
+                    []
+                      * r $ cos angle
+                      * r $ sin angle
+                      * idx 0.6
+              :normal0 $ [] 0 0 1
         |tab-entries $ quote
           def tab-entries $ []
             {} (:key :axis)
@@ -809,6 +825,8 @@
               :position $ [] -200 0 0
             {} (:key :fountain)
               :position $ [] -200 -40 0
+            {} (:key :tube)
+              :position $ [] -200 -80 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -822,7 +840,9 @@
           triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
+          triadica.comp.tube :refer $ comp-tube
           triadica.core :refer $ >>
+          triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
     |triadica.app.main $ {}
       :defs $ {}
@@ -1562,11 +1582,79 @@
           triadica.math :refer $ &v+
           triadica.comp.stitch :refer $ comp-stitch
           memof.once :refer $ memof1-call-by
+    |triadica.comp.tube $ {}
+      :defs $ {}
+        |comp-tube $ quote
+          defn comp-tube (options)
+            let
+                points $ &map:get options :line
+                radius $ either (&map:get options :radius) 10
+                normal0 $ &map:get options :normal0
+                circle-step $ either (&map:get options :circle-step) 8
+                d-angle $ / (* 2 &PI) circle-step
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"lines.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"lines.frag")
+                :packed-attrs $ ->
+                  range $ dec (count points)
+                  map $ fn (idx)
+                    let
+                        at-end? $ < (&+ idx 2) (count points)
+                        p $ nth points idx
+                        q $ nth points (inc idx)
+                        q2 $ if at-end?
+                          nth points $ &+ idx 2
+                          , p
+                        v $ &v- q p
+                        v2 $ if at-end? (&v- q2 q) (&v- q p)
+                        direction1 $ v-normalize (v-cross v normal0)
+                        direction2 $ v-normalize (v-cross direction1 v)
+                        direction3 $ v-normalize (v-cross v2 normal0)
+                        direction4 $ v-normalize (v-cross direction3 v2)
+                      -> (range circle-step)
+                        map $ fn (c-idx)
+                          let
+                              p0 $ &v+
+                                &v+ p $ v-scale direction1
+                                  * radius $ cos (* c-idx d-angle)
+                                v-scale direction2 $ * radius
+                                  sin $ * c-idx d-angle
+                              p1 $ &v+
+                                &v+ p $ v-scale direction1
+                                  * radius $ cos
+                                    * (inc c-idx) d-angle
+                                v-scale direction2 $ * radius
+                                  sin $ * (inc c-idx) d-angle
+                              p2 $ &v+
+                                &v+ q $ v-scale direction3
+                                  * radius $ cos (* c-idx d-angle)
+                                v-scale direction4 $ * radius
+                                  sin $ * c-idx d-angle
+                              p3 $ &v+
+                                &v+ q $ v-scale direction3
+                                  * radius $ cos
+                                    * (inc c-idx) d-angle
+                                v-scale direction4 $ * radius
+                                  sin $ * (inc c-idx) d-angle
+                            []
+                              {} $ :position p0
+                              {} $ :position p1
+                              {} $ :position p2
+                              {} $ :position p1
+                              {} $ :position p2
+                              {} $ :position p3
+      :ns $ quote
+        ns triadica.comp.tube $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ group object
+          quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize
+          triadica.math :refer $ square
     |triadica.config $ {}
       :defs $ {}
         |*shader-programs $ quote
           defatom *shader-programs $ {}
-        |back-cone-scale $ quote (def back-cone-scale 0.5)
+        |back-cone-scale $ quote (def back-cone-scale 0.1)
         |cached-build-program $ quote
           defn cached-build-program (gl vs fs)
             let
