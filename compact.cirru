@@ -767,10 +767,8 @@
                     :selected $ :tab store
                   , tab-entries
         |comp-tube-demo $ quote
-          defn comp-tube-demo () $ comp-tube
-            {} (:draw-mode :line-loop)
-              ; :vertex-shader $ inline-shader "\"tube.vert"
-              ; :fragment-shader $ inline-shader "\"tube.frag"
+          defn comp-tube-demo () $ group ({})
+            comp-tube $ {} (:draw-mode :line-loop)
               :line $ -> (range 200)
                 map $ fn (idx)
                   let
@@ -781,6 +779,19 @@
                       * r $ sin angle
                       * idx 0.6
               :normal0 $ [] 0 0 1
+            comp-brush $ {} (; :draw-mode :line-strip)
+              :line $ -> (range 200)
+                map $ fn (idx)
+                  let
+                      angle $ * 0.06 idx
+                      r 40
+                    []
+                      * r $ cos angle
+                      * r $ sin angle
+                      * idx 0.6
+              :brush $ [] 8 0
+              :brush1 $ [] 4 4
+              :brush2 $ [] 6 3
         |tab-entries $ quote
           def tab-entries $ []
             {} (:key :axis)
@@ -840,7 +851,7 @@
           triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
-          triadica.comp.tube :refer $ comp-tube
+          triadica.comp.tube :refer $ comp-tube comp-brush
           triadica.core :refer $ >>
           triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
@@ -1584,6 +1595,49 @@
           memof.once :refer $ memof1-call-by
     |triadica.comp.tube $ {}
       :defs $ {}
+        |comp-brush $ quote
+          defn comp-brush (options)
+            let
+                points $ &map:get options :line
+                brush $ either (&map:get options :brush) ([] 8 0)
+                brush1 $ &map:get options :brush1
+                brush2 $ &map:get options :brush2
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"brush.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"brush.frag")
+                :packed-attrs $ ->
+                  range $ dec (count points)
+                  map $ fn (idx)
+                    let
+                        p $ nth points idx
+                        q $ nth points (inc idx)
+                      []
+                        []
+                          {} (:position p) (:brush zero-2d)
+                          {} (:position p) (:brush brush)
+                          {} (:position q) (:brush zero-2d)
+                          {} (:position p) (:brush brush)
+                          {} (:position q) (:brush zero-2d)
+                          {} (:position q) (:brush brush)
+                        if (some? brush1)
+                          []
+                            {} (:position p) (:brush zero-2d)
+                            {} (:position p) (:brush brush1)
+                            {} (:position q) (:brush zero-2d)
+                            {} (:position p) (:brush brush1)
+                            {} (:position q) (:brush zero-2d)
+                            {} (:position q) (:brush brush1)
+                          []
+                        if (some? brush2)
+                          []
+                            {} (:position p) (:brush zero-2d)
+                            {} (:position p) (:brush brush2)
+                            {} (:position q) (:brush zero-2d)
+                            {} (:position p) (:brush brush2)
+                            {} (:position q) (:brush zero-2d)
+                            {} (:position q) (:brush brush2)
+                          []
         |comp-tube $ quote
           defn comp-tube (options)
             let
@@ -1644,6 +1698,8 @@
                               {} $ :position p1
                               {} $ :position p2
                               {} $ :position p3
+        |zero-2d $ quote
+          def zero-2d $ [] 0 0
       :ns $ quote
         ns triadica.comp.tube $ :require
           triadica.config :refer $ inline-shader
