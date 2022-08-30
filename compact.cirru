@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.12)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.13)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -778,7 +778,7 @@
                       * r $ cos angle
                       * r $ sin angle
                       * idx 0.6
-              :normal0 $ [] 0 0 1
+              :normal0 $ [] 1 0 0
             comp-brush $ {} (; :draw-mode :line-strip)
               :curve $ -> (range 200)
                 map $ fn (idx)
@@ -1643,7 +1643,7 @@
             let
                 points $ &map:get options :curve
                 radius $ either (&map:get options :radius) 10
-                normal0 $ &map:get options :normal0
+                normal0 $ either (&map:get options :normal0) ([] 0 0 1)
                 circle-step $ either (&map:get options :circle-step) 8
                 d-angle $ / (* 2 &PI) circle-step
               object $ {}
