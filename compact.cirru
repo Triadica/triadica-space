@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.13)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.14)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -774,10 +774,11 @@
                   let
                       angle $ * 0.04 idx
                       r 200
-                    []
-                      * r $ cos angle
-                      * r $ sin angle
-                      * idx 0.6
+                    {} $ :position
+                      []
+                        * r $ cos angle
+                        * r $ sin angle
+                        * idx 0.6
               :normal0 $ [] 1 0 0
             comp-brush $ {} (; :draw-mode :line-strip)
               :curve $ -> (range 200)
@@ -785,10 +786,11 @@
                   let
                       angle $ * 0.06 idx
                       r 40
-                    []
-                      * r $ cos angle
-                      * r $ sin angle
-                      * idx 0.6
+                    {} $ :position
+                      []
+                        * r $ cos angle
+                        * r $ sin angle
+                        * idx 0.6
               :brush $ [] 8 0
               :brush1 $ [] 4 4
               :brush2 $ [] 6 3
@@ -1610,34 +1612,19 @@
                   range $ dec (count points)
                   map $ fn (idx)
                     let
-                        p $ nth points idx
-                        q $ nth points (inc idx)
+                        p-raw $ nth points idx
+                        q-raw $ nth points (inc idx)
+                        p $ &map:get p-raw :position
+                        q $ &map:get q-raw :position
                       []
-                        []
-                          {} (:position p) (:brush zero-2d)
-                          {} (:position p) (:brush brush)
-                          {} (:position q) (:brush zero-2d)
-                          {} (:position p) (:brush brush)
-                          {} (:position q) (:brush zero-2d)
-                          {} (:position q) (:brush brush)
+                        [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
                         if (some? brush1)
-                          []
-                            {} (:position p) (:brush zero-2d)
-                            {} (:position p) (:brush brush1)
-                            {} (:position q) (:brush zero-2d)
-                            {} (:position p) (:brush brush1)
-                            {} (:position q) (:brush zero-2d)
-                            {} (:position q) (:brush brush1)
+                          [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush1)
                           []
                         if (some? brush2)
+                          [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
                           []
-                            {} (:position p) (:brush zero-2d)
-                            {} (:position p) (:brush brush2)
-                            {} (:position q) (:brush zero-2d)
-                            {} (:position p) (:brush brush2)
-                            {} (:position q) (:brush zero-2d)
-                            {} (:position q) (:brush brush2)
-                          []
+                :get-uniforms $ &map:get options :get-uniforms
         |comp-tube $ quote
           defn comp-tube (options)
             let
@@ -1654,11 +1641,15 @@
                   range $ dec (count points)
                   map $ fn (idx)
                     let
+                        p-raw $ nth points idx
+                        q-raw $ nth points (inc idx)
                         at-end? $ < (&+ idx 2) (count points)
-                        p $ nth points idx
-                        q $ nth points (inc idx)
+                        p $ &map:get p-raw :position
+                        q $ &map:get q-raw :position
                         q2 $ if at-end?
-                          nth points $ &+ idx 2
+                          &map:get
+                            nth points $ &+ idx 2
+                            , :position
                           , p
                         v $ &v- q p
                         v2 $ if at-end? (&v- q2 q) (&v- q p)
@@ -1691,13 +1682,8 @@
                                     * (inc c-idx) d-angle
                                 v-scale direction4 $ * radius
                                   sin $ * (inc c-idx) d-angle
-                            []
-                              {} $ :position p0
-                              {} $ :position p1
-                              {} $ :position p2
-                              {} $ :position p1
-                              {} $ :position p2
-                              {} $ :position p3
+                            [] (assoc p-raw :position p0) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc q-raw :position p3)
+                :get-uniforms $ &map:get options :get-uniforms
         |zero-2d $ quote
           def zero-2d $ [] 0 0
       :ns $ quote
