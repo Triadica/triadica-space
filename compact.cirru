@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.11)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.14)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -760,11 +760,40 @@
                   :stitch $ comp-stitch
                     {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
                   :sparklers $ comp-sparklers
+                  :tube $ comp-tube-demo
                 if-not hide-tabs? $ memof1-call comp-tabs
                   {}
                     :position $ [] -40 0 0
                     :selected $ :tab store
                   , tab-entries
+        |comp-tube-demo $ quote
+          defn comp-tube-demo () $ group ({})
+            comp-tube $ {} (:draw-mode :line-loop)
+              :curve $ -> (range 200)
+                map $ fn (idx)
+                  let
+                      angle $ * 0.04 idx
+                      r 200
+                    {} $ :position
+                      []
+                        * r $ cos angle
+                        * r $ sin angle
+                        * idx 0.6
+              :normal0 $ [] 1 0 0
+            comp-brush $ {} (; :draw-mode :line-strip)
+              :curve $ -> (range 200)
+                map $ fn (idx)
+                  let
+                      angle $ * 0.06 idx
+                      r 40
+                    {} $ :position
+                      []
+                        * r $ cos angle
+                        * r $ sin angle
+                        * idx 0.6
+              :brush $ [] 8 0
+              :brush1 $ [] 4 4
+              :brush2 $ [] 6 3
         |tab-entries $ quote
           def tab-entries $ []
             {} (:key :axis)
@@ -809,6 +838,8 @@
               :position $ [] -200 0 0
             {} (:key :fountain)
               :position $ [] -200 -40 0
+            {} (:key :tube)
+              :position $ [] -200 -80 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -822,7 +853,9 @@
           triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
+          triadica.comp.tube :refer $ comp-tube comp-brush
           triadica.core :refer $ >>
+          triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
     |triadica.app.main $ {}
       :defs $ {}
@@ -1432,9 +1465,8 @@
                       ->
                         [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
                         map $ fn (x)
-                          {} $ :position
-                            &v+
-                              &v+ (v-scale x size) position
+                          {} (:base position)
+                            :position $ &v+ (v-scale x size)
                               v-scale
                                 [] (+ size gap) 0 0
                                 , idx
@@ -1452,9 +1484,8 @@
                             let
                                 x $ :position info
                                 data-idx $ :data info
-                              {}
-                                :position $ &v+
-                                  &v+ (v-scale x s0) position
+                              {} (:base position)
+                                :position $ &v+ (v-scale x s0)
                                   v-scale
                                     [] (+ size gap) 0 0
                                     , idx
@@ -1564,11 +1595,108 @@
           triadica.math :refer $ &v+
           triadica.comp.stitch :refer $ comp-stitch
           memof.once :refer $ memof1-call-by
+    |triadica.comp.tube $ {}
+      :defs $ {}
+        |comp-brush $ quote
+          defn comp-brush (options)
+            let
+                points $ &map:get options :curve
+                brush $ either (&map:get options :brush) ([] 8 0)
+                brush1 $ &map:get options :brush1
+                brush2 $ &map:get options :brush2
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"brush.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"brush.frag")
+                :packed-attrs $ ->
+                  range $ dec (count points)
+                  map $ fn (idx)
+                    let
+                        p-raw $ nth points idx
+                        q-raw $ nth points (inc idx)
+                        p $ &map:get p-raw :position
+                        q $ &map:get q-raw :position
+                      []
+                        [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
+                        if (some? brush1)
+                          [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush1)
+                          []
+                        if (some? brush2)
+                          [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
+                          []
+                :get-uniforms $ &map:get options :get-uniforms
+        |comp-tube $ quote
+          defn comp-tube (options)
+            let
+                points $ &map:get options :curve
+                radius $ either (&map:get options :radius) 10
+                normal0 $ either (&map:get options :normal0) ([] 0 0 1)
+                circle-step $ either (&map:get options :circle-step) 8
+                d-angle $ / (* 2 &PI) circle-step
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"lines.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"lines.frag")
+                :packed-attrs $ ->
+                  range $ dec (count points)
+                  map $ fn (idx)
+                    let
+                        p-raw $ nth points idx
+                        q-raw $ nth points (inc idx)
+                        at-end? $ < (&+ idx 2) (count points)
+                        p $ &map:get p-raw :position
+                        q $ &map:get q-raw :position
+                        q2 $ if at-end?
+                          &map:get
+                            nth points $ &+ idx 2
+                            , :position
+                          , p
+                        v $ &v- q p
+                        v2 $ if at-end? (&v- q2 q) (&v- q p)
+                        direction1 $ v-normalize (v-cross v normal0)
+                        direction2 $ v-normalize (v-cross direction1 v)
+                        direction3 $ v-normalize (v-cross v2 normal0)
+                        direction4 $ v-normalize (v-cross direction3 v2)
+                      -> (range circle-step)
+                        map $ fn (c-idx)
+                          let
+                              p0 $ &v+
+                                &v+ p $ v-scale direction1
+                                  * radius $ cos (* c-idx d-angle)
+                                v-scale direction2 $ * radius
+                                  sin $ * c-idx d-angle
+                              p1 $ &v+
+                                &v+ p $ v-scale direction1
+                                  * radius $ cos
+                                    * (inc c-idx) d-angle
+                                v-scale direction2 $ * radius
+                                  sin $ * (inc c-idx) d-angle
+                              p2 $ &v+
+                                &v+ q $ v-scale direction3
+                                  * radius $ cos (* c-idx d-angle)
+                                v-scale direction4 $ * radius
+                                  sin $ * c-idx d-angle
+                              p3 $ &v+
+                                &v+ q $ v-scale direction3
+                                  * radius $ cos
+                                    * (inc c-idx) d-angle
+                                v-scale direction4 $ * radius
+                                  sin $ * (inc c-idx) d-angle
+                            [] (assoc p-raw :position p0) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc q-raw :position p3)
+                :get-uniforms $ &map:get options :get-uniforms
+        |zero-2d $ quote
+          def zero-2d $ [] 0 0
+      :ns $ quote
+        ns triadica.comp.tube $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ group object
+          quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize
+          triadica.math :refer $ square
     |triadica.config $ {}
       :defs $ {}
         |*shader-programs $ quote
           defatom *shader-programs $ {}
-        |back-cone-scale $ quote (def back-cone-scale 0.5)
+        |back-cone-scale $ quote (def back-cone-scale 0.1)
         |cached-build-program $ quote
           defn cached-build-program (gl vs fs)
             let
