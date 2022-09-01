@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.14)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.15)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -1597,10 +1597,19 @@
           memof.once :refer $ memof1-call-by
     |triadica.comp.tube $ {}
       :defs $ {}
+        |collect-from-list $ quote
+          defn collect-from-list (data ? *buffer)
+            if (some? *buffer)
+              do
+                if (list? data)
+                  &doseq (d data) (collect-from-list d *buffer)
+                  swap! *buffer conj data
+                , @*buffer
+              collect-from-list data $ atom ([])
         |comp-brush $ quote
           defn comp-brush (options)
             let
-                points $ &map:get options :curve
+                points $ collect-from-list (&map:get options :curve)
                 brush $ either (&map:get options :brush) ([] 8 0)
                 brush1 $ &map:get options :brush1
                 brush2 $ &map:get options :brush2
@@ -1628,7 +1637,7 @@
         |comp-tube $ quote
           defn comp-tube (options)
             let
-                points $ &map:get options :curve
+                points $ collect-from-list (&map:get options :curve)
                 radius $ either (&map:get options :radius) 10
                 normal0 $ either (&map:get options :normal0) ([] 0 0 1)
                 circle-step $ either (&map:get options :circle-step) 8
