@@ -3,6 +3,7 @@ precision mediump float;
 
 {{triadica_noises}}
 {{triadica_colors}}
+{{triadica_hsluv}}
 
 varying float v_s;
 varying float v_r;
@@ -29,6 +30,7 @@ void main() {
   float rand1 = snoise(v_center.xy / 9000.0 + vec2(v_s*10.0, v_s*100.0));
   // float rand3 = 0.9 * snoise(v_center.zx);
   gl_FragColor = vec4(hsl2rgb(fract(0.8+0.4*fract(rand1)), 1.0, 0.4 + v_h / 200.0), 1.0) * v_lightness;
+  // gl_FragColor = hsluvToRgb(fract(0.8+0.4*fract(rand1)) * 360.0, 100.0, 30.0 + v_h / 2.0, 1.0) * v_lightness;
 
   if (v_r > 6.0) {
     gl_FragColor = gl_FragColor / ((v_r - 6.0) * 0.2 + 1.0) * v_lightness;

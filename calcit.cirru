@@ -13581,6 +13581,14 @@
                 :data $ {}
                   |T $ {} (:at 1657642105280) (:by |u0) (:text |inline-shader) (:type :leaf)
                   |b $ {} (:at 1657643262869) (:by |u0) (:text "|\"triadica-colors.glsl") (:type :leaf)
+          |glsl-hsluv-code $ {} (:at 1662287678665) (:by |u0) (:type :expr)
+            :data $ {}
+              |T $ {} (:at 1662287678665) (:by |u0) (:text |def) (:type :leaf)
+              |b $ {} (:at 1662287678665) (:by |u0) (:text |glsl-hsluv-code) (:type :leaf)
+              |h $ {} (:at 1662287678665) (:by |u0) (:type :expr)
+                :data $ {}
+                  |T $ {} (:at 1662287678665) (:by |u0) (:text |inline-shader) (:type :leaf)
+                  |b $ {} (:at 1662287678665) (:by |u0) (:text "|\"triadica-hsluv.glsl") (:type :leaf)
           |glsl-noises-code $ {} (:at 1657642076473) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1657642076473) (:by |u0) (:text |def) (:type :leaf)
@@ -13737,6 +13745,11 @@
                       |T $ {} (:at 1657642091659) (:by |u0) (:text |.!replace) (:type :leaf)
                       |b $ {} (:at 1657642091659) (:by |u0) (:text "|\"{{triadica_noises}}") (:type :leaf)
                       |h $ {} (:at 1657642091659) (:by |u0) (:text |glsl-noises-code) (:type :leaf)
+                  |o $ {} (:at 1662287686566) (:by |u0) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1662287686566) (:by |u0) (:text |.!replace) (:type :leaf)
+                      |b $ {} (:at 1662287686566) (:by |u0) (:text "|\"{{triadica_hsluv}}") (:type :leaf)
+                      |h $ {} (:at 1662287686566) (:by |u0) (:text |glsl-hsluv-code) (:type :leaf)
           |replace-vertex-shader $ {} (:at 1657642017949) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1657642017949) (:by |u0) (:text |defn) (:type :leaf)

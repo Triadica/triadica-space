@@ -1734,6 +1734,8 @@
         |dpr $ quote (def dpr js/window.devicePixelRatio)
         |glsl-colors-code $ quote
           def glsl-colors-code $ inline-shader "\"triadica-colors.glsl"
+        |glsl-hsluv-code $ quote
+          def glsl-hsluv-code $ inline-shader "\"triadica-hsluv.glsl"
         |glsl-noises-code $ quote
           def glsl-noises-code $ inline-shader "\"triadica-noises.glsl"
         |glsl-perspective-code $ quote
@@ -1759,7 +1761,7 @@
           def post-effect? $ &= "\"on" (get-env "\"effect" "\"on")
         |replace-fragment-shader $ quote
           defn replace-fragment-shader (fs)
-            -> fs (.!replace "\"{{triadica_colors}}" glsl-colors-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code)
+            -> fs (.!replace "\"{{triadica_colors}}" glsl-colors-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code) (.!replace "\"{{triadica_hsluv}}" glsl-hsluv-code)
         |replace-vertex-shader $ quote
           defn replace-vertex-shader (vs)
             -> vs (.!replace "\"{{triadica_perspective}}" glsl-perspective-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code) (.!replace "\"{{triadica_rotation}}" glsl-rotation-code)
