@@ -1727,6 +1727,7 @@
                 let
                     program $ twgl/createProgramInfo gl
                       js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
+                  if (nil? program) (raise "\"Failed to compile shader")
                   swap! *shader-programs assoc field program
                   , program
         |dev? $ quote

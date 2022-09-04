@@ -13547,6 +13547,17 @@
                                             :data $ {}
                                               |T $ {} (:at 1657642441412) (:by |u0) (:text |replace-fragment-shader) (:type :leaf)
                                               |b $ {} (:at 1657642441412) (:by |u0) (:text |fs) (:type :leaf)
+                          |X $ {} (:at 1662288432280) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1662288432676) (:by |u0) (:text |if) (:type :leaf)
+                              |b $ {} (:at 1662288448104) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |D $ {} (:at 1662288622405) (:by |u0) (:text |nil?) (:type :leaf)
+                                  |P $ {} (:at 1662288624283) (:by |u0) (:text |program) (:type :leaf)
+                              |h $ {} (:at 1662288450309) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1662288466334) (:by |u0) (:text |raise) (:type :leaf)
+                                  |b $ {} (:at 1662288677593) (:by |u0) (:text "|\"Failed to compile shader") (:type :leaf)
                           |b $ {} (:at 1657120744821) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1657120752243) (:by |u0) (:text |swap!) (:type :leaf)
