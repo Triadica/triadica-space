@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.16)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.17)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -782,6 +782,7 @@
                             * r $ sin angle
                             + (* 40 xi) (* idx 0.6)
               :normal0 $ [] 1 0 0
+              ; :post-hook $ fn (a) (js/console.log a) a
             comp-brush $ {} (:draw-mode :line-strip)
               :curve $ -> (range 3)
                 map $ fn (xi)
@@ -1621,53 +1622,56 @@
                       [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
                       []
         |build-tube-points $ quote
-          defn build-tube-points (points radius normal0 circle-step d-angle)
-            ->
-              range $ dec (count points)
-              map $ fn (idx)
-                let
-                    p-raw $ nth points idx
-                    q-raw $ nth points (inc idx)
-                    at-end? $ < (&+ idx 2) (count points)
-                    p $ &map:get p-raw :position
-                    q $ &map:get q-raw :position
-                    q2 $ if at-end?
-                      &map:get
-                        nth points $ &+ idx 2
-                        , :position
-                      , p
-                    v $ &v- q p
-                    v2 $ if at-end? (&v- q2 q) (&v- q p)
-                    direction1 $ v-normalize (v-cross v normal0)
-                    direction2 $ v-normalize (v-cross direction1 v)
-                    direction3 $ v-normalize (v-cross v2 normal0)
-                    direction4 $ v-normalize (v-cross direction3 v2)
-                  -> (range circle-step)
-                    map $ fn (c-idx)
-                      let
-                          p0 $ &v+
-                            &v+ p $ v-scale direction1
-                              * radius $ cos (* c-idx d-angle)
-                            v-scale direction2 $ * radius
-                              sin $ * c-idx d-angle
-                          p1 $ &v+
-                            &v+ p $ v-scale direction1
-                              * radius $ cos
-                                * (inc c-idx) d-angle
-                            v-scale direction2 $ * radius
-                              sin $ * (inc c-idx) d-angle
-                          p2 $ &v+
-                            &v+ q $ v-scale direction3
-                              * radius $ cos (* c-idx d-angle)
-                            v-scale direction4 $ * radius
-                              sin $ * c-idx d-angle
-                          p3 $ &v+
-                            &v+ q $ v-scale direction3
-                              * radius $ cos
-                                * (inc c-idx) d-angle
-                            v-scale direction4 $ * radius
-                              sin $ * (inc c-idx) d-angle
-                        [] (assoc p-raw :position p0) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc q-raw :position p3)
+          defn build-tube-points (points radius normal0 circle-step post-hook)
+            let
+                d-angle $ / (* 2 &PI) circle-step
+              ->
+                range $ dec (count points)
+                map $ fn (idx)
+                  let
+                      p-raw $ nth points idx
+                      q-raw $ nth points (inc idx)
+                      at-end? $ < (&+ idx 2) (count points)
+                      p $ &map:get p-raw :position
+                      q $ &map:get q-raw :position
+                      q2 $ if at-end?
+                        &map:get
+                          nth points $ &+ idx 2
+                          , :position
+                        , p
+                      v $ &v- q p
+                      v2 $ if at-end? (&v- q2 q) (&v- q p)
+                      direction1 $ v-normalize (v-cross v normal0)
+                      direction2 $ v-normalize (v-cross direction1 v)
+                      direction3 $ v-normalize (v-cross v2 normal0)
+                      direction4 $ v-normalize (v-cross direction3 v2)
+                    -> (range circle-step)
+                      map $ fn (c-idx)
+                        let
+                            p0 $ &v+
+                              &v+ p $ v-scale direction1
+                                * radius $ cos (* c-idx d-angle)
+                              v-scale direction2 $ * radius
+                                sin $ * c-idx d-angle
+                            p1 $ &v+
+                              &v+ p $ v-scale direction1
+                                * radius $ cos
+                                  * (inc c-idx) d-angle
+                              v-scale direction2 $ * radius
+                                sin $ * (inc c-idx) d-angle
+                            p2 $ &v+
+                              &v+ q $ v-scale direction3
+                                * radius $ cos (* c-idx d-angle)
+                              v-scale direction4 $ * radius
+                                sin $ * c-idx d-angle
+                            p3 $ &v+
+                              &v+ q $ v-scale direction3
+                                * radius $ cos
+                                  * (inc c-idx) d-angle
+                              v-scale direction4 $ * radius
+                                sin $ * (inc c-idx) d-angle
+                            output $ [] (assoc p-raw :position p0) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc q-raw :position p3)
+                          if (fn? post-hook) (post-hook output) output
         |comp-brush $ quote
           defn comp-brush (options)
             let
@@ -1691,15 +1695,15 @@
                 radius $ either (&map:get options :radius) 10
                 normal0 $ either (&map:get options :normal0) ([] 0 0 1)
                 circle-step $ either (&map:get options :circle-step) 8
-                d-angle $ / (* 2 &PI) circle-step
+                post-hook $ &map:get options :post-hook
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
                 :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"lines.vert")
                 :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"lines.frag")
                 :packed-attrs $ if
                   list? $ first points
-                  map points $ fn (child) (build-tube-points child radius normal0 circle-step d-angle)
-                  build-tube-points points radius normal0 circle-step d-angle
+                  map points $ fn (child) (build-tube-points child radius normal0 circle-step post-hook)
+                  build-tube-points points radius normal0 circle-step post-hook
                 :get-uniforms $ &map:get options :get-uniforms
         |zero-2d $ quote
           def zero-2d $ [] 0 0
@@ -1723,6 +1727,7 @@
                 let
                     program $ twgl/createProgramInfo gl
                       js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
+                  if (nil? program) (raise "\"Failed to compile shader")
                   swap! *shader-programs assoc field program
                   , program
         |dev? $ quote
@@ -1730,6 +1735,8 @@
         |dpr $ quote (def dpr js/window.devicePixelRatio)
         |glsl-colors-code $ quote
           def glsl-colors-code $ inline-shader "\"triadica-colors.glsl"
+        |glsl-hsluv-code $ quote
+          def glsl-hsluv-code $ inline-shader "\"triadica-hsluv.glsl"
         |glsl-noises-code $ quote
           def glsl-noises-code $ inline-shader "\"triadica-noises.glsl"
         |glsl-perspective-code $ quote
@@ -1755,7 +1762,7 @@
           def post-effect? $ &= "\"on" (get-env "\"effect" "\"on")
         |replace-fragment-shader $ quote
           defn replace-fragment-shader (fs)
-            -> fs (.!replace "\"{{triadica_colors}}" glsl-colors-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code)
+            -> fs (.!replace "\"{{triadica_colors}}" glsl-colors-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code) (.!replace "\"{{triadica_hsluv}}" glsl-hsluv-code)
         |replace-vertex-shader $ quote
           defn replace-vertex-shader (vs)
             -> vs (.!replace "\"{{triadica_perspective}}" glsl-perspective-code) (.!replace "\"{{triadica_noises}}" glsl-noises-code) (.!replace "\"{{triadica_rotation}}" glsl-rotation-code)
