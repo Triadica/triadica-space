@@ -29,8 +29,8 @@ void main() {
   direciton.y = pow(direciton.y - 0.2, 8.0) * 8.2;
   direciton += vec3(0.,a,0.);
 
-  vec3 upward_base = normalize(upwardDirection);
-  vec3 rightward_base = normalize(cross(upwardDirection, lookPoint));
+  vec3 upward_base = upward;
+  vec3 rightward_base = rightward;
 
   float t = mod(time * 0.03 + a_phase + b, 30.0) * 10.0;
   // float t = 100.0;

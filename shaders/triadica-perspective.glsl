@@ -2,10 +2,13 @@
 // include via {{triadica_perspective}}
 
 uniform float coneBackScale;
-uniform vec3 lookPoint; // direction in front, transformed into a specific length
-uniform vec3 upwardDirection; // direction up over head, better unit vectoruniform float viewportRatio;
+// uniform vec3 lookPoint; // direction in front, transformed into a specific length
+uniform vec3 forward;
+uniform float lookDistance;
+uniform vec3 upward; // direction up over head, better unit vectoruniform float viewportRatio;
 uniform float viewportRatio;
 uniform vec3 cameraPosition;
+uniform vec3 rightward;
 
 struct PointResult {
   vec3 point;
@@ -15,13 +18,10 @@ struct PointResult {
 
 PointResult transform_perspective(vec3 p) {
   vec3 moved_point = p - cameraPosition;
-  // trying to get right direction at length 1
-  vec3 rightward = normalize(cross(upwardDirection, lookPoint));
 
   float s = coneBackScale;
 
-  float square_length = lookPoint.x*lookPoint.x + lookPoint.y*lookPoint.y + lookPoint.z*lookPoint.z;
-  float r = dot(moved_point, lookPoint) / square_length;
+  float r = dot(moved_point, forward) / lookDistance;
 
   if (r < (s * -0.9)) {
     // make it disappear with depth test since it's probably behind the camera
@@ -29,8 +29,8 @@ PointResult transform_perspective(vec3 p) {
   }
 
   float screen_scale = (s + 1.0) / (r + s);
-  float y_next = dot(moved_point, upwardDirection) * screen_scale;
-  float x_next = - dot(moved_point, rightward) * screen_scale;
+  float y_next = dot(moved_point, upward) * screen_scale;
+  float x_next = - dot(moved_point, -rightward) * screen_scale;
   float z_next = r;
 
   return PointResult(

@@ -8,8 +8,6 @@ varying float v_r;
 varying float v_s;
 
 void main() {
-  vec3 upward = upwardDirection;
-  vec3 rightward = normalize(cross(lookPoint, upwardDirection));
   vec3 p = a_position + rightward * a_brush.x + upward * a_brush.y;
 
   PointResult result = transform_perspective(p);
