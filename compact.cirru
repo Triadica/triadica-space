@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.17)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.18)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -2043,9 +2043,14 @@
             ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
             ; do (hud-display "\"position" @*viewer-position) (hud-display "\"forward" @*viewer-forward) (hud-display "\"upward" @*viewer-upward)
             let
+                look-at $ new-lookat-point
+                forward $ v-normalize look-at
+                rightward $ v-cross forward @*viewer-upward
                 uniforms $ js-object
-                  :lookPoint $ js-array & (new-lookat-point)
-                  :upwardDirection $ js-array & @*viewer-upward
+                  :lookDistance $ v-length look-at
+                  :forward $ js-array & forward
+                  :upward $ js-array & @*viewer-upward
+                  :rightward $ js-array & rightward
                   :cameraPosition $ js-array & @*viewer-position
                   :coneBackScale back-cone-scale
                   :viewportRatio $ &/ js/window.innerHeight js/window.innerWidth
@@ -2171,6 +2176,7 @@
           "\"twgl.js" :as twgl
           triadica.math :refer $ &v+ &v- c-distance
           triadica.config :refer $ half-pi mobile? post-effect? dpr back-cone-scale inline-shader cached-build-program
+          quaternion.core :refer $ v-normalize v-cross v-length
     |triadica.global $ {}
       :defs $ {}
         |*gl-context $ quote (defatom *gl-context nil)

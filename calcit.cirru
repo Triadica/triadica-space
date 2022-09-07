@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.17)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.18)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :ir $ {} (:package |triadica)
@@ -15724,30 +15724,64 @@
                       |T $ {} (:at 1651661950631) (:by |u0) (:text |let) (:type :leaf)
                       |b $ {} (:at 1651661950631) (:by |u0) (:type :expr)
                         :data $ {}
+                          |O $ {} (:at 1662457341338) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1662457343453) (:by |u0) (:text |look-at) (:type :leaf)
+                              |b $ {} (:at 1662457345269) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1662457345269) (:by |u0) (:text |new-lookat-point) (:type :leaf)
+                          |V $ {} (:at 1662459062595) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1662459068045) (:by |u0) (:text |forward) (:type :leaf)
+                              |b $ {} (:at 1662459071425) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1662459071425) (:by |u0) (:text |v-normalize) (:type :leaf)
+                                  |b $ {} (:at 1662459071425) (:by |u0) (:text |look-at) (:type :leaf)
+                          |c $ {} (:at 1662457425179) (:by |u0) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1662457425179) (:by |u0) (:text |rightward) (:type :leaf)
+                              |b $ {} (:at 1662457425179) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1662457425179) (:by |u0) (:text |v-cross) (:type :leaf)
+                                  |h $ {} (:at 1662459077071) (:by |u0) (:text |forward) (:type :leaf)
+                                  |l $ {} (:at 1662457963458) (:by |u0) (:text |@*viewer-upward) (:type :leaf)
                           |q $ {} (:at 1651661950631) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1651661950631) (:by |u0) (:text |uniforms) (:type :leaf)
                               |b $ {} (:at 1651661950631) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1651661950631) (:by |u0) (:text |js-object) (:type :leaf)
-                                  |h $ {} (:at 1651752431397) (:by |u0) (:type :expr)
+                                  |a $ {} (:at 1662458009934) (:by |u0) (:type :expr)
                                     :data $ {}
-                                      |T $ {} (:at 1651752586634) (:by |u0) (:text |:lookPoint) (:type :leaf)
-                                      |b $ {} (:at 1651757056365) (:by |u0) (:type :expr)
+                                      |T $ {} (:at 1662458009934) (:by |u0) (:text |:lookDistance) (:type :leaf)
+                                      |b $ {} (:at 1662458009934) (:by |u0) (:type :expr)
                                         :data $ {}
-                                          |T $ {} (:at 1653325998873) (:by |u0) (:text |js-array) (:type :leaf)
-                                          |X $ {} (:at 1653325999579) (:by |u0) (:text |&) (:type :leaf)
-                                          |b $ {} (:at 1651757060048) (:by |u0) (:type :expr)
-                                            :data $ {}
-                                              |T $ {} (:at 1651757060048) (:by |u0) (:text |new-lookat-point) (:type :leaf)
+                                          |T $ {} (:at 1662458009934) (:by |u0) (:text |v-length) (:type :leaf)
+                                          |b $ {} (:at 1662458009934) (:by |u0) (:text |look-at) (:type :leaf)
+                                  |hT $ {} (:at 1662457608156) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1662457611125) (:by |u0) (:text |:forward) (:type :leaf)
+                                      |b $ {} (:at 1662457616443) (:by |u0) (:type :expr)
+                                        :data $ {}
+                                          |T $ {} (:at 1662457616443) (:by |u0) (:text |js-array) (:type :leaf)
+                                          |b $ {} (:at 1662457616443) (:by |u0) (:text |&) (:type :leaf)
+                                          |h $ {} (:at 1662459073524) (:by |u0) (:text |forward) (:type :leaf)
                                   |i $ {} (:at 1655960077050) (:by |u0) (:type :expr)
                                     :data $ {}
-                                      |T $ {} (:at 1655960088522) (:by |u0) (:text |:upwardDirection) (:type :leaf)
+                                      |T $ {} (:at 1662458002590) (:by |u0) (:text |:upward) (:type :leaf)
                                       |b $ {} (:at 1655960089908) (:by |u0) (:type :expr)
                                         :data $ {}
                                           |T $ {} (:at 1655960091883) (:by |u0) (:text |js-array) (:type :leaf)
                                           |X $ {} (:at 1655973847456) (:by |u0) (:text |&) (:type :leaf)
                                           |b $ {} (:at 1655973860276) (:by |u0) (:text |@*viewer-upward) (:type :leaf)
+                                  |iT $ {} (:at 1662458007462) (:by |u0) (:type :expr)
+                                    :data $ {}
+                                      |T $ {} (:at 1662458007462) (:by |u0) (:text |:rightward) (:type :leaf)
+                                      |b $ {} (:at 1662458007462) (:by |u0) (:type :expr)
+                                        :data $ {}
+                                          |T $ {} (:at 1662458007462) (:by |u0) (:text |js-array) (:type :leaf)
+                                          |b $ {} (:at 1662458007462) (:by |u0) (:text |&) (:type :leaf)
+                                          |h $ {} (:at 1662458007462) (:by |u0) (:text |rightward) (:type :leaf)
                                   |j $ {} (:at 1651756858012) (:by |u0) (:type :expr)
                                     :data $ {}
                                       |T $ {} (:at 1651756861948) (:by |u0) (:text |:cameraPosition) (:type :leaf)
@@ -16770,6 +16804,15 @@
                         |l $ {} (:at 1654954318816) (:by |u0) (:text |back-cone-scale) (:type :leaf)
                         |o $ {} (:at 1656413948897) (:by |u0) (:text |inline-shader) (:type :leaf)
                         |q $ {} (:at 1657120777420) (:by |u0) (:text |cached-build-program) (:type :leaf)
+                |zq $ {} (:at 1662457542029) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1662457544225) (:by |u0) (:text |quaternion.core) (:type :leaf)
+                    |b $ {} (:at 1662457544910) (:by |u0) (:text |:refer) (:type :leaf)
+                    |h $ {} (:at 1662457545131) (:by |u0) (:type :expr)
+                      :data $ {}
+                        |T $ {} (:at 1662457545469) (:by |u0) (:text |v-normalize) (:type :leaf)
+                        |b $ {} (:at 1662457552009) (:by |u0) (:text |v-cross) (:type :leaf)
+                        |h $ {} (:at 1662457742280) (:by |u0) (:text |v-length) (:type :leaf)
       |triadica.global $ {}
         :configs $ {}
         :defs $ {}
