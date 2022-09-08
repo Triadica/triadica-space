@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.18)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.19)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -761,11 +761,11 @@
                     {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
                   :sparklers $ comp-sparklers
                   :tube $ comp-tube-demo
-                if-not hide-tabs? $ memof1-call comp-tabs
+                if-not hide-tabs? $ memof1-call comp-tabs tab-entries
                   {}
                     :position $ [] -40 0 0
                     :selected $ :tab store
-                  , tab-entries
+                  fn (key d!) (d! :tab-focus key )
         |comp-tube-demo $ quote
           defn comp-tube-demo () $ group ({})
             comp-tube $ {} (:draw-mode :line-strip)
@@ -1476,6 +1476,7 @@
                               v-scale
                                 [] (+ size gap) 0 0
                                 , idx
+                  :hit-region $ :hit-region props
                 object $ {} (:draw-mode :triangles)
                   :vertex-shader $ inline-shader "\"stitch-line.vert"
                   :fragment-shader $ inline-shader "\"stitch-line.frag"
@@ -1558,7 +1559,7 @@
     |triadica.comp.tabs $ {}
       :defs $ {}
         |comp-tabs $ quote
-          defn comp-tabs (props entries)
+          defn comp-tabs (entries props on-click)
             let
                 base-position $ :position props
                 selected $ :selected props
@@ -1580,7 +1581,7 @@
                               &v+ position
                         :indices indices
                         :hit-region $ {} (:position position) (:radius 20)
-                          :on-hit $ fn (e d!) (d! :tab-focus key)
+                          :on-hit $ fn (e d!) (on-click key d!)
                         :attributes $ {}
                           :color_index $ repeat
                             if
@@ -1592,6 +1593,10 @@
                         memof1-call-by v comp-stitch $ {}
                           :position $ &v+ position ([] 30 10 0)
                           :chars $ [] v
+                          :hit-region $ {}
+                            :position $ &v+ position ([] 30 10 0)
+                            :radius 20
+                            :on-hit $ fn (e d!) (on-click key d!)
         |dice-shape-points $ quote
           def dice-shape-points $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
       :ns $ quote
