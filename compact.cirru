@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.19)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.20)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -1309,16 +1309,28 @@
     |triadica.comp.axis $ {}
       :defs $ {}
         |comp-axis $ quote
-          defn comp-axis () $ object
-            {} (:draw-mode :lines)
-              :vertex-shader $ inline-shader "\"lines.vert"
-              :fragment-shader $ inline-shader "\"lines.frag"
-              :points $ [] ([] 400 0 0) ([] -400 0 0) ([] 0 400 0) ([] 0 -400 0) ([] 0 0 400) ([] 0 0 -400)
+          defn comp-axis (? o)
+            let
+                options $ either o ({})
+                radius $ either (&map:get options :radius) 2
+                segments $ either (&map:get options :segments) 10
+                length $ either (&map:get options :length) 400
+                neg-length $ negate length
+              comp-tube $ {} (; :draw-mode :line-strip) (:circle-step 6)
+                :normal0 $ [] 1 1 1
+                :vertex-shader $ inline-shader "\"axis.vert"
+                :fragment-shader $ inline-shader "\"axis.frag"
+                :radius radius
+                :curve $ []
+                  interpolate-line-positions ([] neg-length 0 0) ([] length 0 0) segments
+                  interpolate-line-positions ([] 0 neg-length 0) ([] 0 length 0) segments
+                  interpolate-line-positions ([] 0 0 neg-length) ([] 0 0 length) segments
       :ns $ quote
         ns triadica.comp.axis $ :require
           triadica.alias :refer $ group object
           triadica.config :refer $ inline-shader
           triadica.math :refer $ &v+
+          triadica.comp.tube :refer $ comp-tube interpolate-line-positions
     |triadica.comp.drag-point $ {}
       :defs $ {}
         |*drag-cache $ quote
@@ -1710,6 +1722,17 @@
                   map points $ fn (child) (build-tube-points child radius normal0 circle-step post-hook)
                   build-tube-points points radius normal0 circle-step post-hook
                 :get-uniforms $ &map:get options :get-uniforms
+        |interpolate-line-positions $ quote
+          defn interpolate-line-positions (a b n)
+            let
+                ratio $ / 1 n
+              ->
+                range $ inc n
+                map $ fn (idx)
+                  {} $ :position
+                    &v+
+                      v-scale a $ * ratio idx
+                      v-scale b $ * ratio (- n idx)
         |zero-2d $ quote
           def zero-2d $ [] 0 0
       :ns $ quote

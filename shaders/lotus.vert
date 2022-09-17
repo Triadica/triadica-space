@@ -20,5 +20,4 @@ void main() {
   v_dr = a_position.x*a_position.x + a_position.z*a_position.z;
 
   gl_Position = vec4(pos_next * 0.002, 1.0);
-  // gl_Position = vec4(a_position/10000.0, 1.0);
 }

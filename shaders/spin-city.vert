@@ -74,5 +74,4 @@ void main() {
   v_radius = snoise(vec2(x, a_angle));
 
   gl_Position = vec4(pos_next * 0.002, 1.0);
-  // gl_Position = vec4(a_position/10000.0, 1.0);
 }
