@@ -30,6 +30,4 @@ void main() {
   // } else {
     // gl_Position = vec4(0.0, -100.0, -100.0, 0.0);
   // }
-
-  // gl_Position = vec4(a_position/10000.0, 1.0);
 }
