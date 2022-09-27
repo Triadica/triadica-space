@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.21)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.22)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -1755,7 +1755,10 @@
                 let
                     program $ twgl/createProgramInfo gl
                       js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
-                  when (nil? program) (hud! "\"error" "\"failed to compile shader") (raise "\"Failed to compile shader")
+                      js-object $ :errorCallback
+                        fn (msg)
+                          if (some? msg) (hud! "\"error" msg)
+                  if (nil? program) (raise "\"Failed to compile shader")
                   swap! *shader-programs assoc field program
                   , program
         |dev? $ quote

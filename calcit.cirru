@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.21)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.22)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :ir $ {} (:package |triadica)
@@ -13776,18 +13776,37 @@
                                             :data $ {}
                                               |T $ {} (:at 1657642441412) (:by |u0) (:text |replace-fragment-shader) (:type :leaf)
                                               |b $ {} (:at 1657642441412) (:by |u0) (:text |fs) (:type :leaf)
+                                      |l $ {} (:at 1664291052740) (:by |u0) (:type :expr)
+                                        :data $ {}
+                                          |T $ {} (:at 1664291054544) (:by |u0) (:text |js-object) (:type :leaf)
+                                          |b $ {} (:at 1664291055884) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1664291058530) (:by |u0) (:text |:errorCallback) (:type :leaf)
+                                              |b $ {} (:at 1664291061266) (:by |u0) (:type :expr)
+                                                :data $ {}
+                                                  |T $ {} (:at 1664291061930) (:by |u0) (:text |fn) (:type :leaf)
+                                                  |b $ {} (:at 1664291062222) (:by |u0) (:type :expr)
+                                                    :data $ {}
+                                                      |T $ {} (:at 1664291063086) (:by |u0) (:text |msg) (:type :leaf)
+                                                  |h $ {} (:at 1664291067632) (:by |u0) (:type :expr)
+                                                    :data $ {}
+                                                      |T $ {} (:at 1664291067971) (:by |u0) (:text |if) (:type :leaf)
+                                                      |b $ {} (:at 1664291068989) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1664291069729) (:by |u0) (:text |some?) (:type :leaf)
+                                                          |b $ {} (:at 1664291072099) (:by |u0) (:text |msg) (:type :leaf)
+                                                      |h $ {} (:at 1664291077864) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1664291077864) (:by |u0) (:text |hud!) (:type :leaf)
+                                                          |b $ {} (:at 1664291077864) (:by |u0) (:text "|\"error") (:type :leaf)
+                                                          |h $ {} (:at 1664291081424) (:by |u0) (:text |msg) (:type :leaf)
                           |X $ {} (:at 1662288432280) (:by |u0) (:type :expr)
                             :data $ {}
-                              |T $ {} (:at 1664258530896) (:by |u0) (:text |when) (:type :leaf)
+                              |T $ {} (:at 1664291089431) (:by |u0) (:text |if) (:type :leaf)
                               |b $ {} (:at 1662288448104) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |D $ {} (:at 1662288622405) (:by |u0) (:text |nil?) (:type :leaf)
                                   |P $ {} (:at 1662288624283) (:by |u0) (:text |program) (:type :leaf)
-                              |e $ {} (:at 1664258879223) (:by |u0) (:type :expr)
-                                :data $ {}
-                                  |T $ {} (:at 1664258879223) (:by |u0) (:text |hud!) (:type :leaf)
-                                  |b $ {} (:at 1664258879223) (:by |u0) (:text "|\"error") (:type :leaf)
-                                  |h $ {} (:at 1664258889451) (:by |u0) (:text "|\"failed to compile shader") (:type :leaf)
                               |h $ {} (:at 1662288450309) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1662288466334) (:by |u0) (:text |raise) (:type :leaf)
