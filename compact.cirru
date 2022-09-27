@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.20)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.21)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -1755,7 +1755,7 @@
                 let
                     program $ twgl/createProgramInfo gl
                       js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
-                  if (nil? program) (raise "\"Failed to compile shader")
+                  when (nil? program) (hud! "\"error" "\"failed to compile shader") (raise "\"Failed to compile shader")
                   swap! *shader-programs assoc field program
                   , program
         |dev? $ quote
@@ -1797,6 +1797,7 @@
       :ns $ quote
         ns triadica.config $ :require ("\"mobile-detect" :default mobile-detect) ("\"twgl.js" :as twgl)
           triadica.$meta :refer $ calcit-dirname
+          "\"bottom-tip" :default hud!
     |triadica.core $ {}
       :defs $ {}
         |*draw-fb $ quote (defatom *draw-fb nil)

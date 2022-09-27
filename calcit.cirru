@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.20)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.21)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :ir $ {} (:package |triadica)
@@ -13778,11 +13778,16 @@
                                               |b $ {} (:at 1657642441412) (:by |u0) (:text |fs) (:type :leaf)
                           |X $ {} (:at 1662288432280) (:by |u0) (:type :expr)
                             :data $ {}
-                              |T $ {} (:at 1662288432676) (:by |u0) (:text |if) (:type :leaf)
+                              |T $ {} (:at 1664258530896) (:by |u0) (:text |when) (:type :leaf)
                               |b $ {} (:at 1662288448104) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |D $ {} (:at 1662288622405) (:by |u0) (:text |nil?) (:type :leaf)
                                   |P $ {} (:at 1662288624283) (:by |u0) (:text |program) (:type :leaf)
+                              |e $ {} (:at 1664258879223) (:by |u0) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1664258879223) (:by |u0) (:text |hud!) (:type :leaf)
+                                  |b $ {} (:at 1664258879223) (:by |u0) (:text "|\"error") (:type :leaf)
+                                  |h $ {} (:at 1664258889451) (:by |u0) (:text "|\"failed to compile shader") (:type :leaf)
                               |h $ {} (:at 1662288450309) (:by |u0) (:type :expr)
                                 :data $ {}
                                   |T $ {} (:at 1662288466334) (:by |u0) (:text |raise) (:type :leaf)
@@ -14040,6 +14045,11 @@
                     |h $ {} (:at 1656096608629) (:by |u0) (:type :expr)
                       :data $ {}
                         |T $ {} (:at 1656096630480) (:by |u0) (:text |calcit-dirname) (:type :leaf)
+                |l $ {} (:at 1664258859822) (:by |u0) (:type :expr)
+                  :data $ {}
+                    |T $ {} (:at 1664258859822) (:by |u0) (:text "|\"bottom-tip") (:type :leaf)
+                    |b $ {} (:at 1664258859822) (:by |u0) (:text |:default) (:type :leaf)
+                    |h $ {} (:at 1664258859822) (:by |u0) (:text |hud!) (:type :leaf)
       |triadica.core $ {}
         :defs $ {}
           |*draw-fb $ {} (:at 1656646679735) (:by |u0) (:type :expr)
