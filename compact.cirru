@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.23)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.24)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -761,11 +761,32 @@
                     {} $ :chars ([] 0xf2dfea34 0xc3c4a59d 0x88737645)
                   :sparklers $ comp-sparklers
                   :tube $ comp-tube-demo
+                  :strip-light $ comp-strip-light-demo
                 if-not hide-tabs? $ memof1-call comp-tabs tab-entries
                   {}
                     :position $ [] -40 0 0
                     :selected $ :tab store
                   fn (key d!) (d! :tab-focus key )
+        |comp-strip-light-demo $ quote
+          defn comp-strip-light-demo () $ comp-strip-light
+            {}
+              :lines $ let
+                  size 200
+                  scale 2400
+                  points $ -> (range size)
+                    map $ fn (idx)
+                      v-scale
+                        v-normalize $ [] (rand-bothway) (rand-bothway) (rand-bothway)
+                        , scale
+                  pairs $ ->
+                    range $ dec size
+                    map $ fn (idx)
+                      [] (nth points idx)
+                        nth points $ inc idx
+                , pairs
+              :dot-radius 4
+              :step 12
+              :offset 20
         |comp-tube-demo $ quote
           defn comp-tube-demo () $ group ({})
             comp-tube $ {} (:draw-mode :line-strip)
@@ -800,6 +821,10 @@
               :brush $ [] 8 0
               :brush1 $ [] 4 4
               :brush2 $ [] 6 3
+        |rand-bothway $ quote
+          defn rand-bothway () $ let
+              a $ js/Math.random
+            - a 0.5
         |tab-entries $ quote
           def tab-entries $ []
             {} (:key :axis)
@@ -846,6 +871,8 @@
               :position $ [] -200 -40 0
             {} (:key :tube)
               :position $ [] -200 -80 0
+            {} (:key :strip-light)
+              :position $ [] -200 -120 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -859,15 +886,16 @@
           triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
-          triadica.comp.tube :refer $ comp-tube comp-brush
+          triadica.comp.line :refer $ comp-tube comp-brush comp-strip-light
           triadica.core :refer $ >>
           triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
+          quaternion.core :refer $ v-scale v-normalize
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
           defatom *store $ {} (:v 0)
-            :tab $ turn-keyword (get-env "\"tab" "\"axis")
+            :tab $ turn-keyword (get-env "\"tab" "\"strip-light")
             :p1 $ [] 0 0 0
             :states $ {}
         |canvas $ quote
@@ -1330,7 +1358,7 @@
           triadica.alias :refer $ group object
           triadica.config :refer $ inline-shader
           triadica.math :refer $ &v+
-          triadica.comp.tube :refer $ comp-tube interpolate-line-positions
+          triadica.comp.line :refer $ comp-tube interpolate-line-positions
     |triadica.comp.drag-point $ {}
       :defs $ {}
         |*drag-cache $ quote
@@ -1464,6 +1492,174 @@
           triadica.math :refer $ square
           quaternion.core :refer $ &v+ v-cross v-scale v-dot &v-
           triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
+    |triadica.comp.line $ {}
+      :defs $ {}
+        |build-brush-points $ quote
+          defn build-brush-points (points brush brush1 brush2)
+            ->
+              range $ dec (count points)
+              map $ fn (idx)
+                let
+                    p-raw $ nth points idx
+                    q-raw $ nth points (inc idx)
+                    p $ &map:get p-raw :position
+                    q $ &map:get q-raw :position
+                  []
+                    [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
+                    if (some? brush1)
+                      [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush1)
+                      []
+                    if (some? brush2)
+                      [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
+                      []
+        |build-strip-points $ quote
+          defn build-strip-points (p q step)
+            let
+                v $ &v- q p
+                l $ v-length v
+                dd $ &/ l step
+                size $ js/Math.floor dd
+                left $ &* 0.5
+                  - l $ &* size step
+                unit $ v-normalize v
+                dist $ ->
+                  range $ inc size
+                  map $ fn (idx)
+                    + left $ * idx step
+              -> dist $ map
+                fn (ratio)
+                  &v+ p $ v-scale unit ratio
+        |build-tube-points $ quote
+          defn build-tube-points (points radius normal0 circle-step post-hook)
+            let
+                d-angle $ / (* 2 &PI) circle-step
+              ->
+                range $ dec (count points)
+                map $ fn (idx)
+                  let
+                      p-raw $ nth points idx
+                      q-raw $ nth points (inc idx)
+                      at-end? $ < (&+ idx 2) (count points)
+                      p $ &map:get p-raw :position
+                      q $ &map:get q-raw :position
+                      q2 $ if at-end?
+                        &map:get
+                          nth points $ &+ idx 2
+                          , :position
+                        , p
+                      v $ &v- q p
+                      v2 $ if at-end? (&v- q2 q) (&v- q p)
+                      direction1 $ v-normalize (v-cross v normal0)
+                      direction2 $ v-normalize (v-cross direction1 v)
+                      direction3 $ v-normalize (v-cross v2 normal0)
+                      direction4 $ v-normalize (v-cross direction3 v2)
+                    -> (range circle-step)
+                      map $ fn (c-idx)
+                        let
+                            p0 $ &v+
+                              &v+ p $ v-scale direction1
+                                * radius $ cos (* c-idx d-angle)
+                              v-scale direction2 $ * radius
+                                sin $ * c-idx d-angle
+                            p1 $ &v+
+                              &v+ p $ v-scale direction1
+                                * radius $ cos
+                                  * (inc c-idx) d-angle
+                              v-scale direction2 $ * radius
+                                sin $ * (inc c-idx) d-angle
+                            p2 $ &v+
+                              &v+ q $ v-scale direction3
+                                * radius $ cos (* c-idx d-angle)
+                              v-scale direction4 $ * radius
+                                sin $ * c-idx d-angle
+                            p3 $ &v+
+                              &v+ q $ v-scale direction3
+                                * radius $ cos
+                                  * (inc c-idx) d-angle
+                              v-scale direction4 $ * radius
+                                sin $ * (inc c-idx) d-angle
+                            output $ [] (assoc p-raw :position p0) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc q-raw :position p3)
+                          if (fn? post-hook) (post-hook output) output
+        |comp-brush $ quote
+          defn comp-brush (options)
+            let
+                points $ &map:get options :curve
+                brush $ either (&map:get options :brush) ([] 8 0)
+                brush1 $ &map:get options :brush1
+                brush2 $ &map:get options :brush2
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"brush.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"brush.frag")
+                :packed-attrs $ if
+                  list? $ nth points 0
+                  map points $ fn (child) (build-brush-points child brush brush1 brush2)
+                  build-brush-points points brush brush1 brush2
+                :get-uniforms $ &map:get options :get-uniforms
+        |comp-strip-light $ quote
+          defn comp-strip-light (options)
+            let
+                lines $ &map:get options :lines
+                color $ either (&map:get options :color) (js-array 0.2 0.9 0.6)
+                step $ either (&map:get options :step) 4
+                offset $ either (&map:get options :offset) 4
+                dot-radius $ either (&map:get options :dot-radius) 2
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"strip-light.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"strip-light.frag")
+                :packed-attrs $ -> lines
+                  map $ fn (pair)
+                    let
+                        p $ nth pair 0
+                        q $ nth pair 1
+                        points $ build-strip-points p q step
+                      -> points $ map
+                        fn (position)
+                          -> ([] -1 0 1 -1 1 2 -1 2 3 -1 3 4 -1 4 5 -1 5 0)
+                            map $ fn (idx)
+                              {} (:position position) (:direction idx)
+                :get-uniforms $ fn ()
+                  js-object
+                    :u_color $ if (list? color) (to-js-data color) color
+                    :u_offset offset
+                    :u_dot_radius dot-radius
+        |comp-tube $ quote
+          defn comp-tube (options)
+            let
+                points $ &map:get options :curve
+                radius $ either (&map:get options :radius) 10
+                normal0 $ either (&map:get options :normal0) ([] 0 0 1)
+                circle-step $ either (&map:get options :circle-step) 8
+                post-hook $ &map:get options :post-hook
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"lines.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"lines.frag")
+                :packed-attrs $ if
+                  list? $ first points
+                  map points $ fn (child) (build-tube-points child radius normal0 circle-step post-hook)
+                  build-tube-points points radius normal0 circle-step post-hook
+                :get-uniforms $ &map:get options :get-uniforms
+        |interpolate-line-positions $ quote
+          defn interpolate-line-positions (a b n)
+            let
+                ratio $ / 1 n
+              ->
+                range $ inc n
+                map $ fn (idx)
+                  {} $ :position
+                    &v+
+                      v-scale a $ * ratio idx
+                      v-scale b $ * ratio (- n idx)
+        |zero-2d $ quote
+          def zero-2d $ [] 0 0
+      :ns $ quote
+        ns triadica.comp.line $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ group object
+          quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
+          triadica.math :refer $ square
     |triadica.comp.stitch $ {}
       :defs $ {}
         |comp-stitch $ quote
@@ -1618,129 +1814,6 @@
           triadica.math :refer $ &v+
           triadica.comp.stitch :refer $ comp-stitch
           memof.once :refer $ memof1-call-by
-    |triadica.comp.tube $ {}
-      :defs $ {}
-        |build-brush-points $ quote
-          defn build-brush-points (points brush brush1 brush2)
-            ->
-              range $ dec (count points)
-              map $ fn (idx)
-                let
-                    p-raw $ nth points idx
-                    q-raw $ nth points (inc idx)
-                    p $ &map:get p-raw :position
-                    q $ &map:get q-raw :position
-                  []
-                    [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
-                    if (some? brush1)
-                      [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush1)
-                      []
-                    if (some? brush2)
-                      [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
-                      []
-        |build-tube-points $ quote
-          defn build-tube-points (points radius normal0 circle-step post-hook)
-            let
-                d-angle $ / (* 2 &PI) circle-step
-              ->
-                range $ dec (count points)
-                map $ fn (idx)
-                  let
-                      p-raw $ nth points idx
-                      q-raw $ nth points (inc idx)
-                      at-end? $ < (&+ idx 2) (count points)
-                      p $ &map:get p-raw :position
-                      q $ &map:get q-raw :position
-                      q2 $ if at-end?
-                        &map:get
-                          nth points $ &+ idx 2
-                          , :position
-                        , p
-                      v $ &v- q p
-                      v2 $ if at-end? (&v- q2 q) (&v- q p)
-                      direction1 $ v-normalize (v-cross v normal0)
-                      direction2 $ v-normalize (v-cross direction1 v)
-                      direction3 $ v-normalize (v-cross v2 normal0)
-                      direction4 $ v-normalize (v-cross direction3 v2)
-                    -> (range circle-step)
-                      map $ fn (c-idx)
-                        let
-                            p0 $ &v+
-                              &v+ p $ v-scale direction1
-                                * radius $ cos (* c-idx d-angle)
-                              v-scale direction2 $ * radius
-                                sin $ * c-idx d-angle
-                            p1 $ &v+
-                              &v+ p $ v-scale direction1
-                                * radius $ cos
-                                  * (inc c-idx) d-angle
-                              v-scale direction2 $ * radius
-                                sin $ * (inc c-idx) d-angle
-                            p2 $ &v+
-                              &v+ q $ v-scale direction3
-                                * radius $ cos (* c-idx d-angle)
-                              v-scale direction4 $ * radius
-                                sin $ * c-idx d-angle
-                            p3 $ &v+
-                              &v+ q $ v-scale direction3
-                                * radius $ cos
-                                  * (inc c-idx) d-angle
-                              v-scale direction4 $ * radius
-                                sin $ * (inc c-idx) d-angle
-                            output $ [] (assoc p-raw :position p0) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc p-raw :position p1) (assoc q-raw :position p2) (assoc q-raw :position p3)
-                          if (fn? post-hook) (post-hook output) output
-        |comp-brush $ quote
-          defn comp-brush (options)
-            let
-                points $ &map:get options :curve
-                brush $ either (&map:get options :brush) ([] 8 0)
-                brush1 $ &map:get options :brush1
-                brush2 $ &map:get options :brush2
-              object $ {}
-                :draw-mode $ either (&map:get options :draw-mode) :triangles
-                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"brush.vert")
-                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"brush.frag")
-                :packed-attrs $ if
-                  list? $ nth points 0
-                  map points $ fn (child) (build-brush-points child brush brush1 brush2)
-                  build-brush-points points brush brush1 brush2
-                :get-uniforms $ &map:get options :get-uniforms
-        |comp-tube $ quote
-          defn comp-tube (options)
-            let
-                points $ &map:get options :curve
-                radius $ either (&map:get options :radius) 10
-                normal0 $ either (&map:get options :normal0) ([] 0 0 1)
-                circle-step $ either (&map:get options :circle-step) 8
-                post-hook $ &map:get options :post-hook
-              object $ {}
-                :draw-mode $ either (&map:get options :draw-mode) :triangles
-                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"lines.vert")
-                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"lines.frag")
-                :packed-attrs $ if
-                  list? $ first points
-                  map points $ fn (child) (build-tube-points child radius normal0 circle-step post-hook)
-                  build-tube-points points radius normal0 circle-step post-hook
-                :get-uniforms $ &map:get options :get-uniforms
-        |interpolate-line-positions $ quote
-          defn interpolate-line-positions (a b n)
-            let
-                ratio $ / 1 n
-              ->
-                range $ inc n
-                map $ fn (idx)
-                  {} $ :position
-                    &v+
-                      v-scale a $ * ratio idx
-                      v-scale b $ * ratio (- n idx)
-        |zero-2d $ quote
-          def zero-2d $ [] 0 0
-      :ns $ quote
-        ns triadica.comp.tube $ :require
-          triadica.config :refer $ inline-shader
-          triadica.alias :refer $ group object
-          quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize
-          triadica.math :refer $ square
     |triadica.config $ {}
       :defs $ {}
         |*shader-programs $ quote
@@ -2113,7 +2186,12 @@
                     buffer-info $ :buffer object
                     current-uniforms $ if-let
                       get-u $ :get-uniforms object
-                      js/Object.assign (get-u) uniforms
+                      let
+                          u $ get-u
+                          el-uniforms $ if (map? u)
+                            do (js/console.warn "\"get js-object for better performance" u) (to-js-data u)
+                            , u
+                        js/Object.assign el-uniforms uniforms
                       , uniforms
                   .!useProgram gl $ .-program program-info
                   twgl/setBuffersAndAttributes gl program-info buffer-info
