@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.22)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.23)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -2094,17 +2094,19 @@
                 do (twgl/resizeFramebufferInfo gl draw-fb) (twgl/bindFramebufferInfo gl draw-fb)
                 twgl/bindFramebufferInfo gl nil
               .!viewport gl 0 0.0 scaled-width scaled-height (; -> gl .-canvas .-width) (; -> gl .-canvas .-height)
+              clear-gl! gl
               .!enable gl $ .-DEPTH_TEST gl
               .!depthFunc gl $ .-LESS gl
               ; .!depthFunc gl $ .-GREATER gl
               .!depthMask gl true
               ; .!depthFunc gl $ .-ALWAYS gl
               ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
-              ; .!enable gl $ .-BLEND gl
+              .!enable gl $ .-BLEND gl
+              .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE_MINUS_SRC_ALPHA gl)
+              ; .!blendFunc gl (.-ONE gl) (.-ONE_MINUS_SRC_ALPHA gl)
               ; .!enable gl $ .-CULL_FACE gl
               ; .!cullFace gl $ .-BACK gl
               ; .!cullFace gl $ .-FRONT_AND_BACK gl
-              clear-gl! gl
               &doseq (object @*objects-buffer)
                 let
                     program-info $ :program object
