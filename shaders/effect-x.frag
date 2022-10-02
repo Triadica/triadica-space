@@ -62,9 +62,9 @@ void main() {
   for (int i = -repeat; i <= repeat; i++) {
     vec4 color2 = vec4(0.0, 0.0, 0.0, 1.0);
     if (direction < 0.5) {
-      color2 = texture2D(tex1, v_texcoord + vec2(0.0, i) / 800.0);
+      color2 = texture2D(tex1, v_texcoord + vec2(0.0, i) * 0.0015);
     } else {
-      color2 = texture2D(tex1, v_texcoord + vec2(i, 0.0) / 800.0);
+      color2 = texture2D(tex1, v_texcoord + vec2(i, 0.0) * 0.0015);
     }
     // float ratio = normal_distribution(0.5*float(i), 4.0);
     float ratio = fake_distribute(i);

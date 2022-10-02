@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.24)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.25)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -769,7 +769,7 @@
                   fn (key d!) (d! :tab-focus key )
         |comp-strip-light-demo $ quote
           defn comp-strip-light-demo () $ comp-strip-light
-            {}
+            {} (; :draw-mode :line-strip)
               :lines $ let
                   size 200
                   scale 2400
@@ -1513,7 +1513,7 @@
                       [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
                       []
         |build-strip-points $ quote
-          defn build-strip-points (p q step)
+          defn build-strip-points (p q step gravity)
             let
                 v $ &v- q p
                 l $ v-length v
@@ -1526,9 +1526,15 @@
                   range $ inc size
                   map $ fn (idx)
                     + left $ * idx step
+                l-middle $ * 0.25 l l
               -> dist $ map
                 fn (ratio)
-                  &v+ p $ v-scale unit ratio
+                  let
+                      s $ js/Math.abs
+                        &- ratio $ &* 0.5 l
+                    &v+
+                      &v+ p $ v-scale unit ratio
+                      v-scale gravity $ &- l-middle (pow s 2)
         |build-tube-points $ quote
           defn build-tube-points (points radius normal0 circle-step post-hook)
             let
@@ -1604,6 +1610,7 @@
                 step $ either (&map:get options :step) 4
                 offset $ either (&map:get options :offset) 4
                 dot-radius $ either (&map:get options :dot-radius) 2
+                gravity $ either (&map:get options :gravity) ([] 0 -0.0001 0)
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
                 :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"strip-light.vert")
@@ -1613,10 +1620,10 @@
                     let
                         p $ nth pair 0
                         q $ nth pair 1
-                        points $ build-strip-points p q step
+                        points $ build-strip-points p q step gravity
                       -> points $ map
                         fn (position)
-                          -> ([] -1 0 1 -1 1 2 -1 2 3 -1 3 4 -1 4 5 -1 5 0)
+                          -> ([] 0 1 2 0 2 3 0 3 4 0 4 5)
                             map $ fn (idx)
                               {} (:position position) (:direction idx)
                 :get-uniforms $ fn ()

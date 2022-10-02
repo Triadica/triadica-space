@@ -10,11 +10,10 @@ attribute float a_direction;
 
 varying float v_r;
 varying float v_s;
+varying float v_a;
 
 const float PI = 3.1415926535897932384626433832795;
-const float PI_2 = 1.57079632679489661923;
 const float PI_3 = 1.0471975511965976;
-const float PI_4 = 0.785398163397448309616;
 
 void main() {
   float angle = PI_3 * a_direction;
@@ -27,9 +26,11 @@ void main() {
   p += upward * (ay * u_offset);
 
   if (a_direction >= 0.0) {
+    float r = u_dot_radius;
+    r += fract(ay) * 2.0;
     vec2 dot_offset = vec2(
-      u_dot_radius * cos(angle),
-      u_dot_radius * sin(angle)
+      r * cos(angle),
+      r * sin(angle)
     );
 
     p += rightward * dot_offset.x;
@@ -42,5 +43,7 @@ void main() {
 
   v_s = result.s;
   v_r = result.r;
+  v_a = ax;
+
   gl_Position = vec4(pos_next * 0.002, 1.0);
 }
