@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.25)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.26)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -781,8 +781,9 @@
                   pairs $ ->
                     range $ dec size
                     map $ fn (idx)
-                      [] (nth points idx)
-                        nth points $ inc idx
+                      {}
+                        :from $ nth points idx
+                        :to $ nth points (inc idx)
                 , pairs
               :dot-radius 4
               :step 6
@@ -1496,6 +1497,19 @@
           triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
     |triadica.comp.line $ {}
       :defs $ {}
+        |assemble-lines $ quote
+          defn assemble-lines (xs hexagon-shape step gravity)
+            if (map? xs)
+              let
+                  p $ &map:get xs :from
+                  q $ &map:get xs :to
+                  points $ build-strip-points p q step gravity
+                -> points $ map
+                  fn (position)
+                    -> hexagon-shape $ map
+                      fn (idx)
+                        {} (:position position) (:direction idx)
+              map xs $ fn (x) (assemble-lines x hexagon-shape step gravity)
         |build-brush-points $ quote
           defn build-brush-points (points brush brush1 brush2)
             ->
@@ -1613,21 +1627,12 @@
                 offset $ either (&map:get options :offset) 4
                 dot-radius $ either (&map:get options :dot-radius) 2
                 gravity $ either (&map:get options :gravity) ([] 0 -0.0001 0)
+                hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
                 :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"strip-light.vert")
                 :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"strip-light.frag")
-                :packed-attrs $ -> lines
-                  map $ fn (pair)
-                    let
-                        p $ nth pair 0
-                        q $ nth pair 1
-                        points $ build-strip-points p q step gravity
-                      -> points $ map
-                        fn (position)
-                          -> ([] 0 1 2 0 2 3 0 3 4 0 4 5)
-                            map $ fn (idx)
-                              {} (:position position) (:direction idx)
+                :packed-attrs $ assemble-lines lines hexagon-shape step gravity
                 :get-uniforms $ fn ()
                   js-object
                     :u_color $ if (list? color) (to-js-data color) color
