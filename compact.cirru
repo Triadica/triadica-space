@@ -771,12 +771,12 @@
           defn comp-strip-light-demo () $ comp-strip-light
             {} (; :draw-mode :line-strip)
               :lines $ let
-                  size 200
-                  scale 2400
+                  size 120
+                  scale 3200
                   points $ -> (range size)
                     map $ fn (idx)
                       v-scale
-                        v-normalize $ [] (rand-bothway) (rand-bothway) (rand-bothway)
+                        [] (rand-bothway) 0 $ rand-bothway
                         , scale
                   pairs $ ->
                     range $ dec size
@@ -785,8 +785,10 @@
                         nth points $ inc idx
                 , pairs
               :dot-radius 4
-              :step 12
-              :offset 20
+              :step 6
+              :offset 12
+              :gravity $ [] 0 -0.0008 0
+              :color $ [] 0.1 0.9 0.5
         |comp-tube-demo $ quote
           defn comp-tube-demo () $ group ({})
             comp-tube $ {} (:draw-mode :line-strip)

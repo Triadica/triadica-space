@@ -1,12 +1,18 @@
 # Triadica Space
 
-> toy project rendering 3D with math and shader, without a framework.
+> toy project rendering 3D with math and shader, without a framework. named with ["Triadica sebifera"](./assets/triadica.jpg).
 
 - Live Demo https://r.tiye.me/Quatrefoil-GL/triadica-space/
+  URL Parameters:
+  - `effects=on/off`
+  - `dev=release/dev`
+  - `hide-tabs=true/false`
+  - `tab=axis/lamps/...`
 - Docs https://github.com/triadica/guidebook/
-- DevLog videos(Chinese) https://space.bilibili.com/14227306/channel/seriesdetail?sid=2606248
+- [DevLog videos(Chinese)](https://space.bilibili.com/14227306/channel/seriesdetail?sid=2606248)
+- [Artworks with Triadica](https://www.ixigua.com/home/3166205900759127/video/?keyword=triadica&list_entrance=userdetail)
 
-parameters: `effects=on/off & dev=release/dev & hide-tabs=true/false & tab=axis/lamps/...`
+[![Rose shape](./assets/rose.jpeg)](https://www.ixigua.com/iframe/7128061977837961741?autoplay=0&startTime=25)
 
 ### Object definition
 
@@ -51,12 +57,6 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 ### Workflow
 
 https://github.com/Triadica/triadica-workflow
-
-### Naming
-
-The name project named with "Triadica sebifera":
-
-![triadica](./assets/triadica.jpg)
 
 ### License
 
