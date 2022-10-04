@@ -57,37 +57,37 @@
                         swap! *local-array-counter inc
                         &doseq (name names)
                           let
-                              d $ get info name
+                              d $ &map:get info name
                             cond
                                 and (list? d)
-                                  = 3 $ count d
+                                  &= 3 $ &list:count d
                                 let
                                     target $ aget ret (turn-string name)
-                                    pos $ * 3 idx
+                                    pos $ &* 3 idx
                                   aset target pos $ nth d 0
-                                  aset target (+ 1 pos) (nth d 1)
-                                  aset target (+ 2 pos) (nth d 2)
-                              (and (list? d) (= 2 (count d)))
+                                  aset target (&+ 1 pos) (&list:nth d 1)
+                                  aset target (&+ 2 pos) (&list:nth d 2)
+                              (and (list? d) (&= 2 (&list:count d)))
                                 let
                                     target $ aget ret (turn-string name)
-                                    pos $ * 2 idx
-                                  aset target pos $ nth d 0
-                                  aset target (+ 1 pos) (nth d 1)
+                                    pos $ &* 2 idx
+                                  aset target pos $ &list:nth d 0
+                                  aset target (&+ 1 pos) (&list:nth d 1)
                               (number? d)
                                 aset
                                   aget ret $ turn-string name
                                   , idx d
-                              (and (list? d) (= 1 (count d)))
+                              (and (list? d) (&= 1 (count d)))
                                 aset
                                   aget ret $ turn-string name
-                                  , idx $ nth d 0
+                                  , idx $ &list:nth d 0
                               true $ js/console.log "\"Unknown data to build:" name d
                   &doseq (name names)
                     aset ret (turn-string name)
                       .!createAugmentedTypedArray twgl/primitives
                         &let
                           v $ get g0 name
-                          if (list? v) (count v) 1
+                          if (list? v) (&list:count v) 1
                         , size
                   build-packed-attrs packed-attrs collect!
                   js/Object.assign arrays ret
