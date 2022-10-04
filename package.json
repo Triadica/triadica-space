@@ -9,7 +9,7 @@
     "vite": "^3.1.4"
   },
   "dependencies": {
-    "@calcit/procs": "^0.6.7",
+    "@calcit/procs": "^0.6.8",
     "@calcit/std": "^0.0.2",
     "@quamolit/touch-control": "^0.0.11",
     "mobile-detect": "^1.4.5",

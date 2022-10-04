@@ -11672,10 +11672,10 @@
       |triadica.comp.line $ {}
         :configs $ {}
         :defs $ {}
-          |assemble-lines $ {} (:at 1664816276290) (:by |u0) (:type :expr)
+          |assemble-strip-lines $ {} (:at 1664816276290) (:by |u0) (:type :expr)
             :data $ {}
               |T $ {} (:at 1664816277357) (:by |u0) (:text |defn) (:type :leaf)
-              |b $ {} (:at 1664816276290) (:by |u0) (:text |assemble-lines) (:type :leaf)
+              |b $ {} (:at 1664902392746) (:by |u0) (:text |assemble-strip-lines) (:type :leaf)
               |h $ {} (:at 1664816276290) (:by |u0) (:type :expr)
                 :data $ {}
                   |T $ {} (:at 1664816278795) (:by |u0) (:text |xs) (:type :leaf)
@@ -11769,7 +11769,7 @@
                               |T $ {} (:at 1664816308658) (:by |u0) (:text |x) (:type :leaf)
                           |T $ {} (:at 1664816309687) (:by |u0) (:type :expr)
                             :data $ {}
-                              |T $ {} (:at 1664816284598) (:by |u0) (:text |assemble-lines) (:type :leaf)
+                              |T $ {} (:at 1664902394148) (:by |u0) (:text |assemble-strip-lines) (:type :leaf)
                               |b $ {} (:at 1664816311516) (:by |u0) (:text |x) (:type :leaf)
                               |h $ {} (:at 1664816313139) (:by |u0) (:text |hexagon-shape) (:type :leaf)
                               |l $ {} (:at 1664816314481) (:by |u0) (:text |step) (:type :leaf)
@@ -12909,7 +12909,7 @@
                               |T $ {} (:at 1664619721338) (:by |u0) (:text |:packed-attrs) (:type :leaf)
                               |b $ {} (:at 1664816333800) (:by |u0) (:type :expr)
                                 :data $ {}
-                                  |T $ {} (:at 1664816333800) (:by |u0) (:text |assemble-lines) (:type :leaf)
+                                  |T $ {} (:at 1664902395813) (:by |u0) (:text |assemble-strip-lines) (:type :leaf)
                                   |b $ {} (:at 1664816333800) (:by |u0) (:text |lines) (:type :leaf)
                                   |h $ {} (:at 1664816333800) (:by |u0) (:text |hexagon-shape) (:type :leaf)
                                   |l $ {} (:at 1664816333800) (:by |u0) (:text |step) (:type :leaf)
