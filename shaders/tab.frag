@@ -16,9 +16,9 @@ void main() {
   //   gl_FragColor = vec4(0.7, 0.7, 1.0, 1.0);
 
   if (v_color_index > 0.5) {
-    gl_FragColor = vec4(1.0, 1.0, 0.2, 1.0);
+    gl_FragColor = vec4(1.0, 1.0, 0.2, 0.9);
   } else {
-    gl_FragColor = vec4(0.6, 0.2, 1.0, 1.0);
+    gl_FragColor = vec4(0.6, 0.2, 1.0, 0.9);
   }
 
   // float vv = 1.0/z;
