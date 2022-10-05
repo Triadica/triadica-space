@@ -1497,8 +1497,8 @@
           triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
     |triadica.comp.line $ {}
       :defs $ {}
-        |assemble-lines $ quote
-          defn assemble-lines (xs hexagon-shape step gravity)
+        |assemble-strip-lines $ quote
+          defn assemble-strip-lines (xs hexagon-shape step gravity)
             if (map? xs)
               let
                   p $ &map:get xs :from
@@ -1509,7 +1509,7 @@
                     -> hexagon-shape $ map
                       fn (idx)
                         {} (:position position) (:direction idx)
-              map xs $ fn (x) (assemble-lines x hexagon-shape step gravity)
+              map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
         |build-brush-points $ quote
           defn build-brush-points (points brush brush1 brush2)
             ->
@@ -1632,7 +1632,7 @@
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
                 :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"strip-light.vert")
                 :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"strip-light.frag")
-                :packed-attrs $ assemble-lines lines hexagon-shape step gravity
+                :packed-attrs $ assemble-strip-lines lines hexagon-shape step gravity
                 :get-uniforms $ fn ()
                   js-object
                     :u_color $ if (list? color) (to-js-data color) color
