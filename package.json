@@ -1,12 +1,12 @@
 {
   "name": "triadica-space",
-  "version": "0.0.26",
+  "version": "0.0.27",
   "repository": "git@github.com:Quatrefoil-GL/triadica-space.git",
   "author": "tiye <jiyinyiyong@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.3",
-    "vite": "^4.0.1"
+    "vite": "^4.0.3"
   },
   "dependencies": {
     "@calcit/procs": "^0.6.17",
