@@ -16,7 +16,12 @@ varying float v_ratio;
 void main() {
   vec3 p = a_position;
   if (a_brush > 0.5) {
-    vec3 brush_direction = normalize(cross(a_direction, forward));
+    vec3 next = cross(a_direction, forward);
+    if (length(next) <= 0.0001) {
+      // if parallel, use left direction
+      next = -rightward;
+    }
+    vec3 brush_direction = normalize(next);
     p += brush_direction * a_width;
   }
 

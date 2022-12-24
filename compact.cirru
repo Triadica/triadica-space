@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.27)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.28)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -772,12 +772,21 @@
           defn comp-segments-demo () $ comp-segments
             {} (; :draw-mode :line-strip)
               :segments $ []
-                {}
-                  :from $ [] 0 0 0
-                  :to $ [] 0 100 0
-                {}
-                  :from $ [] 400 50 -20
-                  :to $ [] -10 300 40
+                []
+                  {}
+                    :from $ [] 0 0 0
+                    :to $ [] 0 100 0
+                  {}
+                    :from $ [] 400 50 -20
+                    :to $ [] -10 300 40
+                  {}
+                    :from $ [] 100 0 0
+                    :to $ [] 100 0 100
+                -> (fibo-grid-range 30)
+                  map $ fn (p)
+                    [] $ {}
+                      :from $ [] 0 0 0
+                      :to $ v-scale p 40
               :width 2
         |comp-strip-light-demo $ quote
           defn comp-strip-light-demo () $ comp-strip-light
@@ -908,7 +917,7 @@
           triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
           quaternion.core :refer $ v-scale v-normalize
-          triadica.comp.segments :refer $ comp-segments
+          triadica.comp.segments :refer $ comp-segments fibo-grid-range
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
@@ -1714,6 +1723,27 @@
                         {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width)
                         {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width)
                 :get-uniforms $ &map:get options :get-uniforms
+        |fibo-grid-n $ quote
+          defn fibo-grid-n (n total)
+            let
+                z $ dec
+                  &/
+                    dec $ &* 2 n
+                    , total
+                t $ sqrt
+                  &- 1 $ &* z z
+                t2 $ * 2 &PI n phi
+                x $ &* t (js/Math.cos t2)
+                y $ &* t (js/Math.sin t2)
+              [] x y z
+        |fibo-grid-range $ quote
+          defn fibo-grid-range (total)
+            -> (range total)
+              map $ fn (n)
+                fibo-grid-n (inc n) total
+        |phi $ quote
+          def phi $ * 0.5
+            dec $ sqrt 5
         |traverse-lines $ quote
           defn traverse-lines (segments f)
             if (list? segments)
