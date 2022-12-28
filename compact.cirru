@@ -1359,7 +1359,7 @@
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object
-          triadica.math :refer $ &v+
+          quaternion.core :refer $ &v+
           triadica.global :refer $ *dirty-uniforms
     |triadica.comp.axis $ {}
       :defs $ {}
@@ -1906,7 +1906,7 @@
         ns triadica.comp.tabs $ :require
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ group object
-          triadica.math :refer $ &v+
+          quaternion.core :refer $ &v+
           triadica.comp.stitch :refer $ comp-stitch
           memof.once :refer $ memof1-call-by
     |triadica.config $ {}
@@ -2422,14 +2422,6 @@
           respo.util.format :refer $ hsl
     |triadica.math $ {}
       :defs $ {}
-        |&v+ $ quote
-          defn &v+ (a b)
-            let[] (x y z) a $ let[] (x2 y2 z2) b
-              [] (&+ x x2) (&+ y y2) (&+ z z2)
-        |&v- $ quote
-          defn &v- (a b)
-            let[] (x y z) a $ let[] (x2 y2 z2) b
-              [] (&- x x2) (&- y y2) (&- z z2)
         |c-distance $ quote
           defn c-distance (p1 p2)
             let-sugar
