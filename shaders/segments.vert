@@ -15,14 +15,17 @@ varying float v_ratio;
 
 void main() {
   vec3 p = a_position;
+  // calculate brush direction
+  vec3 next = cross(a_direction, forward);
+  if (length(next) <= 0.0001) {
+    // if parallel, use left direction
+    next = -rightward;
+  }
+  vec3 brush_direction = normalize(next);
   if (a_brush > 0.5) {
-    vec3 next = cross(a_direction, forward);
-    if (length(next) <= 0.0001) {
-      // if parallel, use left direction
-      next = -rightward;
-    }
-    vec3 brush_direction = normalize(next);
-    p += brush_direction * a_width;
+    p += brush_direction * a_width * 0.5;
+  } else {
+    p -= brush_direction * a_width * 0.5;
   }
 
   PointResult result = transform_perspective(p);
