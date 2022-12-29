@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.26)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.29)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -762,11 +762,32 @@
                   :sparklers $ comp-sparklers
                   :tube $ comp-tube-demo
                   :strip-light $ comp-strip-light-demo
+                  :segments $ comp-segments-demo
                 if-not hide-tabs? $ memof1-call comp-tabs tab-entries
                   {}
                     :position $ [] -40 0 0
                     :selected $ :tab store
                   fn (key d!) (d! :tab-focus key )
+        |comp-segments-demo $ quote
+          defn comp-segments-demo () $ comp-segments
+            {} (; :draw-mode :line-strip)
+              :segments $ []
+                []
+                  {}
+                    :from $ [] 0 0 0
+                    :to $ [] 0 100 0
+                  {}
+                    :from $ [] 400 50 -20
+                    :to $ [] -10 300 40
+                  {}
+                    :from $ [] 100 0 0
+                    :to $ [] 100 0 100
+                -> (fibo-grid-range 30)
+                  map $ fn (p)
+                    [] $ {}
+                      :from $ [] 0 0 0
+                      :to $ v-scale p 40
+              :width 2
         |comp-strip-light-demo $ quote
           defn comp-strip-light-demo () $ comp-strip-light
             {} (; :draw-mode :line-strip)
@@ -876,6 +897,8 @@
               :position $ [] -200 -80 0
             {} (:key :strip-light)
               :position $ [] -200 -120 0
+            {} (:key :segments)
+              :position $ [] -200 -160 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -894,11 +917,12 @@
           triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
           quaternion.core :refer $ v-scale v-normalize
+          triadica.comp.segments :refer $ comp-segments fibo-grid-range
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
           defatom *store $ {} (:v 0)
-            :tab $ turn-keyword (get-env "\"tab" "\"strip-light")
+            :tab $ turn-keyword (get-env "\"tab" "\"segments")
             :p1 $ [] 0 0 0
             :states $ {}
         |canvas $ quote
@@ -1335,7 +1359,7 @@
         ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object
-          triadica.math :refer $ &v+
+          quaternion.core :refer $ &v+
           triadica.global :refer $ *dirty-uniforms
     |triadica.comp.axis $ {}
       :defs $ {}
@@ -1674,6 +1698,63 @@
           triadica.alias :refer $ group object
           quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
           triadica.math :refer $ square
+    |triadica.comp.segments $ {}
+      :defs $ {}
+        |comp-segments $ quote
+          defn comp-segments (options)
+            let
+                segments $ &map:get options :segments
+                width $ either (&map:get options :width) 2
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"segments.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"segments.frag")
+                :packed-attrs $ traverse-lines segments
+                  fn (item)
+                    let
+                        from $ &map:get item :from
+                        to $ &map:get item :to
+                        direction $ &v- to from
+                      []
+                        {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width)
+                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width)
+                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width)
+                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width)
+                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width)
+                        {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width)
+                :get-uniforms $ &map:get options :get-uniforms
+        |fibo-grid-n $ quote
+          defn fibo-grid-n (n total)
+            let
+                z $ dec
+                  &/
+                    dec $ &* 2 n
+                    , total
+                t $ sqrt
+                  &- 1 $ &* z z
+                t2 $ * 2 &PI n phi
+                x $ &* t (js/Math.cos t2)
+                y $ &* t (js/Math.sin t2)
+              [] x y z
+        |fibo-grid-range $ quote
+          defn fibo-grid-range (total)
+            -> (range total)
+              map $ fn (n)
+                fibo-grid-n (inc n) total
+        |phi $ quote
+          def phi $ * 0.5
+            dec $ sqrt 5
+        |traverse-lines $ quote
+          defn traverse-lines (segments f)
+            if (list? segments)
+              map segments $ fn (x) (traverse-lines x f)
+              f segments
+      :ns $ quote
+        ns triadica.comp.segments $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ group object
+          quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
+          triadica.math :refer $ square
     |triadica.comp.stitch $ {}
       :defs $ {}
         |comp-stitch $ quote
@@ -1825,7 +1906,7 @@
         ns triadica.comp.tabs $ :require
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ group object
-          triadica.math :refer $ &v+
+          quaternion.core :refer $ &v+
           triadica.comp.stitch :refer $ comp-stitch
           memof.once :refer $ memof1-call-by
     |triadica.config $ {}
@@ -2341,14 +2422,6 @@
           respo.util.format :refer $ hsl
     |triadica.math $ {}
       :defs $ {}
-        |&v+ $ quote
-          defn &v+ (a b)
-            let[] (x y z) a $ let[] (x2 y2 z2) b
-              [] (&+ x x2) (&+ y y2) (&+ z z2)
-        |&v- $ quote
-          defn &v- (a b)
-            let[] (x y z) a $ let[] (x2 y2 z2) b
-              [] (&- x x2) (&- y y2) (&- z z2)
         |c-distance $ quote
           defn c-distance (p1 p2)
             let-sugar
