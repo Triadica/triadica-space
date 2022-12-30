@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.29)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.30)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -769,8 +769,8 @@
                     :selected $ :tab store
                   fn (key d!) (d! :tab-focus key )
         |comp-segments-demo $ quote
-          defn comp-segments-demo () $ comp-segments
-            {} (; :draw-mode :line-strip)
+          defn comp-segments-demo () $ group ({}) (; comp-axis)
+            comp-segments $ {} (; :draw-mode :line-strip)
               :segments $ []
                 []
                   {}
@@ -787,7 +787,28 @@
                     [] $ {}
                       :from $ [] 0 0 0
                       :to $ v-scale p 40
-              :width 2
+                [] $ {}
+                  :from $ [] 0 100 0
+                  :to $ v+ ([] 0 100 0)
+                    v-scale ([] -1 1 1) 120
+                let
+                    rotation $ rotate-3d-fn ([] 0 100 0) ([] -1 1 1) 0.04
+                    p0 $ [] -20 80 80
+                    p1 $ [] -40 180 60
+                    p2 $ [] -60 280 40
+                  apply-args
+                      []
+                      , p0 p1 p2 160
+                    fn (acc a b c n)
+                      if (<= n 0) acc $ recur
+                        conj acc $ []
+                          {} (:from a) (:to b)
+                          {} (:from b) (:to c)
+                        rotation a
+                        rotation b
+                        rotation c
+                        dec n
+              :width 1
         |comp-strip-light-demo $ quote
           defn comp-strip-light-demo () $ comp-strip-light
             {} (; :draw-mode :line-strip)
@@ -916,8 +937,9 @@
           triadica.core :refer $ >>
           triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
-          quaternion.core :refer $ v-scale v-normalize
+          quaternion.core :refer $ v-scale v-normalize v+
           triadica.comp.segments :refer $ comp-segments fibo-grid-range
+          triadica.math :refer $ rotate-3d-fn
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
@@ -2431,6 +2453,20 @@
               sqrt $ +
                 pow (- x a) 2
                 pow (- y b) 2
+        |rotate-3d-fn $ quote
+          defn rotate-3d-fn (origin axis angle)
+            fn (p)
+              let
+                  axis-0 $ v-normalize axis
+                  p-v $ &v- p origin
+                  h $ v-dot axis-0 p-v
+                  h-v $ v-scale axis-0 h
+                  flat-p-v $ &v- p-v h-v
+                  rot-direction $ v-normalize (v-cross flat-p-v axis-0)
+                  rot-v $ v-scale rot-direction (v-length flat-p-v)
+                v+ origin h-v
+                  v-scale flat-p-v $ js/Math.cos angle
+                  v-scale rot-v $ js/Math.sin angle
         |square $ quote
           defn square (x) (&* x x)
         |sum-squares $ quote
@@ -2442,6 +2478,7 @@
           triadica.hud :refer $ hud-display
           triadica.global :refer $ *viewer-position
           triadica.config :refer $ back-cone-scale
+          quaternion.core :refer $ v-normalize &v- v- v-dot v-cross v-scale v-length v+ &v+ v*
     |triadica.perspective $ {}
       :defs $ {}
         |*viewer-forward $ quote
