@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.30)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.31)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -2455,18 +2455,19 @@
                 pow (- y b) 2
         |rotate-3d-fn $ quote
           defn rotate-3d-fn (origin axis angle)
-            fn (p)
-              let
-                  axis-0 $ v-normalize axis
-                  p-v $ &v- p origin
-                  h $ v-dot axis-0 p-v
-                  h-v $ v-scale axis-0 h
-                  flat-p-v $ &v- p-v h-v
-                  rot-direction $ v-normalize (v-cross flat-p-v axis-0)
-                  rot-v $ v-scale rot-direction (v-length flat-p-v)
-                v+ origin h-v
-                  v-scale flat-p-v $ js/Math.cos angle
-                  v-scale rot-v $ js/Math.sin angle
+            let
+                axis-0 $ v-normalize axis
+                cos-d $ js/Math.cos angle
+                sin-d $ js/Math.sin angle
+              defn rotate-3d-apply (p)
+                let
+                    p-v $ &v- p origin
+                    h $ v-dot axis-0 p-v
+                    h-v $ v-scale axis-0 h
+                    flat-p-v $ &v- p-v h-v
+                    rot-direction $ v-normalize (v-cross flat-p-v axis-0)
+                    rot-v $ v-scale rot-direction (v-length flat-p-v)
+                  v+ origin h-v (v-scale flat-p-v cos-d) (v-scale rot-v sin-d)
         |square $ quote
           defn square (x) (&* x x)
         |sum-squares $ quote
