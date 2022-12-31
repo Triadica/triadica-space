@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.31)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.32)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -1737,13 +1737,14 @@
                         from $ &map:get item :from
                         to $ &map:get item :to
                         direction $ &v- to from
+                        color-idx $ either (&map:get item :color-index) 0
                       []
-                        {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width)
-                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width)
-                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width)
-                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width)
-                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width)
-                        {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width)
+                        {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
                 :get-uniforms $ &map:get options :get-uniforms
         |fibo-grid-n $ quote
           defn fibo-grid-n (n total)
