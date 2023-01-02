@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.32)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.33)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -82,6 +82,7 @@
                                   aget ret $ turn-string name
                                   , idx $ &list:nth d 0
                               true $ js/console.log "\"Unknown data to build:" name d
+                  when (empty? packed-attrs) (js/console.error options) (raise "\"expected data in packed attributes")
                   &doseq (name names)
                     aset ret (turn-string name)
                       .!createAugmentedTypedArray twgl/primitives
@@ -809,6 +810,18 @@
                         rotation c
                         dec n
               :width 1
+            comp-segments-curves $ {}
+              :curves $ []
+                -> (range 400)
+                  map $ fn (idx)
+                    let
+                        angle $ * idx 0.08
+                        h $ * 0.1 idx
+                        r 40
+                      {} $ :position
+                        []
+                          + 100 $ * r (cos angle)
+                          , h $ * r (sin angle)
         |comp-strip-light-demo $ quote
           defn comp-strip-light-demo () $ comp-strip-light
             {} (; :draw-mode :line-strip)
@@ -938,7 +951,7 @@
           triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
           quaternion.core :refer $ v-scale v-normalize v+
-          triadica.comp.segments :refer $ comp-segments fibo-grid-range
+          triadica.comp.segments :refer $ comp-segments comp-segments-curves
           triadica.math :refer $ rotate-3d-fn fibo-grid-range
     |triadica.app.main $ {}
       :defs $ {}
@@ -1722,6 +1735,30 @@
           triadica.math :refer $ square
     |triadica.comp.segments $ {}
       :defs $ {}
+        |build-curve-points $ quote
+          defn build-curve-points (points)
+            ->
+              range $ dec (count points)
+              map $ fn (idx)
+                let
+                    idx+1 $ inc idx
+                    p-raw $ nth points idx
+                    q-raw $ nth points idx+1
+                    q2-raw $ nth points (inc idx+1)
+                    p $ &map:get p-raw :position
+                    q $ &map:get q-raw :position
+                    q2 $ if (some? q2-raw) (&map:get q2-raw :position)
+                    direction $ &v- q p
+                    direction2 $ if (some? q2) (&v- q2 q) direction
+                    p-width $ either (&map:get p-raw :width) 1
+                    q-width $ either (&map:get q-raw :width) 1
+                  []
+                    {} (:position p) (:brush 0) (:direction direction) (:color_index idx) (:width p-width)
+                    {} (:position q) (:brush 0) (:direction direction2) (:color_index idx+1) (:width q-width)
+                    {} (:position p) (:brush 1) (:direction direction) (:color_index idx) (:width p-width)
+                    {} (:position q) (:brush 0) (:direction direction2) (:color_index idx+1) (:width q-width)
+                    {} (:position q) (:brush 1) (:direction direction2) (:color_index idx+1) (:width q-width)
+                    {} (:position p) (:brush 1) (:direction direction) (:color_index idx) (:width p-width)
         |comp-segments $ quote
           defn comp-segments (options)
             let
@@ -1745,6 +1782,16 @@
                         {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
                         {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
                         {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
+                :get-uniforms $ &map:get options :get-uniforms
+        |comp-segments-curves $ quote
+          defn comp-segments-curves (options)
+            let
+                curves $ either (&map:get options :curves) ([])
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"segments-curves.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"segments-curves.frag")
+                :packed-attrs $ map curves build-curve-points
                 :get-uniforms $ &map:get options :get-uniforms
         |traverse-lines $ quote
           defn traverse-lines (segments f)
