@@ -939,7 +939,7 @@
           memof.once :refer $ memof1-call memof1-call-by
           quaternion.core :refer $ v-scale v-normalize v+
           triadica.comp.segments :refer $ comp-segments fibo-grid-range
-          triadica.math :refer $ rotate-3d-fn
+          triadica.math :refer $ rotate-3d-fn fibo-grid-range
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
@@ -1746,27 +1746,6 @@
                         {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
                         {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
                 :get-uniforms $ &map:get options :get-uniforms
-        |fibo-grid-n $ quote
-          defn fibo-grid-n (n total)
-            let
-                z $ dec
-                  &/
-                    dec $ &* 2 n
-                    , total
-                t $ sqrt
-                  &- 1 $ &* z z
-                t2 $ * 2 &PI n phi
-                x $ &* t (js/Math.cos t2)
-                y $ &* t (js/Math.sin t2)
-              [] x y z
-        |fibo-grid-range $ quote
-          defn fibo-grid-range (total)
-            -> (range total)
-              map $ fn (n)
-                fibo-grid-n (inc n) total
-        |phi $ quote
-          def phi $ * 0.5
-            dec $ sqrt 5
         |traverse-lines $ quote
           defn traverse-lines (segments f)
             if (list? segments)
@@ -2454,6 +2433,27 @@
               sqrt $ +
                 pow (- x a) 2
                 pow (- y b) 2
+        |fibo-grid-n $ quote
+          defn fibo-grid-n (n total)
+            let
+                z $ dec
+                  &/
+                    dec $ &* 2 n
+                    , total
+                t $ sqrt
+                  &- 1 $ &* z z
+                t2 $ * 2 &PI n phi
+                x $ &* t (js/Math.cos t2)
+                y $ &* t (js/Math.sin t2)
+              [] x y z
+        |fibo-grid-range $ quote
+          defn fibo-grid-range (total)
+            -> (range total)
+              map $ fn (n)
+                fibo-grid-n (inc n) total
+        |phi $ quote
+          def phi $ * 0.5
+            dec $ sqrt 5
         |rotate-3d-fn $ quote
           defn rotate-3d-fn (origin axis angle)
             let
