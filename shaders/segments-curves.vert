@@ -4,15 +4,12 @@
 attribute vec3 a_position;
 // 0 or 1, to indicate side branch width
 attribute float a_brush;
-// from 0 to 1, for coloring
-attribute float a_ratio;
 attribute vec3 a_direction;
 attribute float a_width;
 attribute float a_color_index;
 
 varying float v_r;
 varying float v_s;
-varying float v_ratio;
 // optional value for fill different colors
 varying float v_color_index;
 
@@ -36,8 +33,6 @@ void main() {
 
   v_s = result.s;
   v_r = result.r;
-  v_ratio = a_ratio;
-  v_color_index = a_color_index;
 
   gl_Position = vec4(pos_next * 0.002, 1.0);
 }

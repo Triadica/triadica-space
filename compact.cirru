@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.29)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.33)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -82,6 +82,7 @@
                                   aget ret $ turn-string name
                                   , idx $ &list:nth d 0
                               true $ js/console.log "\"Unknown data to build:" name d
+                  when (empty? packed-attrs) (js/console.error options) (raise "\"expected data in packed attributes")
                   &doseq (name names)
                     aset ret (turn-string name)
                       .!createAugmentedTypedArray twgl/primitives
@@ -769,8 +770,8 @@
                     :selected $ :tab store
                   fn (key d!) (d! :tab-focus key )
         |comp-segments-demo $ quote
-          defn comp-segments-demo () $ comp-segments
-            {} (; :draw-mode :line-strip)
+          defn comp-segments-demo () $ group ({}) (; comp-axis)
+            comp-segments $ {} (; :draw-mode :line-strip)
               :segments $ []
                 []
                   {}
@@ -787,7 +788,40 @@
                     [] $ {}
                       :from $ [] 0 0 0
                       :to $ v-scale p 40
-              :width 2
+                [] $ {}
+                  :from $ [] 0 100 0
+                  :to $ v+ ([] 0 100 0)
+                    v-scale ([] -1 1 1) 120
+                let
+                    rotation $ rotate-3d-fn ([] 0 100 0) ([] -1 1 1) 0.04
+                    p0 $ [] -20 80 80
+                    p1 $ [] -40 180 60
+                    p2 $ [] -60 280 40
+                  apply-args
+                      []
+                      , p0 p1 p2 160
+                    fn (acc a b c n)
+                      if (<= n 0) acc $ recur
+                        conj acc $ []
+                          {} (:from a) (:to b)
+                          {} (:from b) (:to c)
+                        rotation a
+                        rotation b
+                        rotation c
+                        dec n
+              :width 1
+            comp-segments-curves $ {}
+              :curves $ []
+                -> (range 400)
+                  map $ fn (idx)
+                    let
+                        angle $ * idx 0.08
+                        h $ * 0.1 idx
+                        r 40
+                      {} $ :position
+                        []
+                          + 100 $ * r (cos angle)
+                          , h $ * r (sin angle)
         |comp-strip-light-demo $ quote
           defn comp-strip-light-demo () $ comp-strip-light
             {} (; :draw-mode :line-strip)
@@ -916,8 +950,9 @@
           triadica.core :refer $ >>
           triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
-          quaternion.core :refer $ v-scale v-normalize
-          triadica.comp.segments :refer $ comp-segments fibo-grid-range
+          quaternion.core :refer $ v-scale v-normalize v+
+          triadica.comp.segments :refer $ comp-segments comp-segments-curves
+          triadica.math :refer $ rotate-3d-fn fibo-grid-range
     |triadica.app.main $ {}
       :defs $ {}
         |*store $ quote
@@ -1700,6 +1735,30 @@
           triadica.math :refer $ square
     |triadica.comp.segments $ {}
       :defs $ {}
+        |build-curve-points $ quote
+          defn build-curve-points (points)
+            ->
+              range $ dec (count points)
+              map $ fn (idx)
+                let
+                    idx+1 $ inc idx
+                    p-raw $ nth points idx
+                    q-raw $ nth points idx+1
+                    q2-raw $ nth points (inc idx+1)
+                    p $ &map:get p-raw :position
+                    q $ &map:get q-raw :position
+                    q2 $ if (some? q2-raw) (&map:get q2-raw :position)
+                    direction $ &v- q p
+                    direction2 $ if (some? q2) (&v- q2 q) direction
+                    p-width $ either (&map:get p-raw :width) 1
+                    q-width $ either (&map:get q-raw :width) 1
+                  []
+                    {} (:position p) (:brush 0) (:direction direction) (:color_index idx) (:width p-width)
+                    {} (:position q) (:brush 0) (:direction direction2) (:color_index idx+1) (:width q-width)
+                    {} (:position p) (:brush 1) (:direction direction) (:color_index idx) (:width p-width)
+                    {} (:position q) (:brush 0) (:direction direction2) (:color_index idx+1) (:width q-width)
+                    {} (:position q) (:brush 1) (:direction direction2) (:color_index idx+1) (:width q-width)
+                    {} (:position p) (:brush 1) (:direction direction) (:color_index idx) (:width p-width)
         |comp-segments $ quote
           defn comp-segments (options)
             let
@@ -1715,35 +1774,25 @@
                         from $ &map:get item :from
                         to $ &map:get item :to
                         direction $ &v- to from
+                        color-idx $ either (&map:get item :color-index) 0
                       []
-                        {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width)
-                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width)
-                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width)
-                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width)
-                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width)
-                        {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width)
+                        {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
+                        {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
                 :get-uniforms $ &map:get options :get-uniforms
-        |fibo-grid-n $ quote
-          defn fibo-grid-n (n total)
+        |comp-segments-curves $ quote
+          defn comp-segments-curves (options)
             let
-                z $ dec
-                  &/
-                    dec $ &* 2 n
-                    , total
-                t $ sqrt
-                  &- 1 $ &* z z
-                t2 $ * 2 &PI n phi
-                x $ &* t (js/Math.cos t2)
-                y $ &* t (js/Math.sin t2)
-              [] x y z
-        |fibo-grid-range $ quote
-          defn fibo-grid-range (total)
-            -> (range total)
-              map $ fn (n)
-                fibo-grid-n (inc n) total
-        |phi $ quote
-          def phi $ * 0.5
-            dec $ sqrt 5
+                curves $ either (&map:get options :curves) ([])
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"segments-curves.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"segments-curves.frag")
+                :packed-attrs $ map curves build-curve-points
+                :get-uniforms $ &map:get options :get-uniforms
         |traverse-lines $ quote
           defn traverse-lines (segments f)
             if (list? segments)
@@ -2431,6 +2480,42 @@
               sqrt $ +
                 pow (- x a) 2
                 pow (- y b) 2
+        |fibo-grid-n $ quote
+          defn fibo-grid-n (n total)
+            let
+                z $ dec
+                  &/
+                    dec $ &* 2 n
+                    , total
+                t $ sqrt
+                  &- 1 $ &* z z
+                t2 $ * 2 &PI n phi
+                x $ &* t (js/Math.cos t2)
+                y $ &* t (js/Math.sin t2)
+              [] x y z
+        |fibo-grid-range $ quote
+          defn fibo-grid-range (total)
+            -> (range total)
+              map $ fn (n)
+                fibo-grid-n (inc n) total
+        |phi $ quote
+          def phi $ * 0.5
+            dec $ sqrt 5
+        |rotate-3d-fn $ quote
+          defn rotate-3d-fn (origin axis angle)
+            let
+                axis-0 $ v-normalize axis
+                cos-d $ js/Math.cos angle
+                sin-d $ js/Math.sin angle
+              defn rotate-3d-apply (p)
+                let
+                    p-v $ &v- p origin
+                    h $ v-dot axis-0 p-v
+                    h-v $ v-scale axis-0 h
+                    flat-p-v $ &v- p-v h-v
+                    rot-direction $ v-normalize (v-cross flat-p-v axis-0)
+                    rot-v $ v-scale rot-direction (v-length flat-p-v)
+                  v+ origin h-v (v-scale flat-p-v cos-d) (v-scale rot-v sin-d)
         |square $ quote
           defn square (x) (&* x x)
         |sum-squares $ quote
@@ -2442,6 +2527,7 @@
           triadica.hud :refer $ hud-display
           triadica.global :refer $ *viewer-position
           triadica.config :refer $ back-cone-scale
+          quaternion.core :refer $ v-normalize &v- v- v-dot v-cross v-scale v-length v+ &v+ v*
     |triadica.perspective $ {}
       :defs $ {}
         |*viewer-forward $ quote
