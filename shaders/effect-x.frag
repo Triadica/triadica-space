@@ -27,9 +27,9 @@ float fake_distribute(int i) {
     i = -i;
   }
   if (i == 0) {
-    return 0.5;
+    return 0.54;
   } else if (i == 1) {
-    return 0.20854;
+    return 0.22854;
   } else if (i == 2) {
     return 0.10866;
   } else if (i == 3) {

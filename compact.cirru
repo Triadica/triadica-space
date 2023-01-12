@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.33)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.34)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -1862,46 +1862,87 @@
                         base $ []
                           + 1 $ * j 2
                           - (* i -2) 1
-                          , 0
+                          , shift
+                        base-bottom-right $ &v+ base ([] 2 -2 0)
+                        base-top-right $ &v+ base ([] 2 0 0)
+                        base-bottom-left $ &v+ base ([] 0 -2 0)
                         base-idx $ * 2
                           + (* i 4) j
+                        base-idx-next $ inc base-idx
                       []
                         {}
-                          :position $ &v+ base ([] 0.2 0.2 shift)
+                          :position $ &v+ base ([] -0.2 0.2 0)
                           :data base-idx
                         {}
-                          :position $ &v+ base ([] -0.2 -0.2 shift)
+                          :position $ &v+ base ([] 0.2 0.2 0)
                           :data base-idx
                         {}
-                          :position $ &v+ base ([] 2.2 -1.8 shift)
+                          :position $ &v+ base ([] -0.2 -0.2 0)
                           :data base-idx
                         {}
-                          :position $ &v+ base ([] -0.2 -0.2 shift)
+                          :position $ &v+ base ([] 0.2 0.2 0)
                           :data base-idx
                         {}
-                          :position $ &v+ base ([] 2.2 -1.8 shift)
+                          :position $ &v+ base ([] -0.2 -0.2 0)
                           :data base-idx
                         {}
-                          :position $ &v+ base ([] 1.8 -2.2 shift)
+                          :position $ &v+ base-bottom-right ([] 0.2 0.2 0)
                           :data base-idx
                         {}
-                          :position $ &v+ base ([] 1.8 0.2 shift)
-                          :data $ inc base-idx
+                          :position $ &v+ base ([] -0.2 -0.2 0)
+                          :data base-idx
                         {}
-                          :position $ &v+ base ([] 2.2 -0.2 shift)
-                          :data $ inc base-idx
+                          :position $ &v+ base-bottom-right ([] 0.2 0.2 0)
+                          :data base-idx
                         {}
-                          :position $ &v+ base ([] -0.2 -1.8 shift)
-                          :data $ inc base-idx
+                          :position $ &v+ base-bottom-right ([] -0.2 -0.2 0)
+                          :data base-idx
                         {}
-                          :position $ &v+ base ([] 2.2 -0.2 shift)
-                          :data $ inc base-idx
+                          :position $ &v+ base-bottom-right ([] 0.2 0.2 0)
+                          :data base-idx
                         {}
-                          :position $ &v+ base ([] 0.2 -2.2 shift)
-                          :data $ inc base-idx
+                          :position $ &v+ base-bottom-right ([] -0.2 -0.2 0)
+                          :data base-idx
                         {}
-                          :position $ &v+ base ([] -0.2 -1.8 shift)
-                          :data $ inc base-idx
+                          :position $ &v+ base-bottom-right ([] 0.2 -0.2 0)
+                          :data base-idx
+                        ; "\"next stroke"
+                        {}
+                          :position $ &v+ base-top-right ([] -0.2 0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-top-right ([] 0.2 -0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-top-right ([] 0.2 0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-top-right ([] -0.2 0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-top-right ([] 0.2 -0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-bottom-left ([] -0.2 0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-top-right ([] 0.2 -0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-bottom-left ([] 0.2 -0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-bottom-left ([] -0.2 0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-bottom-left ([] 0.2 -0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-bottom-left ([] -0.2 0.2 0)
+                          :data base-idx-next
+                        {}
+                          :position $ &v+ base-bottom-left ([] -0.2 -0.2 0)
+                          :data base-idx-next
       :ns $ quote
         ns triadica.comp.stitch $ :require
           triadica.config :refer $ inline-shader
