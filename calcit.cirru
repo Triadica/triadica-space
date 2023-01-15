@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.35)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:port 6001) (:reload-fn |triadica.app.main/reload!) (:version |0.0.36)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :ir $ {} (:package |triadica)
@@ -6012,6 +6012,10 @@
                                                           |h $ {} (:at 1672422254022) (:by |u0) (:text |1) (:type :leaf)
                                                           |l $ {} (:at 1672422254022) (:by |u0) (:text |1) (:type :leaf)
                                                       |b $ {} (:at 1672421609091) (:by |u0) (:text |120) (:type :leaf)
+                                          |V $ {} (:at 1673758445024) (:by |u0) (:type :expr)
+                                            :data $ {}
+                                              |T $ {} (:at 1673758446291) (:by |u0) (:text |:width) (:type :leaf)
+                                              |b $ {} (:at 1673758453375) (:by |u0) (:text |0.4) (:type :leaf)
                                   |h $ {} (:at 1672421253798) (:by |u0) (:type :expr)
                                     :data $ {}
                                       |D $ {} (:at 1672421254531) (:by |u0) (:text |let) (:type :leaf)
@@ -14090,7 +14094,7 @@
                               |h $ {} (:at 1671870489091) (:by |u0) (:text |:segments) (:type :leaf)
                       |b $ {} (:at 1671866467505) (:by |u0) (:type :expr)
                         :data $ {}
-                          |T $ {} (:at 1671870491531) (:by |u0) (:text |width) (:type :leaf)
+                          |T $ {} (:at 1673758421853) (:by |u0) (:text |w0) (:type :leaf)
                           |b $ {} (:at 1671866467505) (:by |u0) (:type :expr)
                             :data $ {}
                               |T $ {} (:at 1671866467505) (:by |u0) (:text |either) (:type :leaf)
@@ -14202,6 +14206,18 @@
                                                           |b $ {} (:at 1672502068743) (:by |u0) (:text |item) (:type :leaf)
                                                           |h $ {} (:at 1672502741963) (:by |u0) (:text |:color-index) (:type :leaf)
                                                       |b $ {} (:at 1672502088901) (:by |u0) (:text |0) (:type :leaf)
+                                              |o $ {} (:at 1673758401278) (:by |u0) (:type :expr)
+                                                :data $ {}
+                                                  |T $ {} (:at 1673758402100) (:by |u0) (:text |width) (:type :leaf)
+                                                  |b $ {} (:at 1673758402966) (:by |u0) (:type :expr)
+                                                    :data $ {}
+                                                      |T $ {} (:at 1673758404812) (:by |u0) (:text |either) (:type :leaf)
+                                                      |b $ {} (:at 1673758408390) (:by |u0) (:type :expr)
+                                                        :data $ {}
+                                                          |T $ {} (:at 1673758408390) (:by |u0) (:text |&map:get) (:type :leaf)
+                                                          |b $ {} (:at 1673758408390) (:by |u0) (:text |item) (:type :leaf)
+                                                          |h $ {} (:at 1673758411665) (:by |u0) (:text |:width) (:type :leaf)
+                                                      |h $ {} (:at 1673758417652) (:by |u0) (:text |w0) (:type :leaf)
                                           |h $ {} (:at 1671870755078) (:by |u0) (:type :expr)
                                             :data $ {}
                                               |T $ {} (:at 1671870755461) (:by |u0) (:text |[]) (:type :leaf)

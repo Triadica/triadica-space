@@ -1,6 +1,6 @@
 
 {} (:package |triadica)
-  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.35)
+  :configs $ {} (:init-fn |triadica.app.main/main!) (:reload-fn |triadica.app.main/reload!) (:version |0.0.36)
     :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
   :entries $ {}
   :files $ {}
@@ -809,6 +809,7 @@
                   :from $ [] 0 100 0
                   :to $ v+ ([] 0 100 0)
                     v-scale ([] -1 1 1) 120
+                  :width 0.4
                 let
                     rotation $ rotate-3d-fn ([] 0 100 0) ([] -1 1 1) 0.04
                     p0 $ [] -20 80 80
@@ -1774,7 +1775,7 @@
           defn comp-segments (options)
             let
                 segments $ &map:get options :segments
-                width $ either (&map:get options :width) 2
+                w0 $ either (&map:get options :width) 2
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
                 :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"segments.vert")
@@ -1786,6 +1787,7 @@
                         to $ &map:get item :to
                         direction $ &v- to from
                         color-idx $ either (&map:get item :color-index) 0
+                        width $ either (&map:get item :width) w0
                       []
                         {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
                         {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
