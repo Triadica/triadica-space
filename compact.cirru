@@ -954,7 +954,8 @@
           triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
-          triadica.comp.line :refer $ comp-tube comp-brush comp-strip-light
+          triadica.comp.line :refer $ comp-tube comp-brush
+          triadica.comp.bunch :refer $ comp-strip-light
           triadica.core :refer $ >>
           triadica.config :refer $ inline-shader
           memof.once :refer $ memof1-call memof1-call-by
@@ -1429,6 +1430,72 @@
           triadica.config :refer $ inline-shader
           triadica.math :refer $ &v+
           triadica.comp.line :refer $ comp-tube interpolate-line-positions
+    |triadica.comp.bunch $ {}
+      :defs $ {}
+        |assemble-strip-lines $ quote
+          defn assemble-strip-lines (xs hexagon-shape step gravity)
+            if (map? xs)
+              let
+                  p $ &map:get xs :from
+                  q $ &map:get xs :to
+                  points $ build-strip-points p q step gravity
+                -> points $ map
+                  fn (position)
+                    -> hexagon-shape $ map
+                      fn (idx)
+                        {} (:position position) (:direction idx)
+              map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
+        |build-strip-points $ quote
+          defn build-strip-points (p q step gravity)
+            let
+                v $ &v- q p
+                l $ v-length v
+                dd $ &/ l step
+                size $ js/Math.floor dd
+                left $ &* 0.5
+                  - l $ &* size step
+                unit $ v-normalize v
+                dist $ ->
+                  range $ inc size
+                  map $ fn (idx)
+                    + left $ * idx step
+                l-middle $ * 0.25 l l
+              -> dist $ map
+                fn (ratio)
+                  let
+                      s $ js/Math.abs
+                        &- ratio $ &* 0.5 l
+                    &v+
+                      &v+ p $ v-scale unit ratio
+                      v-scale gravity $ &- l-middle (pow s 2)
+        |comp-bunch $ quote
+          defn comp-bunch $
+        |comp-strip-light $ quote
+          defn comp-strip-light (options)
+            let
+                lines $ &map:get options :lines
+                color $ either (&map:get options :color) (js-array 0.2 0.9 0.6)
+                step $ either (&map:get options :step) 4
+                offset $ either (&map:get options :offset) 4
+                dot-radius $ either (&map:get options :dot-radius) 2
+                gravity $ either (&map:get options :gravity) ([] 0 -0.0001 0)
+                hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
+              object $ {}
+                :draw-mode $ either (&map:get options :draw-mode) :triangles
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"strip-light.vert")
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"strip-light.frag")
+                :packed-attrs $ assemble-strip-lines lines hexagon-shape step gravity
+                :get-uniforms $ fn ()
+                  js-object
+                    :u_color $ if (list? color) (to-js-data color) color
+                    :u_offset offset
+                    :u_dot_radius dot-radius
+      :ns $ quote
+        ns triadica.comp.bunch $ :require
+          triadica.config :refer $ inline-shader
+          triadica.alias :refer $ group object
+          quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
+          triadica.math :refer $ square
     |triadica.comp.drag-point $ {}
       :defs $ {}
         |*drag-cache $ quote
@@ -1564,19 +1631,6 @@
           triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
     |triadica.comp.line $ {}
       :defs $ {}
-        |assemble-strip-lines $ quote
-          defn assemble-strip-lines (xs hexagon-shape step gravity)
-            if (map? xs)
-              let
-                  p $ &map:get xs :from
-                  q $ &map:get xs :to
-                  points $ build-strip-points p q step gravity
-                -> points $ map
-                  fn (position)
-                    -> hexagon-shape $ map
-                      fn (idx)
-                        {} (:position position) (:direction idx)
-              map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
         |build-brush-points $ quote
           defn build-brush-points (points brush brush1 brush2)
             ->
@@ -1595,29 +1649,6 @@
                     if (some? brush2)
                       [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
                       []
-        |build-strip-points $ quote
-          defn build-strip-points (p q step gravity)
-            let
-                v $ &v- q p
-                l $ v-length v
-                dd $ &/ l step
-                size $ js/Math.floor dd
-                left $ &* 0.5
-                  - l $ &* size step
-                unit $ v-normalize v
-                dist $ ->
-                  range $ inc size
-                  map $ fn (idx)
-                    + left $ * idx step
-                l-middle $ * 0.25 l l
-              -> dist $ map
-                fn (ratio)
-                  let
-                      s $ js/Math.abs
-                        &- ratio $ &* 0.5 l
-                    &v+
-                      &v+ p $ v-scale unit ratio
-                      v-scale gravity $ &- l-middle (pow s 2)
         |build-tube-points $ quote
           defn build-tube-points (points radius normal0 circle-step post-hook)
             let
@@ -1685,26 +1716,6 @@
                   map points $ fn (child) (build-brush-points child brush brush1 brush2)
                   build-brush-points points brush brush1 brush2
                 :get-uniforms $ &map:get options :get-uniforms
-        |comp-strip-light $ quote
-          defn comp-strip-light (options)
-            let
-                lines $ &map:get options :lines
-                color $ either (&map:get options :color) (js-array 0.2 0.9 0.6)
-                step $ either (&map:get options :step) 4
-                offset $ either (&map:get options :offset) 4
-                dot-radius $ either (&map:get options :dot-radius) 2
-                gravity $ either (&map:get options :gravity) ([] 0 -0.0001 0)
-                hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
-              object $ {}
-                :draw-mode $ either (&map:get options :draw-mode) :triangles
-                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader "\"strip-light.vert")
-                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader "\"strip-light.frag")
-                :packed-attrs $ assemble-strip-lines lines hexagon-shape step gravity
-                :get-uniforms $ fn ()
-                  js-object
-                    :u_color $ if (list? color) (to-js-data color) color
-                    :u_offset offset
-                    :u_dot_radius dot-radius
         |comp-tube $ quote
           defn comp-tube (options)
             let
