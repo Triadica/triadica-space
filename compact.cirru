@@ -253,6 +253,25 @@
               v-scale ([] 0 -4 0)
                 * 0.5 $ * t t
               v-scale v0 t
+        |comp-bunch-fireworks $ quote
+          defn comp-bunch-fireworks () $ let
+              hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
+              seed 0.3
+            object $ {} (:draw-mode :triangles)
+              :vertex-shader $ inline-shader "\"bunch-fireworks.vert"
+              :fragment-shader $ inline-shader "\"bunch-fireworks.frag"
+              :packed-attrs $ -> (range 40)
+                map $ fn (firework-idx)
+                  -> (fibo-grid-range 120)
+                    map $ fn (v)
+                      &v+ v $ [] (rand-shift 0 seed) (rand-shift 0 seed) (rand-shift 0 seed)
+                    map-indexed $ fn (bunch-idx direction)
+                      -> (range 10)
+                        map $ fn (spark-idx)
+                          map hexagon-shape $ fn (hex-idx)
+                            {} (:firework_idx firework-idx) (:bunch_idx bunch-idx) (:direction direction) (:hex_idx hex-idx) (:spark_idx spark-idx)
+              :get-uniforms $ fn ()
+                js-object $ :time (js/performance.now)
         |comp-fireworks $ quote
           defn comp-fireworks () $ object
             {} (:draw-mode :triangles)
@@ -324,8 +343,10 @@
           triadica.core :refer $ count-recursive
           triadica.config :refer $ inline-shader
           triadica.alias :refer $ object group
-          triadica.math :refer $ v-scale &v+
-          "\"@calcit/std" :refer $ rand-between
+          triadica.math :refer $ v-scale fibo-grid-range fibo-grid-n
+          quaternion.core :refer $ &v+
+          triadica.comp.bunch :refer $ comp-bunch
+          "\"@calcit/std" :refer $ rand-between rand rand-shift
     |triadica.app.comp.lamps $ {}
       :defs $ {}
         |comp-lamps $ quote
@@ -765,6 +786,7 @@
                   :strip-light $ comp-strip-light-demo
                   :segments $ comp-segments-demo
                   :segments-curves $ comp-segments-curves-demo
+                  :bunch-fireworks $ comp-bunch-fireworks
                 if-not hide-tabs? $ memof1-call comp-tabs tab-entries
                   {}
                     :position $ [] -40 0 0
@@ -941,6 +963,8 @@
               :position $ [] -200 -160 0
             {} (:key :segments-curves)
               :position $ [] -200 -200 0
+            {} (:key :bunch)
+              :position $ [] -200 -240 0
       :ns $ quote
         ns triadica.app.container $ :require
           triadica.alias :refer $ group
@@ -951,7 +975,7 @@
           triadica.config :refer $ hide-tabs?
           triadica.app.comp.branches :refer $ comp-branches comp-multiple-branches
           triadica.app.comp.lamps :refer $ comp-lamps comp-lotus comp-rose
-          triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain
+          triadica.app.comp.fireworks :refer $ comp-fireworks comp-sparklers comp-fountain comp-bunch-fireworks
           triadica.app.comp.line-wave :refer $ comp-line-wave
           triadica.comp.stitch :refer $ comp-stitch
           triadica.comp.line :refer $ comp-tube comp-brush
@@ -966,7 +990,7 @@
       :defs $ {}
         |*store $ quote
           defatom *store $ {} (:v 0)
-            :tab $ turn-keyword (get-env "\"tab" "\"segments-curves")
+            :tab $ turn-keyword (get-env "\"tab" "\"bunch-fireworks")
             :p1 $ [] 0 0 0
             :states $ {}
         |canvas $ quote
@@ -1468,8 +1492,6 @@
                     &v+
                       &v+ p $ v-scale unit ratio
                       v-scale gravity $ &- l-middle (pow s 2)
-        |comp-bunch $ quote
-          defn comp-bunch $
         |comp-strip-light $ quote
           defn comp-strip-light (options)
             let
