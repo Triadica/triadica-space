@@ -266,7 +266,7 @@
                     map $ fn (v)
                       &v+ v $ [] (rand-shift 0 seed) (rand-shift 0 seed) (rand-shift 0 seed)
                     map-indexed $ fn (bunch-idx direction)
-                      -> (range 10)
+                      -> (range 30)
                         map $ fn (spark-idx)
                           map hexagon-shape $ fn (hex-idx)
                             {} (:firework_idx firework-idx) (:bunch_idx bunch-idx) (:direction direction) (:hex_idx hex-idx) (:spark_idx spark-idx)
