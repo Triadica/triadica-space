@@ -141,16 +141,17 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.16.17.tgz#c5a1a4bfe1b57f0c3e61b29883525c6da3e5c091"
   integrity sha512-y+EHuSchhL7FjHgvQL/0fnnFmO4T1bhvWANX6gcnqTjtnKWbTvUMCpGnv2+t+31d7RzyEAYAd4u2fnIhHL6N/Q==
 
-"@quamolit/touch-control@^0.0.13":
-  version "0.0.13"
-  resolved "https://registry.yarnpkg.com/@quamolit/touch-control/-/touch-control-0.0.13.tgz#84a9ade22bf487ba3f9ed8f8f52c44c0e2022060"
-  integrity sha512-Z1UX6ajBqMJrDZOsBDoB+QMiJFtJ7nUtaX/wZOJeaFVRpL+96xkYlcV+vosVjs8i/G85OUBy9RccGnDYT6FCvA==
+"@triadica/touch-control@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@triadica/touch-control/-/touch-control-0.0.2.tgz#782368adee18c1937dbbf1d401f35aaa9fe47e87"
+  integrity sha512-U7W0kqfgmD+qumYn38mIy4aC16s8bIc00eIt7vW3kLXokkTu2edVmXmfXkaJE93skkd49WXUeMEt6iKTIQ+uXA==
 
-bottom-tip@^0.1.3:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/bottom-tip/-/bottom-tip-0.1.3.tgz#ad3a4bcc8c3d5b5c6dac68fd3d140bf18efc50f8"
-  integrity sha512-MJHQcCd9ni0IAOcMMdyT9kzt5hoQw1Gy6Uqee21wCuTMzbZ+L7calDYDp0lKdPSSZoAw0u2emjJBGVv1cwEphQ==
+bottom-tip@^0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/bottom-tip/-/bottom-tip-0.1.4.tgz#c319dca5b46a356b206e114cfaecc020b02658ea"
+  integrity sha512-mb0nZJENqcWB/iSdCVaFxbvD3HvR0GRyFEzJXTpyyfGQiekeyiu1xotP368CO230oGJygrLx+wbOV6p8VRKTOQ==
   dependencies:
+    nanoid "^4.0.1"
     virtual-dom "^2.1.1"
 
 browser-split@0.0.1:
@@ -271,6 +272,11 @@ nanoid@^3.3.4:
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.4.tgz#730b67e3cd09e2deacf03c027c81c9d9dbc5e8ab"
   integrity sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==
 
+nanoid@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-4.0.1.tgz#398d7ccfdbf9faf2231b2ca7e8fff5dbca6a509b"
+  integrity sha512-udKGtCCUafD3nQtJg9wBhRP3KMbPglUsgV5JVsXhvyBs/oefqb4sqMEhKBBgqZncYowu58p1prsZQBYvAj/Gww==
+
 next-tick@^0.2.2:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-0.2.2.tgz#75da4a927ee5887e39065880065b7336413b310d"
@@ -310,9 +316,9 @@ resolve@^1.22.1:
     supports-preserve-symlinks-flag "^1.0.0"
 
 rollup@^3.10.0:
-  version "3.17.2"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-3.17.2.tgz#a4ecd29c488672a0606e41ef57474fad715750a9"
-  integrity sha512-qMNZdlQPCkWodrAZ3qnJtvCAl4vpQ8q77uEujVCCbC/6CLB7Lcmvjq7HyiOSnf4fxTT9XgsE36oLHJBH49xjqA==
+  version "3.19.1"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-3.19.1.tgz#2b3a31ac1ff9f3afab2e523fa687fef5b0ee20fc"
+  integrity sha512-lAbrdN7neYCg/8WaoWn/ckzCtz+jr70GFfYdlf50OF7387HTg+wiuiqJRFYawwSPpqfqDNYqK7smY/ks2iAudg==
   optionalDependencies:
     fsevents "~2.3.2"
 
