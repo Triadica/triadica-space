@@ -990,7 +990,7 @@
       :defs $ {}
         |*store $ quote
           defatom *store $ {} (:v 0)
-            :tab $ turn-keyword (get-env "\"tab" "\"bunch-fireworks")
+            :tab $ turn-tag (get-env "\"tab" "\"bunch-fireworks")
             :p1 $ [] 0 0 0
             :states $ {}
         |canvas $ quote

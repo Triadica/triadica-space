@@ -5,14 +5,14 @@
   "author": "tiye <jiyinyiyong@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "bottom-tip": "^0.1.4",
-    "vite": "^4.1.4"
+    "bottom-tip": "^0.1.5",
+    "vite": "^4.3.9"
   },
   "dependencies": {
-    "@calcit/procs": "^0.6.23",
+    "@calcit/procs": "^0.7.0-a3",
     "@calcit/std": "^0.0.2",
-    "@triadica/touch-control": "^0.0.2",
+    "@triadica/touch-control": "^0.0.3",
     "mobile-detect": "^1.4.5",
-    "twgl.js": "^5.3.0"
+    "twgl.js": "^5.3.1"
   }
 }
