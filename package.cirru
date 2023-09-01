@@ -2,6 +2,6 @@
 {}
   :dependencies $ {}
     |Quatrefoil-GL/touch-control |main
-    |Respo/respo.calcit |0.14.46
+    |Respo/respo.calcit |main
     |calcit-lang/memof |main
-    |calcit-lang/quaternion |main
+    |calcit-lang/quaternion |0.0.8
