@@ -2691,13 +2691,14 @@
                 traverse-tree tree ([])
                   fn (obj coord) (; js/console.log obj)
                     let
-                        vs $ :vertex-shader obj
-                        fs $ :fragment-shader obj
+                        vs $ get-or obj :vertex-shader nil
+                        fs $ get-or obj :fragment-shader nil
                         program $ cached-build-program gl vs fs
-                        buffer $ twgl/createBufferInfoFromArrays gl (:arrays obj)
+                        buffer $ twgl/createBufferInfoFromArrays gl
+                          get-or obj :arrays $ {}
                       swap! *objects-buffer conj $ {} (:program program) (:buffer buffer)
-                        :draw-mode $ :draw-mode obj
-                        :get-uniforms $ :get-uniforms obj
+                        :draw-mode $ get-or obj :draw-mode :triangles
+                        :get-uniforms $ get-or obj :get-uniforms nil
           :examples $ []
           :schema $ :: 'Dynamic
         |load-sized-buffer! $ %{} 'CodeEntry (:doc |)
