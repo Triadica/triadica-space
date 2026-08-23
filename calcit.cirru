@@ -35,19 +35,19 @@
           :code $ quote
             defn object (options)
               let
-                  vs $ :vertex-shader options
-                  fs $ :fragment-shader options
+                  vs $ get-or options :vertex-shader nil
+                  fs $ get-or options :fragment-shader nil
                   arrays $ let
                       ret $ let
                           ret $ js-object
                         if-let
-                          points $ :points options
+                          points $ get options :points
                           set! (.-position ret) (create-attribute-array points)
                         if-let
-                          ys $ :indices options
+                          ys $ get options :indices
                           set! (.-indices ret) (js-array & ys)
                         , ret
-                      attrs $ :attributes options
+                      attrs $ get-or options :attributes ({})
                     if-not (empty? attrs)
                       &doseq
                         entry $ .to-list attrs
@@ -56,7 +56,7 @@
                           create-attribute-array $ nth entry 1
                     wo-js-log ret
                 if-let
-                  packed-attrs $ :packed-attrs options
+                  packed-attrs $ get options :packed-attrs
                   let
                       ret $ js-object
                       g0 $ peek-packed-attrs packed-attrs
