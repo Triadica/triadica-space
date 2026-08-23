@@ -6,15 +6,15 @@
     "includeDependencies": false
   },
   "metrics": {
-    "typeNone": 125,
-    "typeNotFull": 142,
-    "schemaDynamic": 148,
+    "typeNone": 126,
+    "typeNotFull": 143,
+    "schemaDynamic": 149,
     "codeDynamic": 0,
-    "codeNil": 18,
-    "unresolved": 166,
+    "codeNil": 45,
+    "unresolved": 194,
     "declaredOptional": 0,
     "deprecatedCalls": 0,
-    "unsafeCoerce": 0
+    "unsafeCoerce": 64
   },
   "definitions": {
     "triadica.alias/build-packed-attrs": {
@@ -33,8 +33,8 @@
       "typeNotFull": 0,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 1,
+      "unresolved": 2,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -55,8 +55,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 2,
+      "unresolved": 3,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -81,7 +81,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 5
     },
     "triadica.app.comp.branches/build-path": {
       "typeNone": 1,
@@ -92,7 +92,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 5
     },
     "triadica.app.comp.branches/comp-branches": {
       "typeNone": 1,
@@ -125,7 +125,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.app.comp.fireworks/calc-parabola": {
       "typeNone": 1,
@@ -147,7 +147,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.app.comp.fireworks/comp-fireworks": {
       "typeNone": 1,
@@ -158,7 +158,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.app.comp.fireworks/comp-fountain": {
       "typeNone": 1,
@@ -169,7 +169,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.app.comp.fireworks/comp-sparklers": {
       "typeNone": 1,
@@ -180,7 +180,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.app.comp.fireworks/grid-n": {
       "typeNone": 1,
@@ -202,7 +202,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.app.comp.lamps/comp-lotus": {
       "typeNone": 1,
@@ -235,7 +235,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.app.comp.lamps/f-drop": {
       "typeNone": 1,
@@ -301,7 +301,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 7
     },
     "triadica.app.comp.lamps/xy-length": {
       "typeNone": 1,
@@ -400,7 +400,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.app.container/tab-entries": {
       "typeNone": 0,
@@ -653,7 +653,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 2
     },
     "triadica.comp.axis/comp-axis": {
       "typeNone": 1,
@@ -686,7 +686,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 2
     },
     "triadica.comp.bunch/comp-strip-light": {
       "typeNone": 1,
@@ -742,6 +742,17 @@
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
+    },
+    "triadica.comp.drag-point/drag-number": {
+      "typeNone": 1,
+      "typeNotFull": 1,
+      "schemaDynamic": 1,
+      "codeDynamic": 0,
+      "codeNil": 0,
+      "unresolved": 1,
+      "declaredOptional": 0,
+      "deprecatedCalls": 0,
+      "unsafeCoerce": 1
     },
     "triadica.comp.line/build-brush-points": {
       "typeNone": 1,
@@ -858,11 +869,11 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 1,
+      "unresolved": 2,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 3
     },
     "triadica.comp.stitch/stitch-strokes": {
       "typeNone": 1,
@@ -880,8 +891,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 1,
+      "unresolved": 2,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -950,7 +961,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.config/glsl-colors-code": {
       "typeNone": 1,
@@ -1071,7 +1082,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 4
     },
     "triadica.config/replace-vertex-shader": {
       "typeNone": 1,
@@ -1082,7 +1093,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 4
     },
     "triadica.core/*draw-fb": {
       "typeNone": 0,
@@ -1137,7 +1148,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 2
     },
     "triadica.core/clear-gl!": {
       "typeNone": 1,
@@ -1148,7 +1159,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 2
     },
     "triadica.core/count-recursive": {
       "typeNone": 1,
@@ -1166,8 +1177,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 1,
+      "unresolved": 2,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -1177,8 +1188,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 1,
-      "unresolved": 2,
+      "codeNil": 5,
+      "unresolved": 6,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -1199,8 +1210,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 4,
-      "unresolved": 5,
+      "codeNil": 6,
+      "unresolved": 7,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -1210,8 +1221,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 3,
-      "unresolved": 4,
+      "codeNil": 5,
+      "unresolved": 6,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -1221,8 +1232,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 2,
+      "unresolved": 3,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -1232,8 +1243,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 2,
+      "unresolved": 3,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -1243,8 +1254,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 3,
+      "unresolved": 4,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -1265,8 +1276,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
+      "codeNil": 2,
+      "unresolved": 3,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -1298,11 +1309,11 @@
       "typeNotFull": 1,
       "schemaDynamic": 1,
       "codeDynamic": 0,
-      "codeNil": 2,
-      "unresolved": 3,
+      "codeNil": 6,
+      "unresolved": 7,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 4
     },
     "triadica.core/refine-strength": {
       "typeNone": 1,
@@ -1313,7 +1324,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 1
     },
     "triadica.core/reset-canvas-size!": {
       "typeNone": 1,
@@ -1324,20 +1335,9 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 2
     },
     "triadica.core/setup-mouse-events!": {
-      "typeNone": 1,
-      "typeNotFull": 1,
-      "schemaDynamic": 1,
-      "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 1,
-      "declaredOptional": 0,
-      "deprecatedCalls": 0,
-      "unsafeCoerce": 0
-    },
-    "triadica.core/shift-viewer-by!": {
       "typeNone": 1,
       "typeNotFull": 1,
       "schemaDynamic": 1,
@@ -1369,6 +1369,17 @@
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
+    },
+    "triadica.core/window-number": {
+      "typeNone": 1,
+      "typeNotFull": 1,
+      "schemaDynamic": 1,
+      "codeDynamic": 0,
+      "codeNil": 0,
+      "unresolved": 1,
+      "declaredOptional": 0,
+      "deprecatedCalls": 0,
+      "unsafeCoerce": 1
     },
     "triadica.global/*gl-context": {
       "typeNone": 0,
@@ -1489,7 +1500,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 2
     },
     "triadica.math/fibo-grid-range": {
       "typeNone": 1,
@@ -1522,7 +1533,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 2
     },
     "triadica.math/square": {
       "typeNone": 1,
@@ -1610,7 +1621,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 0
+      "unsafeCoerce": 6
     },
     "triadica.perspective/spin-glance-by!": {
       "typeNone": 1,

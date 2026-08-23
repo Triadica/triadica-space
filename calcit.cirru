@@ -22,7 +22,7 @@
               quasiquote $ ~f
                 ~@ $ map args
                   fn (item)
-                    if (list? item) (last item) item
+                    if (list? item) (last-or item nil) item
           :examples $ []
           :schema $ :: 'Dynamic
         |group $ %{} 'CodeEntry (:doc |)
@@ -144,18 +144,18 @@
                           base $ &v+ position (v-scale forward length)
                           alpha $ &* delta-angle n
                           side-base $ &v+
-                            v-scale upward $ js/Math.cos alpha
-                            v-scale rightward $ js/Math.sin alpha
+                            v-scale upward $ unsafe-coerce (js/Math.cos alpha) 'Number
+                            v-scale rightward $ unsafe-coerce (js/Math.sin alpha) 'Number
                           side-length $ &* length regress
                           side-forward $ &v+
-                            v-scale forward $ js/Math.cos branch-angle
-                            v-scale side-base $ js/Math.sin branch-angle
+                            v-scale forward $ unsafe-coerce (js/Math.cos branch-angle) 'Number
+                            v-scale side-base $ unsafe-coerce (js/Math.sin branch-angle) 'Number
                           branch $ -> side-forward (v-scale side-length)
                         [] $ if (<= max-level 0) ([])
                           build-multiple-path (dec max-level) parts $ {} (:position base) (:length side-length) (:forward side-forward)
                             :upward $ v-normalize
                               &v- side-forward $ v-scale forward
-                                &/ 1 $ js/Math.cos branch-angle
+                                &/ 1 $ unsafe-coerce (js/Math.cos branch-angle) 'Number
                 [] main-branch side-branches
           :examples $ []
           :schema $ :: 'Dynamic
@@ -182,13 +182,13 @@
                             v-scale forward $ &* length (&/ n segments)
                           alpha $ &* delta-angle n
                           side-base $ &v+
-                            v-scale upward $ js/Math.cos alpha
-                            v-scale rightward $ js/Math.sin alpha
+                            v-scale upward $ unsafe-coerce (js/Math.cos alpha) 'Number
+                            v-scale rightward $ unsafe-coerce (js/Math.sin alpha) 'Number
                           side-length $ &* (&* length regress)
                             &- 1 $ &* 0.16 (dec n)
                           side-forward $ &v+
-                            v-scale forward $ js/Math.cos branch-angle
-                            v-scale side-base $ js/Math.sin branch-angle
+                            v-scale forward $ unsafe-coerce (js/Math.cos branch-angle) 'Number
+                            v-scale side-base $ unsafe-coerce (js/Math.sin branch-angle) 'Number
                           branch $ -> side-forward (v-scale side-length)
                         []
                           {} $ :position base
@@ -197,7 +197,7 @@
                             build-path (dec max-level) branch-angle $ {} (:position base) (:length side-length) (:forward side-forward)
                               :upward $ v-normalize
                                 &v- side-forward $ v-scale forward
-                                  &/ 1 $ js/Math.cos branch-angle
+                                  &/ 1 $ unsafe-coerce (js/Math.cos branch-angle) 'Number
                 [] main-branch side-branches
           :examples $ []
           :schema $ :: 'Dynamic
@@ -265,8 +265,9 @@
                         rx $ * r0 rx-delta
                         ry $ * r0
                           cos $ * i angle0
-                        ball-size $ js/Math.ceil
-                          + 0.2 $ * rx-delta rx-delta size
+                        ball-size $ unsafe-coerce
+                          js/Math.ceil $ + 0.2 (* rx-delta rx-delta size)
+                          , 'Number
                         angle1 $ / (* 2 &PI) ball-size
                       -> (range ball-size)
                         map $ fn (j)
@@ -309,7 +310,8 @@
                             map hexagon-shape $ fn (hex-idx)
                               {} (:firework_idx firework-idx) (:bunch_idx bunch-idx) (:direction direction) (:hex_idx hex-idx) (:spark_idx spark-idx)
                 :get-uniforms $ fn ()
-                  js-object $ :time (js/performance.now)
+                  js-object $ :time
+                    unsafe-coerce (js/performance.now) 'Number
           :examples $ []
           :schema $ :: 'Dynamic
         |comp-fireworks $ %{} 'CodeEntry (:doc |)
@@ -327,7 +329,7 @@
                       noted seconds $ rand-between 6 12
                 :get-uniforms $ fn ()
                   js-object $ :time
-                    &* 0.001 $ js/performance.now
+                    &* 0.001 $ unsafe-coerce (js/performance.now) 'Number
           :examples $ []
           :schema $ :: 'Dynamic
         |comp-fountain $ %{} 'CodeEntry (:doc |)
@@ -354,7 +356,7 @@
                             fn (d) (assoc data :pointer d)
                 :get-uniforms $ fn ()
                   js-object $ :time
-                    &* 0.1 $ js/performance.now
+                    &* 0.1 $ unsafe-coerce (js/performance.now) 'Number
           :examples $ []
           :schema $ :: 'Dynamic
         |comp-sparklers $ %{} 'CodeEntry (:doc |)
@@ -378,7 +380,7 @@
                             {} (:lv1 i) (:lv2 j) (:index 2) (:kind 1)
                 :get-uniforms $ fn ()
                   js-object $ :time
-                    &* 0.00737 $ js/performance.now
+                    &* 0.00737 $ unsafe-coerce (js/performance.now) 'Number
           :examples $ []
           :schema $ :: 'Dynamic
         |grid-n $ %{} 'CodeEntry (:doc |)
@@ -423,7 +425,7 @@
                 :draw-mode :triangles
                 :get-uniforms $ fn ()
                   js-object $ :time
-                    &* 0.0001 $ js/performance.now
+                    &* 0.0001 $ unsafe-coerce (js/performance.now) 'Number
                 :packed-attrs $ -> grid
                   map $ fn (position)
                     let
@@ -527,7 +529,7 @@
                   -> (range petal-size) (map render-rose-petal)
                 :get-uniforms $ fn ()
                   js-object $ :time
-                    &* 0.001 $ js/performance.now
+                    &* 0.001 $ unsafe-coerce (js/performance.now) 'Number
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ inline-shader |rose-stem.vert
                 :fragment-shader $ inline-shader |rose-stem.frag
@@ -692,7 +694,9 @@
                   center-radius $ + 60 (* 8 idx)
                   center-y-radian $ - (* 0.5 &PI) (* idx 0.08)
                   direction-radian $ + 2
-                    * 18 $ js/Math.log (+ 8 idx)
+                    * 18 $ unsafe-coerce
+                      js/Math.log $ + 8 idx
+                      , 'Number
                   patel-width-ratio $ + 0.7 (* idx 0.08)
                   ring-size 8
                   sector-size 8
@@ -717,8 +721,10 @@
                             this-radian $ * center-y-radian (/ ring-idx ring-size)
                             next-radian $ * center-y-radian
                               / (inc ring-idx) ring-size
-                            ring-radius $ * direction-length (js/Math.tan this-radian)
-                            ring-radius-next $ * direction-length (js/Math.tan next-radian)
+                            ring-radius $ * direction-length
+                              unsafe-coerce (js/Math.tan this-radian) 'Number
+                            ring-radius-next $ * direction-length
+                              unsafe-coerce (js/Math.tan next-radian) 'Number
                             sector-radian $ * 2 &PI (/ sector-idx sector-size)
                             sector-radian-next $ * 2 &PI
                               / (inc sector-idx) sector-size
@@ -729,7 +735,7 @@
                                   v+ direction-vector
                                     v-scale radius-horizontal-perp $ * ring-radius (cos sector-radian)
                                     v-scale up-vector $ * ring-radius (sin sector-radian)
-                                  js/Math.cos this-radian
+                                  unsafe-coerce (js/Math.cos this-radian) 'Number
                                 v-scale direction-vector $ f-top-bend ring-y-ratio
                             p1 $ let
                                 ring-y-ratio $ * (/ ring-idx ring-size) (sin sector-radian-next)
@@ -738,7 +744,7 @@
                                   v+ direction-vector
                                     v-scale radius-horizontal-perp $ * ring-radius (cos sector-radian-next)
                                     v-scale up-vector $ * ring-radius (sin sector-radian-next)
-                                  js/Math.cos this-radian
+                                  unsafe-coerce (js/Math.cos this-radian) 'Number
                                 v-scale direction-vector $ f-top-bend ring-y-ratio
                             p2 $ let
                                 ring-y-ratio $ *
@@ -749,7 +755,7 @@
                                   v+ direction-vector
                                     v-scale radius-horizontal-perp $ * ring-radius-next (cos sector-radian)
                                     v-scale up-vector $ * ring-radius-next (sin sector-radian)
-                                  js/Math.cos next-radian
+                                  unsafe-coerce (js/Math.cos next-radian) 'Number
                                 v-scale direction-vector $ f-top-bend ring-y-ratio
                             p3 $ let
                                 ring-y-ratio $ *
@@ -760,7 +766,7 @@
                                   v+ direction-vector
                                     v-scale radius-horizontal-perp $ * ring-radius-next (cos sector-radian-next)
                                     v-scale up-vector $ * ring-radius-next (sin sector-radian-next)
-                                  js/Math.cos next-radian
+                                  unsafe-coerce (js/Math.cos next-radian) 'Number
                                 v-scale direction-vector $ f-top-bend ring-y-ratio
                           []
                             {} (:position p0) (:direction direction-vector)
@@ -1577,7 +1583,7 @@
                     fn (info) (&map:get info :index)
                 :get-uniforms $ fn ()
                   js-object $ :citySpin
-                    wo-log $ :spin-city @*dirty-uniforms
+                    wo-log $ get-or @*dirty-uniforms :spin-city 0
           :examples $ []
           :schema $ :: 'Dynamic
         |tiny-cube-object $ %{} 'CodeEntry (:doc |)
@@ -1671,7 +1677,7 @@
                   v $ &v- q p
                   l $ v-length v
                   dd $ &/ l step
-                  size $ js/Math.floor dd
+                  size $ unsafe-coerce (js/Math.floor dd) 'Number
                   left $ &* 0.5
                     - l $ &* size step
                   unit $ v-normalize v
@@ -1683,8 +1689,9 @@
                 -> dist $ map
                   fn (ratio)
                     let
-                        s $ js/Math.abs
-                          &- ratio $ &* 0.5 l
+                        s $ unsafe-coerce
+                          js/Math.abs $ &- ratio (&* 0.5 l)
+                          , 'Number
                       &v+
                         &v+ p $ v-scale unit ratio
                         v-scale gravity $ &- l-middle (pow s 2)
@@ -1744,7 +1751,8 @@
                   :packed-attrs $ -> indices
                     map $ fn (i)
                       {}
-                        :position $ -> (nth geo i)
+                        :position $ ->
+                          nth-or geo i $ [] 0 0 0
                           map $ fn (x) (* x size)
                           &v+ position
                         :color color
@@ -1763,8 +1771,8 @@
                   handle-drag! $ fn (x y d!)
                     let
                         prev @*drag-cache
-                        dx $ - x (:x prev)
-                        dy $ - (:y prev) y
+                        dx $ - x (get-or prev :x 0)
+                        dy $ - (get-or prev :y 0) y
                         look-distance $ new-lookat-point
                         upward @*viewer-upward
                         rightward $ v-scale (v-cross upward @*viewer-forward) -1
@@ -1775,7 +1783,8 @@
                             square $ nth look-distance 0
                             square $ nth look-distance 1
                             square $ nth look-distance 2
-                        scale-radio $ noted "|webgl canvas maps to [-1,1], need scaling" (* 0.002 0.5 js/window.innerWidth)
+                        scale-radio $ noted "|webgl canvas maps to [-1,1], need scaling"
+                          * 0.002 0.5 $ drag-number js/window.innerWidth 0
                         screen_scale $ &/ (&+ r s) (&+ s 1)
                       ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
                       on-move
@@ -1789,25 +1798,26 @@
                   :hit-region $ {} (:position position) (:radius size)
                     :on-mousedown $ fn (e d!)
                       let
-                          x $ .-clientX e
-                          y $ .-clientY e
+                          x $ drag-number (.-clientX e) 0
+                          y $ drag-number (.-clientY e) 0
                         reset! *drag-cache $ {} (:x x) (:y y)
                     :on-mousemove $ if-not ignore-moving?
                       fn (e d!)
                         let
-                            x $ .-clientX e
-                            y $ .-clientY e
+                            x $ drag-number (.-clientX e) 0
+                            y $ drag-number (.-clientY e) 0
                           handle-drag! x y d!
                           reset! *drag-cache $ {} (:x x) (:y y)
                     :on-mouseup $ fn (e d!)
                       let
-                          x $ .-clientX e
-                          y $ .-clientY e
+                          x $ drag-number (.-clientX e) 0
+                          y $ drag-number (.-clientY e) 0
                         handle-drag! x y d!
                   :packed-attrs $ -> indices
                     map $ fn (i)
                       {}
-                        :position $ -> (nth geo i)
+                        :position $ ->
+                          nth-or geo i $ [] 0 0 0
                           map $ fn (x) (* x size)
                           &v+ position
                         :color color
@@ -1817,7 +1827,7 @@
           :code $ quote
             defn comp-slider (props on-move)
               let
-                  position $ :position props
+                  position $ get-or props :position ([] 0 0 0)
                   geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
                   size $ either (&map:get props :size) 20
                   color $ either (&map:get props :color) ([] 0.6 1 0.56)
@@ -1825,8 +1835,8 @@
                   handle-drag! $ fn (x y d!)
                     let
                         prev @*drag-cache
-                        dx $ - x (:x prev)
-                        dy $ - (:y prev) y
+                        dx $ - x (get-or prev :x 0)
+                        dy $ - (get-or prev :y 0) y
                       ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
                       on-move ([] dx dy) d!
                 object $ {} (:draw-mode :triangles)
@@ -1835,27 +1845,38 @@
                   :hit-region $ {} (:position position) (:radius 20)
                     :on-mousedown $ fn (e d!)
                       let
-                          x $ .-clientX e
-                          y $ .-clientY e
+                          x $ drag-number (.-clientX e) 0
+                          y $ drag-number (.-clientY e) 0
                         reset! *drag-cache $ {} (:x x) (:y y)
                     :on-mousemove $ fn (e d!)
                       let
-                          x $ .-clientX e
-                          y $ .-clientY e
+                          x $ drag-number (.-clientX e) 0
+                          y $ drag-number (.-clientY e) 0
                         handle-drag! x y d!
                         reset! *drag-cache $ {} (:x x) (:y y)
                     :on-mouseup $ fn (e d!)
                       let
-                          x $ .-clientX e
-                          y $ .-clientY e
+                          x $ drag-number (.-clientX e) 0
+                          y $ drag-number (.-clientY e) 0
                         handle-drag! x y d!
                   :packed-attrs $ -> indices
                     map $ fn (i)
                       {}
-                        :position $ -> (nth geo i)
+                        :position $ ->
+                          nth-or geo i $ [] 0 0 0
                           map $ fn (x) (* x size)
                           &v+ position
                         :color color
+          :examples $ []
+          :schema $ :: 'Dynamic
+        |drag-number $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn drag-number (value fallback)
+              hint-fn $ {}
+                :args $ [] (:: 'JsNullish 'JsObject) 'Number
+                :return 'Number
+                :features $ #{} :js-ffi
+              if (js-present? value) (unsafe-coerce value 'Number) fallback
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -2485,7 +2506,9 @@
         |clear-gl! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn clear-gl! (gl) (.!clearColor gl 0 0 0 1)
-              .!clear gl $ bit-or (.-COLOR_BUFFER_BIT gl) (.-DEPTH_BUFFER_BIT gl)
+              .!clear gl $ bit-or
+                unsafe-coerce (.-COLOR_BUFFER_BIT gl) 'Number
+                unsafe-coerce (.-DEPTH_BUFFER_BIT gl) 'Number
           :examples $ []
           :schema $ :: 'Dynamic
         |count-recursive $ %{} 'CodeEntry (:doc |)
@@ -2501,33 +2524,19 @@
           :code $ quote
             defn create-attribute-array (points)
               let
-                  p0 $ first points
+                  p0 $ first-or points nil
                 cond
                     list? p0
                     let
                         pps $ &list:flatten points
                         num $ count p0
                         position-array $ .!createAugmentedTypedArray twgl/primitives num (count points)
-                      loop
-                          idx 0
-                          xs pps
-                        if
-                          not $ empty? xs
-                          do
-                            aset position-array idx $ first xs
-                            recur (inc idx) (rest xs)
+                      map-indexed pps $ fn (idx x) (aset position-array idx x)
                       , position-array
                   (number? p0)
                     let
                         position-array $ .!createAugmentedTypedArray twgl/primitives 1 (count points)
-                      loop
-                          idx 0
-                          xs points
-                        if
-                          not $ empty? xs
-                          do
-                            aset position-array idx $ first xs
-                            recur (inc idx) (rest xs)
+                      map-indexed points $ fn (idx x) (aset position-array idx x)
                       , position-array
                   true $ do (js/console.error "|unknown attributes data:" points)
                     .!createAugmentedTypedArray twgl/primitives 1 $ count points
@@ -2539,10 +2548,10 @@
               if (empty? xs)
                 if (some? prev) ([] prev coord) nil
                 let
-                    x0 $ nth xs 0
-                    r0 $ nth x0 0
-                    t0 $ nth x0 1
-                    c0 $ nth x0 2
+                    x0 $ nth-or xs 0 ([] 0 nil nil)
+                    r0 $ nth-or x0 0 0
+                    t0 $ nth-or x0 1 nil
+                    c0 $ nth-or x0 2 nil
                   if (nil? prev)
                     recur r0 t0 c0 $ rest xs
                     if (< r0 r)
@@ -2577,15 +2586,16 @@
                 traverse-tree @*objects-tree ([])
                   fn (obj coord)
                     if-let
-                      region $ :hit-region obj
+                      region $ get-or obj :hit-region nil
                       if-let
-                        on-hit $ :on-hit region
+                        on-hit $ get-or region :on-hit nil
                         let
-                            mapped-position $ transform-3d (:position region)
+                            mapped-position $ transform-3d
+                              get-or region :position $ [] 0 0 0
                             screen-position $ map mapped-position
                               fn (p) (&* p scale-radio)
                             r $ nth mapped-position 2
-                            mapped-radius $ * scale-radio (:radius region)
+                            mapped-radius $ * scale-radio (get-or region :radius 0)
                               &/ (inc back-cone-scale) (&+ r back-cone-scale)
                             distance $ c-distance screen-position ([] x y)
                           ; js/console.log |comparing screen-position ([] x y) mapped-radius distance
@@ -2619,15 +2629,16 @@
                 traverse-tree @*objects-tree ([])
                   fn (obj coord)
                     if-let
-                      region $ :hit-region obj
+                      region $ get-or obj :hit-region nil
                       if-let
-                        on-mousedown $ :on-mousedown region
+                        on-mousedown $ get-or region :on-mousedown nil
                         let
-                            mapped-position $ transform-3d (:position region)
+                            mapped-position $ transform-3d
+                              get-or region :position $ [] 0 0 0
                             screen-position $ map mapped-position
                               fn (p) (&* p scale-radio)
                             r $ nth mapped-position 2
-                            mapped-radius $ * scale-radio (:radius region)
+                            mapped-radius $ * scale-radio (get-or region :radius 0)
                               &/ (inc back-cone-scale) (&+ r back-cone-scale)
                             distance $ c-distance screen-position ([] x y)
                           ; js/console.log |comparing screen-position ([] x y) mapped-radius distance
@@ -2658,8 +2669,8 @@
                       if
                         = :object $ get-or node :type nil
                         if-let
-                          on-move $ get-in node ([] :hit-region :on-mousemove)
-                          on-move event @*proxied-dispatch
+                          on-move $ get-in-or node ([] :hit-region :on-mousemove) nil
+                          when (fn? on-move) (on-move event @*proxied-dispatch)
           :examples $ []
           :schema $ :: 'Dynamic
         |handle-screen-mouseup! $ %{} 'CodeEntry (:doc |)
@@ -2675,8 +2686,8 @@
                         if
                           = :object $ get-or node :type nil
                           if-let
-                            on-up $ get-in node ([] :hit-region :on-mouseup)
-                            on-up event @*proxied-dispatch
+                            on-up $ get-in-or node ([] :hit-region :on-mouseup) nil
+                            when (fn? on-up) (on-up event @*proxied-dispatch)
                     reset! *mouse-holding-paths $ []
           :examples $ []
           :schema $ :: 'Dynamic
@@ -2721,10 +2732,10 @@
           :code $ quote
             defn load-tree-node (tree path)
               if (empty? path) tree $ if-let
-                children $ get tree :children
+                children $ get-or tree :children nil
                 if-let
-                  child $ nth children (first-or path 0)
-                  recur child $ rest path
+                  child $ nth-or children (first-or path 0) nil
+                  load-tree-node child $ rest path
           :examples $ []
           :schema $ :: 'Dynamic
         |mutably-write-array! $ %{} 'CodeEntry (:doc |)
@@ -2829,9 +2840,9 @@
                       program-info $ get-or object :program nil
                       buffer-info $ get-or object :buffer nil
                       current-uniforms $ if-let
-                        get-u $ get object :get-uniforms
+                        get-u $ get-or object :get-uniforms nil
                         let
-                            u $ get-u
+                            u $ if (fn? get-u) (get-u) nil
                             el-uniforms $ if (map? u)
                               do (js/console.warn "|get js-object for better performance" u) (to-js-data u)
                               , u
@@ -2842,7 +2853,7 @@
                     twgl/setUniforms program-info current-uniforms
                     case-default (get-or object :draw-mode :triangles)
                       do
-                        js/console.warn "|unknown draw mode:" $ :draw-mode object
+                        js/console.warn "|unknown draw mode:" $ get-or object :draw-mode :triangles
                         twgl/drawBufferInfo gl buffer-info $ .-LINES gl
                       :triangles $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLES gl)
                       :triangle-strip $ twgl/drawBufferInfo gl buffer-info (.-TRIANGLE_STRIP gl)
@@ -2887,7 +2898,9 @@
           :code $ quote
             defn refine-strength (x)
               &* x $ sqrt
-                js/Math.abs $ &* x 0.02
+                unsafe-coerce
+                  js/Math.abs $ &* x 0.02
+                  , 'Number
           :examples $ []
           :schema $ :: 'Dynamic
         |reset-canvas-size! $ %{} 'CodeEntry (:doc |)
@@ -2911,13 +2924,6 @@
               set! (.-onpointermove canvas) handle-screen-mousemove!
               set! (.-onpointerup canvas) handle-screen-mouseup!
               set! (.-onpointerleave canvas) handle-screen-mouseup!
-          :examples $ []
-          :schema $ :: 'Dynamic
-        |shift-viewer-by! $ %{} 'CodeEntry (:doc |)
-          :code $ quote
-            defn shift-viewer-by! (x)
-              if (= x false) (reset! *viewer-y-shift 0)
-                swap! *viewer-y-shift &+ $ * 2 x
           :examples $ []
           :schema $ :: 'Dynamic
         |traverse-tree $ %{} 'CodeEntry (:doc |)
@@ -2980,7 +2986,8 @@
           :code $ quote
             defatom *objects-buffer $ []
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref
+            :: 'List $ :: 'Map 'Tag 'Dynamic
         |*objects-tree $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defatom *objects-tree $ noted "|tree for rendering and events" nil
@@ -3060,8 +3067,10 @@
                   t $ sqrt
                     &- 1 $ &* z z
                   t2 $ * 2 &PI n phi
-                  x $ &* t (js/Math.cos t2)
-                  y $ &* t (js/Math.sin t2)
+                  x $ &* t
+                    unsafe-coerce (js/Math.cos t2) 'Number
+                  y $ &* t
+                    unsafe-coerce (js/Math.sin t2) 'Number
                 [] x y z
           :examples $ []
           :schema $ :: 'Dynamic
@@ -3084,8 +3093,8 @@
             defn rotate-3d-fn (origin axis angle)
               let
                   axis-0 $ v-normalize axis
-                  cos-d $ js/Math.cos angle
-                  sin-d $ js/Math.sin angle
+                  cos-d $ unsafe-coerce (js/Math.cos angle) 'Number
+                  sin-d $ unsafe-coerce (js/Math.sin angle) 'Number
                 defn rotate-3d-apply (p)
                   let
                       p-v $ &v- p origin
