@@ -2826,10 +2826,10 @@
                 ; .!cullFace gl $ .-FRONT_AND_BACK gl
                 &doseq (object @*objects-buffer)
                   let
-                      program-info $ :program object
-                      buffer-info $ :buffer object
+                      program-info $ get-or object :program nil
+                      buffer-info $ get-or object :buffer nil
                       current-uniforms $ if-let
-                        get-u $ :get-uniforms object
+                        get-u $ get object :get-uniforms
                         let
                             u $ get-u
                             el-uniforms $ if (map? u)
@@ -2840,7 +2840,7 @@
                     .!useProgram gl $ .-program program-info
                     twgl/setBuffersAndAttributes gl program-info buffer-info
                     twgl/setUniforms program-info current-uniforms
-                    case-default (:draw-mode object)
+                    case-default (get-or object :draw-mode :triangles)
                       do
                         js/console.warn "|unknown draw mode:" $ :draw-mode object
                         twgl/drawBufferInfo gl buffer-info $ .-LINES gl
