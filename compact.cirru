@@ -229,7 +229,7 @@
           ns triadica.app.comp.branches $ :require
             triadica.alias :refer $ group object
             triadica.config :refer $ inline-shader
-            quaternion.core :refer $ &v+ v-scale v-cross &v- v-normalize
+            quaternion.vector :refer $ &v+ v-scale v-cross &v- v-normalize
             triadica.comp.drag-point :refer $ comp-slider
     |triadica.app.comp.fireworks $ %{} :FileEntry
       :defs $ {}
@@ -363,7 +363,7 @@
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ object group
             triadica.math :refer $ v-scale fibo-grid-range fibo-grid-n
-            quaternion.core :refer $ &v+
+            quaternion.vector :refer $ &v+
             triadica.comp.bunch :refer $ comp-bunch
             "\"@calcit/std" :refer $ rand-between rand rand-shift
     |triadica.app.comp.lamps $ %{} :FileEntry
@@ -728,7 +728,7 @@
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ object group call-labeled
             triadica.comp.axis :refer $ comp-axis
-            quaternion.core :refer $ v-scale v+ &v+ v-scale v-cross v-length v-normalize
+            quaternion.vector :refer $ v-scale v+ &v+ v-cross v-length v-normalize
     |triadica.app.comp.line-wave $ %{} :FileEntry
       :defs $ {}
         |comp-line-wave $ %{} :CodeEntry (:doc |)
@@ -767,7 +767,7 @@
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns triadica.app.comp.line-wave $ :require
-            quaternion.core :refer $ v-scale
+            quaternion.vector :refer $ v-scale
             triadica.alias :refer $ group object
             triadica.config :refer $ inline-shader
     |triadica.app.container $ %{} :FileEntry
@@ -1025,7 +1025,7 @@
             triadica.core :refer $ >>
             triadica.config :refer $ inline-shader
             memof.once :refer $ memof1-call memof1-call-by
-            quaternion.core :refer $ v-scale v-normalize v+
+            quaternion.vector :refer $ v-scale v-normalize v+
             triadica.comp.segments :refer $ comp-segments comp-segments-curves
             triadica.math :refer $ rotate-3d-fn fibo-grid-range
     |triadica.app.main $ %{} :FileEntry
@@ -1493,7 +1493,7 @@
           ns triadica.app.shapes $ :require ("\"twgl.js" :as twgl)
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ object
-            quaternion.core :refer $ &v+
+            quaternion.vector :refer $ &v+
             triadica.global :refer $ *dirty-uniforms
     |triadica.comp.axis $ %{} :FileEntry
       :defs $ {}
@@ -1588,7 +1588,7 @@
           ns triadica.comp.bunch $ :require
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ group object
-            quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
+            quaternion.vector :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
             triadica.math :refer $ square
     |triadica.comp.drag-point $ %{} :FileEntry
       :defs $ {}
@@ -1726,7 +1726,7 @@
             triadica.config :refer $ inline-shader back-cone-scale
             triadica.alias :refer $ group object
             triadica.math :refer $ square
-            quaternion.core :refer $ &v+ v-cross v-scale v-dot &v-
+            quaternion.vector :refer $ &v+ v-cross v-scale v-dot &v-
             triadica.perspective :refer $ *viewer-upward *viewer-forward new-lookat-point *viewer-position
     |triadica.comp.line $ %{} :FileEntry
       :defs $ {}
@@ -1856,7 +1856,7 @@
           ns triadica.comp.line $ :require
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ group object
-            quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
+            quaternion.vector :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
             triadica.math :refer $ square
     |triadica.comp.segments $ %{} :FileEntry
       :defs $ {}
@@ -1940,7 +1940,7 @@
           ns triadica.comp.segments $ :require
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ group object
-            quaternion.core :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
+            quaternion.vector :refer $ &v+ v-cross v-scale v-dot &v- v-normalize v-length
             triadica.math :refer $ square
     |triadica.comp.stitch $ %{} :FileEntry
       :defs $ {}
@@ -2088,7 +2088,7 @@
           ns triadica.comp.stitch $ :require
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ group object
-            quaternion.core :refer $ &v+ v-cross v-scale v-dot &v-
+            quaternion.vector :refer $ &v+ v-cross v-scale v-dot &v-
             triadica.math :refer $ square
     |triadica.comp.tabs $ %{} :FileEntry
       :defs $ {}
@@ -2140,7 +2140,7 @@
           ns triadica.comp.tabs $ :require
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ group object
-            quaternion.core :refer $ &v+
+            quaternion.vector :refer $ &v+
             triadica.comp.stitch :refer $ comp-stitch
             memof.once :refer $ memof1-call-by
     |triadica.config $ %{} :FileEntry
@@ -2662,7 +2662,7 @@
             "\"twgl.js" :as twgl
             triadica.math :refer $ &v+ &v- c-distance
             triadica.config :refer $ half-pi mobile? post-effect? dpr back-cone-scale inline-shader cached-build-program
-            quaternion.core :refer $ v-normalize v-cross v-length
+            quaternion.vector :refer $ v-normalize v-cross v-length
     |triadica.global $ %{} :FileEntry
       :defs $ {}
         |*gl-context $ %{} :CodeEntry (:doc |)
@@ -2776,7 +2776,7 @@
             triadica.hud :refer $ hud-display
             triadica.global :refer $ *viewer-position
             triadica.config :refer $ back-cone-scale
-            quaternion.core :refer $ v-normalize &v- v- v-dot v-cross v-scale v-length v+ &v+ v*
+            quaternion.vector :refer $ v-normalize &v- v- v-dot v-cross v-scale v-length v+ &v+
     |triadica.perspective $ %{} :FileEntry
       :defs $ {}
         |*viewer-forward $ %{} :CodeEntry (:doc |)
@@ -2875,6 +2875,6 @@
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns triadica.perspective $ :require
-            quaternion.core :refer $ v-cross v-scale v-dot &v- &v+
+            quaternion.vector :refer $ v-cross v-scale v-dot &v- &v+
             triadica.math :refer $ square sum-squares
             triadica.config :refer $ back-cone-scale half-pi
