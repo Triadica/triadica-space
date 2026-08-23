@@ -10,32 +10,38 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
-        node-version: 18
-        cache: "yarn"
+        node-version: 20
 
-    - uses: supplypike/setup-bin@v3
-      with:
-        uri: 'https://github.com/calcit-lang/calcit/releases/download/0.8.0-a5/cr'
-        name: 'cr'
-        version: '0.8.0-a5'
+    - name: Enable Corepack
+      run: |
+        corepack enable
+        corepack prepare yarn@4.12.0 --activate
+        yarn --version
 
-    - uses: supplypike/setup-bin@v3
-      with:
-        uri: 'https://github.com/calcit-lang/calcit/releases/download/0.8.0-a5/caps'
-        name: 'caps'
-        version: '0.8.0-a5'
+    - uses: calcit-lang/setup-calcit@v1
+
+    - name: Install dependencies
+      run: caps --ci && yarn install --immutable
+
+    - name: Validate Calcit snapshot and quality baseline
+      run: |
+        calcit calcit.cirru edit format
+        git diff --exit-code -- calcit.cirru
+        calcit calcit.cirru --check-only
+        calcit calcit.cirru analyze quality --baseline config/calcit-quality.json
 
     - name: "compiles to js"
       run: >
-        caps --ci && cr --emit-js --once
+        calcit calcit.cirru js
         && cp assets/* js-out/
-        && yarn && yarn vite build --base=./
+        && yarn vite build --base=./
 
     - name: Deploy to server
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       id: deploy
       uses: Pendect/action-rsyncer@v2.0.0
       env:
@@ -48,4 +54,5 @@ jobs:
         dest: 'rsync-user@tiye.me:/web-assets/repo/${{ github.repository }}'
 
     - name: Display status from deploy
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: echo "${{ steps.deploy.outputs.status }}"

@@ -1,6 +1,10 @@
 
 .compact-inc.cirru
 .calcit-error.cirru
+.DS_Store
+.pnp.cjs
+.pnp.loader.mjs
+.yarn/*.gz
 
 js-out/
 node_modules/
