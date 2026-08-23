@@ -1107,7 +1107,9 @@
         |*store $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defatom *store $ {} (:v 0)
-              :tab $ turn-tag (get-env |tab |bunch-fireworks)
+              :tab $ turn-tag
+                  get-env |tab
+                  , .unwrap-or |bunch-fireworks
               :p1 $ [] 0 0 0
               :states $ {}
           :examples $ []
@@ -1953,9 +1955,11 @@
                   :draw-mode $ either (&map:get options :draw-mode) :triangles
                   :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader |brush.vert)
                   :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader |brush.frag)
-                  :packed-attrs $ if
-                    list? $ nth points 0
-                    map points $ fn (child) (build-brush-points child brush brush1 brush2)
+                  :packed-attrs $ if-let
+                    first-point $ nth points 0
+                    if (list? first-point)
+                      map points $ fn (child) (build-brush-points child brush brush1 brush2)
+                      build-brush-points points brush brush1 brush2
                     build-brush-points points brush brush1 brush2
                   :get-uniforms $ &map:get options :get-uniforms
           :examples $ []
@@ -1973,9 +1977,11 @@
                   :draw-mode $ either (&map:get options :draw-mode) :triangles
                   :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader |lines.vert)
                   :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader |lines.frag)
-                  :packed-attrs $ if
-                    list? $ first points
-                    map points $ fn (child) (build-tube-points child radius normal0 circle-step post-hook)
+                  :packed-attrs $ if-let
+                    first-point $ first points
+                    if (list? first-point)
+                      map points $ fn (child) (build-tube-points child radius normal0 circle-step post-hook)
+                      build-tube-points points radius normal0 circle-step post-hook
                     build-tube-points points radius normal0 circle-step post-hook
                   :get-uniforms $ &map:get options :get-uniforms
           :examples $ []
@@ -2104,8 +2110,8 @@
           :code $ quote
             defn comp-stitch (props)
               let
-                  chars $ either (:chars props) ([] 0x1111)
-                  position $ either (:position props) ([] 0 0 0)
+                  chars $ get-or props :chars ([] 0x1111)
+                  position $ get-or props :position ([] 0 0 0)
                   size 24
                   gap 4
                   s0 $ * 0.1 size
@@ -2123,28 +2129,34 @@
                                 v-scale
                                   [] (+ size gap) 0 0
                                   , idx
-                    :hit-region $ :hit-region props
+                    :hit-region $ get-or props :hit-region nil
                   object $ {} (:draw-mode :triangles)
                     :vertex-shader $ inline-shader |stitch-line.vert
                     :fragment-shader $ inline-shader |stitch-line.frag
                     :packed-attrs $ map-indexed chars
                       fn (idx c)
                         let
-                            pattern $ .!padStart
-                              .!slice (&number:display-by c 2) 2
-                              , 32 |0
+                            pattern $ unsafe-coerce
+                              .!padStart
+                                unsafe-coerce
+                                  .!slice
+                                    unsafe-coerce (&number:display-by c 2) 'JsObject
+                                    , 2
+                                  , 'JsObject
+                                , 32 |0
+                              , 'String
                           -> stitch-strokes $ map
                             fn (info)
                               let
-                                  x $ :position info
-                                  data-idx $ :data info
+                                  x $ get-or info :position ([] 0 0 0)
+                                  data-idx $ get-or info :data 0
                                 {} (:base position)
                                   :position $ &v+ (v-scale x s0)
                                     v-scale
                                       [] (+ size gap) 0 0
                                       , idx
                                   :value $ if
-                                    = |1 $ get pattern data-idx
+                                    = |1 $ get-or pattern data-idx |0
                                     , 1 0
           :examples $ []
           :schema $ :: 'Dynamic
@@ -2343,7 +2355,8 @@
           :examples $ []
           :schema $ :: 'Dynamic
         |dpr $ %{} 'CodeEntry (:doc |)
-          :code $ quote (def dpr js/window.devicePixelRatio)
+          :code $ quote
+            def dpr $ if (js-present? js/window.devicePixelRatio) (unsafe-coerce js/window.devicePixelRatio 'Number) 1
           :examples $ []
           :schema $ :: 'Dynamic
         |glsl-colors-code $ %{} 'CodeEntry (:doc |)
@@ -2401,19 +2414,28 @@
           :schema $ :: 'Dynamic
         |post-effect? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def post-effect? $ &= |on (get-env |effect |on)
+            def post-effect? $ = |on
+              (get-env |effect) .unwrap-or |on
           :examples $ []
           :schema $ :: 'Dynamic
         |replace-fragment-shader $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn replace-fragment-shader (fs)
-              -> fs (.!replace |{{triadica_colors}} glsl-colors-code) (.!replace |{{triadica_noises}} glsl-noises-code) (.!replace |{{triadica_hsluv}} glsl-hsluv-code)
+              let
+                  source $ unsafe-coerce fs 'JsObject
+                  colors-replaced $ unsafe-coerce (.!replace source |{{triadica_colors}} glsl-colors-code) 'JsObject
+                  noises-replaced $ unsafe-coerce (.!replace colors-replaced |{{triadica_noises}} glsl-noises-code) 'JsObject
+                unsafe-coerce (.!replace noises-replaced |{{triadica_hsluv}} glsl-hsluv-code) 'String
           :examples $ []
           :schema $ :: 'Dynamic
         |replace-vertex-shader $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn replace-vertex-shader (vs)
-              -> vs (.!replace |{{triadica_perspective}} glsl-perspective-code) (.!replace |{{triadica_noises}} glsl-noises-code) (.!replace |{{triadica_rotation}} glsl-rotation-code)
+              let
+                  source $ unsafe-coerce vs 'JsObject
+                  perspective-replaced $ unsafe-coerce (.!replace source |{{triadica_perspective}} glsl-perspective-code) 'JsObject
+                  noises-replaced $ unsafe-coerce (.!replace perspective-replaced |{{triadica_noises}} glsl-noises-code) 'JsObject
+                unsafe-coerce (.!replace noises-replaced |{{triadica_rotation}} glsl-rotation-code) 'String
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
@@ -2439,7 +2461,7 @@
           :code $ quote
             defn >> (states k)
               let
-                  parent-cursor $ either (:cursor states) ([])
+                  parent-cursor $ either (get states :cursor) ([])
                   branch $ either (get states k) ({})
                 assoc branch :cursor $ conj parent-cursor k
           :examples $ []
@@ -2453,7 +2475,9 @@
               .!useProgram gl $ .-program program
               twgl/setBuffersAndAttributes gl program buffer
               twgl/setUniforms program $ js-object
-                :tex1 $ .-0 (.-attachments from-fb)
+                :tex1 $ unsafe-coerce
+                  .-0 $ unsafe-coerce (.-attachments from-fb) 'JsObject
+                  , 'JsObject
                 :direction direction
               twgl/drawBufferInfo gl buffer $ .-TRIANGLES gl
           :examples $ []
@@ -2539,10 +2563,15 @@
           :code $ quote
             defn handle-screen-click! (event)
               let
-                  x $ &- (.-clientX event) (* 0.5 js/window.innerWidth)
+                  x $ &-
+                    window-number (.-clientX event) 0
+                    * 0.5 $ window-number js/window.innerWidth 0
                   y $ negate
-                    &- (.-clientY event) (* 0.5 js/window.innerHeight)
-                  scale-radio $ noted "|webgl canvas maps to [-1,1], need scaling" (* 0.002 0.5 js/window.innerWidth)
+                    &-
+                      window-number (.-clientY event) 0
+                      * 0.5 $ window-number js/window.innerHeight 0
+                  scale-radio $ noted "|webgl canvas maps to [-1,1], need scaling"
+                    * 0.002 0.5 $ window-number js/window.innerWidth 0
                   touch-deviation $ noted "|finger not very accurate on pad screen" (if mobile? 16 4)
                   *hit-targets-buffer $ atom ([])
                 traverse-tree @*objects-tree ([])
@@ -2576,10 +2605,15 @@
           :code $ quote
             defn handle-screen-mousedown! (event)
               let
-                  x $ &- (.-clientX event) (* 0.5 js/window.innerWidth)
+                  x $ &-
+                    window-number (.-clientX event) 0
+                    * 0.5 $ window-number js/window.innerWidth 0
                   y $ negate
-                    &- (.-clientY event) (* 0.5 js/window.innerHeight)
-                  scale-radio $ noted "|webgl canvas maps to [-1,1], need scaling" (* 0.002 0.5 js/window.innerWidth)
+                    &-
+                      window-number (.-clientY event) 0
+                      * 0.5 $ window-number js/window.innerHeight 0
+                  scale-radio $ noted "|webgl canvas maps to [-1,1], need scaling"
+                    * 0.002 0.5 $ window-number js/window.innerWidth 0
                   touch-deviation $ noted "|finger not very accurate on pad screen" (if mobile? 16 4)
                   *hit-targets-buffer $ atom ([])
                 traverse-tree @*objects-tree ([])
@@ -2622,7 +2656,7 @@
                     if-let
                       node $ load-tree-node @*objects-tree p
                       if
-                        = :object $ :type node
+                        = :object $ get-or node :type nil
                         if-let
                           on-move $ get-in node ([] :hit-region :on-mousemove)
                           on-move event @*proxied-dispatch
@@ -2630,7 +2664,7 @@
           :schema $ :: 'Dynamic
         |handle-screen-mouseup! $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            defn handle-screen-mouseup! (event) (; println "|mouse up" @*mouse-holding-paths)
+            defn handle-screen-mouseup! (event)
               let
                   paths @*mouse-holding-paths
                 if-not (empty? paths)
@@ -2639,7 +2673,7 @@
                       if-let
                         node $ load-tree-node @*objects-tree p
                         if
-                          = :object $ :type node
+                          = :object $ get-or node :type nil
                           if-let
                             on-up $ get-in node ([] :hit-region :on-mouseup)
                             on-up event @*proxied-dispatch
@@ -2686,10 +2720,10 @@
           :code $ quote
             defn load-tree-node (tree path)
               if (empty? path) tree $ if-let
-                children $ :children tree
-                recur
-                  nth children $ first path
-                  rest path
+                children $ get tree :children
+                if-let
+                  child $ nth children (first-or path 0)
+                  recur child $ rest path
           :examples $ []
           :schema $ :: 'Dynamic
         |mutably-write-array! $ %{} 'CodeEntry (:doc |)
@@ -2706,14 +2740,18 @@
           :code $ quote
             defn on-control-event (elapsed states delta)
               let
-                  l-move $ map (:left-move states) refine-strength
-                  r-move $ map (:right-move states) refine-strength
-                  r-delta $ :right-move delta
-                  l-delta $ :left-move delta
-                  left-a? $ :left-a? states
-                  right-a? $ or (:right-a? states) (:shift? states)
-                  right-b? $ :right-b? states
-                  left-b? $ :left-b? states
+                  l-move $ map
+                    get-or states :left-move $ [] 0 0
+                    , refine-strength
+                  r-move $ map
+                    get-or states :right-move $ [] 0 0
+                    , refine-strength
+                  r-delta $ get-or delta :right-move ([] 0 0)
+                  l-delta $ get-or delta :left-move ([] 0 0)
+                  left-a? $ get-or states :left-a? false
+                  right-a? $ or (get-or states :right-a? false) (get-or states :shift? false)
+                  right-b? $ get-or states :right-b? false
+                  left-b? $ get-or states :left-b? false
                 ; println |L l-move |R r-move
                 when
                   not= 0 $ nth l-move 1
@@ -2748,8 +2786,8 @@
           :code $ quote
             defn paint-canvas! () $ let
                 gl @*gl-context
-                scaled-width $ * dpr js/window.innerWidth
-                scaled-height $ * dpr js/window.innerHeight
+                scaled-width $ * dpr (window-number js/window.innerWidth 0)
+                scaled-height $ * dpr (window-number js/window.innerHeight 0)
               ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
               ; do (hud-display |position @*viewer-position) (hud-display |forward @*viewer-forward) (hud-display |upward @*viewer-upward)
               let
@@ -2763,7 +2801,7 @@
                     :rightward $ js-array & rightward
                     :cameraPosition $ js-array & @*viewer-position
                     :coneBackScale back-cone-scale
-                    :viewportRatio $ &/ js/window.innerHeight js/window.innerWidth
+                    :viewportRatio $ &/ (window-number js/window.innerHeight 1) (window-number js/window.innerWidth 1)
                   draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
                   effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
                   effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
@@ -2835,8 +2873,12 @@
                   .!useProgram gl $ .-program mix-program
                   twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
                   twgl/setUniforms mix-program $ js-object
-                    :draw_tex $ .-0 (.-attachments draw-fb)
-                    :effect_x_tex $ .-0 (.-attachments effect-y-fb)
+                    :draw_tex $ unsafe-coerce
+                      .-0 $ unsafe-coerce (.-attachments draw-fb) 'JsObject
+                      , 'JsObject
+                    :effect_x_tex $ unsafe-coerce
+                      .-0 $ unsafe-coerce (.-attachments effect-y-fb) 'JsObject
+                      , 'JsObject
                   twgl/drawBufferInfo gl mix-buffer-info $ .-TRIANGLES gl
           :examples $ []
           :schema $ :: 'Dynamic
@@ -2850,10 +2892,14 @@
         |reset-canvas-size! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn reset-canvas-size! (canvas)
-              ; -> canvas .-width $ set! (&* dpr js/window.innerWidth)
-              ; -> canvas .-height $ set! (&* dpr js/window.innerHeight)
-              -> canvas .-style .-width $ set! (str js/window.innerWidth |px)
-              -> canvas .-style .-height $ set! (str js/window.innerHeight |px)
+              let
+                  style $ unsafe-coerce
+                    .-style $ unsafe-coerce canvas 'JsObject
+                    , 'JsObject
+                -> style .-width $ set!
+                  str (window-number js/window.innerWidth 0) |px
+                -> style .-height $ set!
+                  str (window-number js/window.innerHeight 0) |px
           :examples $ []
           :schema $ :: 'Dynamic
         |setup-mouse-events! $ %{} 'CodeEntry (:doc |)
@@ -2883,16 +2929,9 @@
                     , nil
                   :object $ cb (dissoc tree :children) coord
                   :group $ if-let
-                    children $ :children tree
-                    ; map-indexed children $ fn (idx child)
+                    children $ get tree :children
+                    map-indexed children $ fn (idx child)
                       traverse-tree child (conj coord idx) cb
-                    apply-args (0 children)
-                      fn (idx xs)
-                        if-not (empty? xs)
-                          let
-                              child $ nth xs 0
-                            traverse-tree child (conj coord idx) cb
-                            recur (inc idx) (rest xs)
           :examples $ []
           :schema $ :: 'Dynamic
         |update-states $ %{} 'CodeEntry (:doc |)
@@ -2902,6 +2941,16 @@
                   cursor $ nth pair 0
                   new-state $ nth pair 1
                 assoc-in store ([] :states & cursor :data) new-state
+          :examples $ []
+          :schema $ :: 'Dynamic
+        |window-number $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn window-number (value fallback)
+              hint-fn $ {}
+                :args $ [] (:: 'JsNullish 'JsObject) 'Number
+                :return 'Number
+                :features $ #{} :js-ffi
+              if (js-present? value) (unsafe-coerce value 'Number) fallback
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
