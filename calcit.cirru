@@ -205,11 +205,11 @@
           :code $ quote
             defn comp-branches (states)
               let-sugar
-                  cursor $ :cursor states
-                  state $ either (:data states)
+                  cursor $ get-or states :cursor ([])
+                  state $ get-or states :data
                     {} $ :angle 0.7
                   max-level 3
-                  branch-angle $ :angle state
+                  branch-angle $ get-or state :angle 0.7
                 group ({})
                   object $ {} (:draw-mode :lines)
                     :vertex-shader $ inline-shader |lines.vert
@@ -836,18 +836,18 @@
           :code $ quote
             defn comp-container (store)
               let
-                  states $ :states store
+                  states $ get-or store :states ({})
                   cursor $ []
-                  state $ either (:data states) ({})
+                  state $ get-or states :data ({})
                 group ({})
-                  case-default (:tab store)
+                  case-default (get-or store :tab :bunch-fireworks)
                     do
-                      println "|unknown tab" $ :tab store
+                      println "|unknown tab" $ get-or store :tab :bunch-fireworks
                       comp-axis
                     :axis $ comp-axis
                     :cubes $ cubes-object
                     :spin-city $ group ({})
-                      tiny-cube-object $ :v store
+                      tiny-cube-object $ get-or store :v 0
                       spin-city
                     :bg $ bg-object
                     :conch $ conch-object
@@ -867,7 +867,7 @@
                     :drag-point $ group ({})
                       comp-drag-point
                         {} (:ignore-moving? false)
-                          :position $ :p1 store
+                          :position $ get-or store :p1 ([] 0 0 0)
                         fn (p d!) (d! :move-p1 p)
                       comp-button
                         {} (:size 10)
@@ -885,7 +885,7 @@
                   if-not hide-tabs? $ memof1-call comp-tabs tab-entries
                     {}
                       :position $ [] -40 0 0
-                      :selected $ :tab store
+                      :selected $ get-or store :tab :bunch-fireworks
                     fn (key d!) (d! :tab-focus key)
           :examples $ []
           :schema $ :: 'Dynamic
@@ -1019,7 +1019,7 @@
         |rand-bothway $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn rand-bothway () $ let
-                a $ js/Math.random
+                a $ unsafe-coerce js/Math.random 'Number
               - a 0.5
           :examples $ []
           :schema $ :: 'Dynamic
@@ -1601,10 +1601,10 @@
                   :hit-region $ {} (:position position) (:radius 20)
                     :on-hit $ fn (e d!) (d! :cube-right 0)
                     :on-mousedown $ fn (e d!) (js/console.log "|mouse down" e)
-                      reset! *prev-mouse-x $ .-clientX e
+                      reset! *prev-mouse-x $ unsafe-coerce (.-clientX e) 'Number
                     :on-mousemove $ fn (e d!) (js/console.log "|mouse move" e)
                       let
-                          x $ .-clientX e
+                          x $ unsafe-coerce (.-clientX e) 'Number
                         d! :city-spin $ - x @*prev-mouse-x
                         reset! *prev-mouse-x x
                     :on-mouseup $ fn (e d!) (js/console.log |mouseup e)
@@ -2268,8 +2268,8 @@
           :code $ quote
             defn comp-tabs (entries props on-click)
               let
-                  base-position $ :position props
-                  selected $ :selected props
+                  base-position $ get-or props :position ([] 0 0 0)
+                  selected $ get-or props :selected nil
                 group ({}) & $ -> entries
                   map-indexed $ fn (idx entry)
                     let
@@ -3157,19 +3157,20 @@
                     upward @*viewer-upward
                     rightward $ v-cross upward forward
                   reset! *viewer-forward $ &v+
-                    v-scale forward $ js/Math.cos da
-                    v-scale rightward $ js/Math.sin da
+                    v-scale forward $ unsafe-coerce (js/Math.cos da) 'Number
+                    v-scale rightward $ unsafe-coerce (js/Math.sin da) 'Number
               if (not= y 0)
                 let
                     da $ * y 0.1
                     forward @*viewer-forward
                     upward @*viewer-upward
                   reset! *viewer-forward $ &v+
-                    v-scale forward $ js/Math.cos da
-                    v-scale upward $ js/Math.sin da
+                    v-scale forward $ unsafe-coerce (js/Math.cos da) 'Number
+                    v-scale upward $ unsafe-coerce (js/Math.sin da) 'Number
                   reset! *viewer-upward $ &v+
-                    v-scale upward $ js/Math.cos da
-                    v-scale forward $ negate (js/Math.sin da)
+                    v-scale upward $ unsafe-coerce (js/Math.cos da) 'Number
+                    v-scale forward $ negate
+                      unsafe-coerce (js/Math.sin da) 'Number
           :examples $ []
           :schema $ :: 'Dynamic
         |spin-glance-by! $ %{} 'CodeEntry (:doc |)
