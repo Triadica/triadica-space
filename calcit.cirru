@@ -1144,8 +1144,10 @@
               twgl/setDefaults $ js-object (:attribPrefix |a_)
               inject-hud!
               reset-canvas-size! canvas
-              reset! *gl-context $ .!getContext canvas |webgl
-                js-object $ :antialias true
+              let
+                  context $ .?!getContext canvas |webgl
+                    js-object $ :antialias true
+                when (js-present? context) (reset! *gl-context context)
               render-app!
               render-control!
               start-control-loop! 10 on-control-event
@@ -2336,7 +2338,8 @@
           :schema $ :: 'Dynamic
         |dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def dev? $ = |dev (get-env |mode |release)
+            def dev? $ = |dev
+              (get-env |mode) .unwrap-or |release
           :examples $ []
           :schema $ :: 'Dynamic
         |dpr $ %{} 'CodeEntry (:doc |)
@@ -2375,7 +2378,8 @@
           :schema $ :: 'Dynamic
         |hide-tabs? $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            def hide-tabs? $ = |true (get-env |hide-tabs |false)
+            def hide-tabs? $ = |true
+              (get-env |hide-tabs) .unwrap-or |false
           :examples $ []
           :schema $ :: 'Dynamic
         |inline-shader $ %{} 'CodeEntry (:doc |)
@@ -2963,12 +2967,17 @@
           :schema $ :: 'Dynamic
         |inject-hud! $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            defn inject-hud! () $ js/document.body.appendChild
-              let
-                  el $ js/document.createElement |pre
-                -> el .-id $ set! |debug
-                -> el .-className $ set! css-debug
-                , el
+            defn inject-hud! () $ let
+                body $ js/document.body
+                el $ js/document.createElement |pre
+              if (js-present? body)
+                if (js-present? el)
+                  do
+                    -> el .-id $ set! |debug
+                    -> el .-className $ set! css-debug
+                    .!appendChild body el
+                  , false
+                , false
           :examples $ []
           :schema $ :: 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
