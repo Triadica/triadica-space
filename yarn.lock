@@ -5,14 +5,14 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
-"@calcit/procs@npm:^0.13.33":
-  version: 0.13.33
-  resolution: "@calcit/procs@npm:0.13.33"
+"@calcit/procs@npm:0.14.7":
+  version: 0.14.7
+  resolution: "@calcit/procs@npm:0.14.7"
   dependencies:
     "@calcit/ternary-tree": "npm:0.0.26"
     "@cirru/parser.ts": "npm:^0.0.9"
     "@cirru/writer.ts": "npm:^0.1.9"
-  checksum: 10c0/132fa43ee4b5edb12bbdb04b11f528e73842752d2b7ec8dd716357129aa6e35f80fac35da87b8d09a17f0ad5f78572d8359bf7a9b7aa0c2cbc4e313569cdab6e
+  checksum: 10c0/e052408b82c09562ba79b7010be40dddcd51356dbbbf7adea3544fe78a3d76fa23a7951d422bb9ccc7152c280f138c2ba2eff9197ccd7032feaf65a895f9e1f2
   languageName: node
   linkType: hard
 
@@ -630,7 +630,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "triadica-space@workspace:."
   dependencies:
-    "@calcit/procs": "npm:^0.13.33"
+    "@calcit/procs": "npm:0.14.7"
     "@calcit/std": "npm:^0.0.2"
     "@triadica/touch-control": "npm:^0.0.3"
     bottom-tip: "npm:^0.1.5"
