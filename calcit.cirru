@@ -1204,7 +1204,8 @@
                     update-states store $ [] op data
                     case-default (unsafe-coerce op 'Tag)
                       do (js/console.warn "|unknown op" op) nil
-                      :cube-right $ update store :v inc
+                      :cube-right $ update store :v $ fn (x)
+                        inc $ assert-type x 'Number
                       :tab-focus $ assoc store :tab data
                       :move-p1 $ assoc store :p1 data
                 when (map? next)
@@ -1779,7 +1780,7 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-axis (o)
             let
-                options $ option:unwrap-or o $ {}
+                options $ option:unwrap-or o $ assert-type {} (:: 'Map 'Tag 'Dynamic)
                 radius $ dynamic-number-field options :radius 2
                 segments $ dynamic-number-field options :segments 10
                 length $ dynamic-number-field options :length 400
@@ -2086,7 +2087,8 @@
               :: 'List $ :: 'Map 'Tag 'Dynamic
               :: 'List 'Number
               , 'Dynamic 'Dynamic
-            :return $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
+            :return $ :: 'List $ :: 'List
+              :: 'List $ :: 'Map 'Tag 'Dynamic
         'build-tube-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-tube-points (points radius normal0 circle-step)
             let
@@ -3241,7 +3243,7 @@
                 b $ option:unwrap-or
                   assert-type (deref *fb-ref)
                     :: 'Option $ :: 'Map 'Tag 'Dynamic
-                  {}
+                  assert-type {} $ :: 'Map 'Tag 'Dynamic
               if
                 and (contains? b :buffer)
                   &= ([] w h)
