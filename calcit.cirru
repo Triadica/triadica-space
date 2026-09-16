@@ -3,11 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |triadica
   :entries $ {} $ :default
-    {} (:description |)
-      :init-fn 'triadica.app.main/main!
-      :mode :js
-      :reload-fn 'triadica.app.main/reload!
-      :target :browser
+    {} (:description |) (:init-fn 'triadica.app.main/main!) (:mode :js) (:reload-fn 'triadica.app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
       :type-slots $ {}
@@ -83,8 +79,7 @@
                 if (list? raw)
                   let
                       packed-attrs $ unsafe-coerce raw $ :: 'List 'Dynamic
-                    when (empty? packed-attrs) (js/console.error options)
-                      raise "|expected data in packed attributes"
+                    when (empty? packed-attrs) (js/console.error options) (raise "|expected data in packed attributes")
                   , nil
               -> options (assoc :type :object) (assoc :arrays arrays)
           :examples $ []
@@ -101,9 +96,7 @@
                   , 0
               (map? packed-attrs)
                 unsafe-coerce packed-attrs $ :: 'Map 'Tag 'Dynamic
-              true $ do
-                js/console.warn |unknown-attribute-group packed-attrs
-                {}
+              true $ do (js/console.warn |unknown-attribute-group packed-attrs) ({})
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Dynamic
@@ -554,8 +547,7 @@
                 :fragment-shader $ inline-shader |rose.frag
                 :packed-attrs $ let
                     petal-size 16
-                  -> (range petal-size)
-                    map render-rose-petal
+                  -> (range petal-size) (map render-rose-petal)
                 :get-uniforms $ fn () $ &js-object :time
                   &* 0.001 $ performance-now
               object $ {} (:draw-mode :triangles)
@@ -742,9 +734,7 @@
                 center-vector $ v+ ([] 0 center-height 0) direction-vector
                 direction-radian-perp $ + direction-radian $ * 0.5 &PI
                 radius-horizontal-perp $ v-scale
-                  []
-                    cos direction-radian-perp
-                    , 0 $ sin direction-radian-perp
+                  [] (cos direction-radian-perp) 0 $ sin direction-radian-perp
                   , patel-width-ratio
                 up-vector $ v-normalize $ v-cross radius-horizontal-perp direction-vector
                 direction-length $ v-length direction-vector
@@ -771,8 +761,7 @@
                                 unsafe-coerce (js/Math.cos this-radian) 'Number
                               v-scale direction-vector $ f-top-bend ring-y-ratio
                           p1 $ let
-                              ring-y-ratio $ * (/ ring-idx ring-size)
-                                sin sector-radian-next
+                              ring-y-ratio $ * (/ ring-idx ring-size) (sin sector-radian-next)
                             v+ ([] 0 center-height 0)
                               v-scale
                                 v+ direction-vector
@@ -888,8 +877,7 @@
                 cursor $ []
                 state $ dynamic-map-field states :data
               group ({})
-                case-default
-                  dynamic-tag-field store :tab :bunch-fireworks
+                case-default (dynamic-tag-field store :tab :bunch-fireworks)
                   do
                     println "|unknown tab" $ dynamic-tag-field store :tab :bunch-fireworks
                     comp-axis
@@ -1123,8 +1111,7 @@
                 :position $ [] -300 40 0
               {} (:key :fireworks)
                 :position $ [] -300 0 0
-              {}
-                :key :multiple-branches
+              {} (:key :multiple-branches)
                 :position $ [] -300 -40 0
               {} (:key :drag-point)
                 :position $ [] -300 -80 0
@@ -1229,9 +1216,7 @@
             start-control-loop! 10 on-control-event
             add-watch *store :change $ fn (v _p) (render-app!)
             add-watch *dirty-uniforms :change $ fn (v _p) (paint-canvas!)
-            set! js/window.onresize $ fn (event)
-              reset-canvas-size! canvas
-              paint-canvas!
+            set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
             ; render-loop!
             setup-mouse-events! canvas
           :examples $ []
@@ -1241,16 +1226,11 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do
-                reset-memof1-caches!
-                render-app!
-                remove-watch *store :change
+              do (reset-memof1-caches!) (render-app!) (remove-watch *store :change)
                 add-watch *store :change $ fn (v _p) (render-app!)
                 replace-control-loop! 10 on-control-event
                 setup-mouse-events! canvas
-                set! js/window.onresize $ fn (event)
-                  reset-canvas-size! canvas
-                  paint-canvas!
+                set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
                 hud! |ok~ |OK
               hud! |error build-errors
           :examples $ []
@@ -1274,9 +1254,7 @@
             :features $ #{} :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.app.main
-          :require
-            |./calcit.build-errors :default build-errors
-            |bottom-tip :default hud!
+          :require (|./calcit.build-errors :default build-errors) (|bottom-tip :default hud!)
             triadica.config :refer $ dev? dpr
             |twgl.js :as twgl
             touch-control.core :refer $ render-control! start-control-loop! replace-control-loop!
@@ -1818,8 +1796,7 @@
                 -> points $ map $ fn (position)
                   -> hexagon-shape $ map $ fn (idx)
                     {} (:position position) (:direction idx)
-              map xs $ fn (x)
-                assemble-strip-lines x hexagon-shape step gravity
+              map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Dynamic (:: 'List 'Number) 'Number $ :: 'List 'Number
@@ -1863,10 +1840,8 @@
                 hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
-                :vertex-shader $ either (&map:get options :vertex-shader)
-                  inline-shader |strip-light.vert
-                :fragment-shader $ either (&map:get options :fragment-shader)
-                  inline-shader |strip-light.frag
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader |strip-light.vert)
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader |strip-light.frag)
                 :packed-attrs $ assemble-strip-lines lines hexagon-shape step gravity
                 :get-uniforms $ fn () $ &js-object :u_color
                   if (list? color) (to-js-data color) color
@@ -1932,23 +1907,18 @@
                   let
                       prev @*drag-cache
                       dx $ - x $ dynamic-number-field prev :x 0
-                      dy $ -
-                        dynamic-number-field prev :y 0
-                        , y
+                      dy $ - (dynamic-number-field prev :y 0) y
                       look-distance $ new-lookat-point
                       upward @*viewer-upward
                       rightward $ v-scale (v-cross upward @*viewer-forward) -1
                       s $ noted "|size factor of light cone in negative direction" back-cone-scale
                       r $ &/
-                        v-dot
-                          &v- position @*viewer-position
-                          , look-distance
+                        v-dot (&v- position @*viewer-position) look-distance
                         +
                           square $ &list:nth look-distance 0
                           square $ &list:nth look-distance 1
                           square $ &list:nth look-distance 2
-                      scale-radio $ noted "|webgl canvas maps to [-1,1], need scaling" $ * 0.002 0.5
-                        drag-number js/window.innerWidth 0
+                      scale-radio $ noted "|webgl canvas maps to [-1,1], need scaling" $ * 0.002 0.5 (drag-number js/window.innerWidth 0)
                       screen_scale $ &/ (&+ r s) (&+ s 1)
                     ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
                     on-move
@@ -2004,9 +1974,7 @@
                   let
                       prev @*drag-cache
                       dx $ - x $ dynamic-number-field prev :x 0
-                      dy $ -
-                        dynamic-number-field prev :y 0
-                        , y
+                      dy $ - (dynamic-number-field prev :y 0) y
                     ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
                     on-move ([] dx dy) d!
               object $ {} (:draw-mode :triangles)
@@ -2162,8 +2130,7 @@
                     list? $ &list:nth points 0
                   map
                     unsafe-coerce points $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
-                    fn (child)
-                      build-brush-points child brush brush1 brush2
+                    fn (child) (build-brush-points child brush brush1 brush2)
                   build-brush-points
                     unsafe-coerce points $ :: 'List $ :: 'Map 'Tag 'Dynamic
                     , brush brush1 brush2
@@ -2193,8 +2160,7 @@
                       let
                           curves $ unsafe-coerce points $ :: 'List
                             :: 'List $ :: 'Map 'Tag 'Dynamic
-                        map curves $ fn (child)
-                          build-tube-points child radius normal0 circle-step
+                        map curves $ fn (child) (build-tube-points child radius normal0 circle-step)
                       build-tube-points
                         unsafe-coerce points $ :: 'List $ :: 'Map 'Tag 'Dynamic
                         , radius normal0 circle-step
@@ -2311,10 +2277,8 @@
                   :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
-                :vertex-shader $ either (&map:get options :vertex-shader)
-                  inline-shader |segments-curves.vert
-                :fragment-shader $ either (&map:get options :fragment-shader)
-                  inline-shader |segments-curves.frag
+                :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader |segments-curves.vert)
+                :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader |segments-curves.frag)
                 :packed-attrs $ let
                     size $ count curves
                   map-indexed curves $ fn (idx c)
@@ -2386,9 +2350,7 @@
                     let
                         pattern $ assert-type
                           &str:pad-left
-                            &str:slice
-                              &number:display-by c 2
-                              , 2 $ count $ &number:display-by c 2
+                            &str:slice (&number:display-by c 2) 2 $ count $ &number:display-by c 2
                             , 32 |0
                           , 'String
                       -> stitch-strokes $ map $ fn (info)
@@ -2609,13 +2571,10 @@
               if (&map:contains? caches field) (&map:get caches field)
                 let
                     program $ twgl/createProgramInfo gl
-                      js-array
-                        replace-vertex-shader vs
-                        replace-fragment-shader fs
+                      js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
                       &js-object :errorCallback $ fn (msg)
                         if (some? msg) (hud! |error msg)
-                  if (nil? program)
-                    raise "|Failed to compile shader"
+                  if (nil? program) (raise "|Failed to compile shader")
                   swap! *shader-programs assoc field program
                   , program
           :examples $ []
@@ -2642,28 +2601,23 @@
           :examples $ []
           :schema $ :: 'Number
         'glsl-colors-code $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def glsl-colors-code
-            inline-shader |triadica-colors.glsl
+          :code $ quote $ def glsl-colors-code (inline-shader |triadica-colors.glsl)
           :examples $ []
           :schema $ :: 'String
         'glsl-hsluv-code $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def glsl-hsluv-code
-            inline-shader |triadica-hsluv.glsl
+          :code $ quote $ def glsl-hsluv-code (inline-shader |triadica-hsluv.glsl)
           :examples $ []
           :schema $ :: 'String
         'glsl-noises-code $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def glsl-noises-code
-            inline-shader |triadica-noises.glsl
+          :code $ quote $ def glsl-noises-code (inline-shader |triadica-noises.glsl)
           :examples $ []
           :schema $ :: 'String
         'glsl-perspective-code $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def glsl-perspective-code
-            inline-shader |triadica-perspective.glsl
+          :code $ quote $ def glsl-perspective-code (inline-shader |triadica-perspective.glsl)
           :examples $ []
           :schema $ :: 'String
         'glsl-rotation-code $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def glsl-rotation-code
-            inline-shader |triadica-rotation.glsl
+          :code $ quote $ def glsl-rotation-code (inline-shader |triadica-rotation.glsl)
           :examples $ []
           :schema $ :: 'String
         'half-pi $ %{} 'CodeEntry (:doc |)
@@ -2701,15 +2655,9 @@
         'replace-fragment-shader $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replace-fragment-shader (fs)
             let
-                colors-replaced $ unsafe-coerce
-                  .!replace fs |{{triadica_colors}} glsl-colors-code
-                  , 'String
-                noises-replaced $ unsafe-coerce
-                  .!replace colors-replaced |{{triadica_noises}} glsl-noises-code
-                  , 'String
-              unsafe-coerce
-                .!replace noises-replaced |{{triadica_hsluv}} glsl-hsluv-code
-                , 'String
+                colors-replaced $ unsafe-coerce (.!replace fs |{{triadica_colors}} glsl-colors-code) 'String
+                noises-replaced $ unsafe-coerce (.!replace colors-replaced |{{triadica_noises}} glsl-noises-code) 'String
+              unsafe-coerce (.!replace noises-replaced |{{triadica_hsluv}} glsl-hsluv-code) 'String
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] 'String
@@ -2717,15 +2665,9 @@
         'replace-vertex-shader $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replace-vertex-shader (vs)
             let
-                perspective-replaced $ unsafe-coerce
-                  .!replace vs |{{triadica_perspective}} glsl-perspective-code
-                  , 'String
-                noises-replaced $ unsafe-coerce
-                  .!replace perspective-replaced |{{triadica_noises}} glsl-noises-code
-                  , 'String
-              unsafe-coerce
-                .!replace noises-replaced |{{triadica_rotation}} glsl-rotation-code
-                , 'String
+                perspective-replaced $ unsafe-coerce (.!replace vs |{{triadica_perspective}} glsl-perspective-code) 'String
+                noises-replaced $ unsafe-coerce (.!replace perspective-replaced |{{triadica_noises}} glsl-noises-code) 'String
+              unsafe-coerce (.!replace noises-replaced |{{triadica_rotation}} glsl-rotation-code) 'String
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] 'String
@@ -2800,9 +2742,7 @@
           :schema $ :: 'Trait
           :tags $ #{} :ffi :js-host
         'WebGLClearHost $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ deftrait WebGLClearHost
-            :color-buffer-bit 'Number
-            :depth-buffer-bit 'Number
+          :code $ quote $ deftrait WebGLClearHost (:color-buffer-bit 'Number) (:depth-buffer-bit 'Number)
             .clear-color! $ :: 'Fn $ {}
               :args $ [] 'WebGLClearHost 'Number 'Number 'Number 'Number
               :return 'Unit
@@ -2811,9 +2751,7 @@
               :return 'Unit
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
-            :names $ {} (:clear! |clear) (:clear-color! |clearColor)
-              :color-buffer-bit |COLOR_BUFFER_BIT
-              :depth-buffer-bit |DEPTH_BUFFER_BIT
+            :names $ {} (:clear! |clear) (:clear-color! |clearColor) (:color-buffer-bit |COLOR_BUFFER_BIT) (:depth-buffer-bit |DEPTH_BUFFER_BIT)
           :schema $ :: 'Trait
         'WebGLDrawHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait WebGLDrawHost (:canvas 'JsObject) (:triangles 'Number) (:depth-test 'Number)
@@ -2868,9 +2806,7 @@
             let
                 host $ unsafe-coerce gl WebGLClearHost
               host .clear-color! 0 0 0 1
-              host .clear! $ bit-or
-                host :color-buffer-bit
-                host :depth-buffer-bit
+              host .clear! $ bit-or (host :color-buffer-bit) (host :depth-buffer-bit)
               , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -3029,9 +2965,7 @@
         'flatten-objects $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn flatten-objects (tree)
             case-default (scene-draw-mode tree)
-              do
-                js/console.log |unknown-type-in: tree
-                []
+              do (js/console.log |unknown-type-in: tree) ([])
               :group $ mapcat (scene-children tree) flatten-objects
               :object $ [] tree
           :examples $ []
@@ -3055,8 +2989,7 @@
                   * 0.5 $ window-number js/window.innerWidth 0
                 y $ negate $ &- (event :client-y)
                   * 0.5 $ window-number js/window.innerHeight 0
-                scale-radio $ noted |webgl-canvas-maps-to-range $ * 0.002 0.5
-                  window-number js/window.innerWidth 0
+                scale-radio $ noted |webgl-canvas-maps-to-range $ * 0.002 0.5 (window-number js/window.innerWidth 0)
                 touch-deviation $ noted |finger-not-very-accurate-on-pad-screen $ if mobile? 16 4
                 *hit-targets-buffer $ assert-type
                   atom $ []
@@ -3072,8 +3005,7 @@
                             mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
                             screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
                             r $ &list:nth mapped-position 2
-                            mapped-radius $ * scale-radio
-                              dynamic-number-field region :radius 0
+                            mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
                               &/ (inc back-cone-scale) (&+ r back-cone-scale)
                             distance $ c-distance screen-position $ [] x y
                           if
@@ -3084,8 +3016,7 @@
                               :handler $ event-handler on-hit
                               :coord %none
                     , &unit
-              match
-                find-nearest @*hit-targets-buffer
+              match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
                 (:some nearest)
                   do
@@ -3103,8 +3034,7 @@
                   * 0.5 $ window-number js/window.innerWidth 0
                 y $ negate $ &- (event :client-y)
                   * 0.5 $ window-number js/window.innerHeight 0
-                scale-radio $ noted |webgl-canvas-maps-to-range $ * 0.002 0.5
-                  window-number js/window.innerWidth 0
+                scale-radio $ noted |webgl-canvas-maps-to-range $ * 0.002 0.5 (window-number js/window.innerWidth 0)
                 touch-deviation $ noted |finger-not-very-accurate-on-pad-screen $ if mobile? 16 4
                 *hit-targets-buffer $ assert-type
                   atom $ []
@@ -3120,8 +3050,7 @@
                             mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
                             screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
                             r $ &list:nth mapped-position 2
-                            mapped-radius $ * scale-radio
-                              dynamic-number-field region :radius 0
+                            mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
                               &/ (inc back-cone-scale) (&+ r back-cone-scale)
                             distance $ c-distance screen-position $ [] x y
                           if
@@ -3132,8 +3061,7 @@
                               :handler $ event-handler on-mousedown
                               :coord $ %some coord
                     , &unit
-              match
-                find-nearest @*hit-targets-buffer
+              match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
                 (:some nearest)
                   do
@@ -3280,8 +3208,7 @@
           :code $ quote $ defn mutably-write-array! (data write-array!)
             cond
                 list? data
-                &doseq (child data)
-                  mutably-write-array! child write-array!
+                &doseq (child data) (mutably-write-array! child write-array!)
               (number? data) (write-array! data)
               true $ raise "|unknown data to write to augmented array"
           :examples $ []
@@ -3302,9 +3229,7 @@
                 u $ if (fn? get-u) (provider) nil
                 el-uniforms $ if (nil? u) (&js-object)
                   if (map? u)
-                    do
-                      js/console.warn |get-js-object-for-better-performance u
-                      to-js-data u
+                    do (js/console.warn |get-js-object-for-better-performance u) (to-js-data u)
                     unsafe-coerce u 'JsObject
               unsafe-coerce (js/Object.assign el-uniforms uniforms) 'JsObject
           :examples $ []
@@ -3362,29 +3287,18 @@
                 scaled-width $ * dpr $ window-number js/window.innerWidth 0
                 scaled-height $ * dpr $ window-number js/window.innerHeight 0
               ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
-              ; do
-                hud-display |position @*viewer-position
-                hud-display |forward @*viewer-forward
-                hud-display |upward @*viewer-upward
+              ; do (hud-display |position @*viewer-position) (hud-display |forward @*viewer-forward) (hud-display |upward @*viewer-upward)
               let
                   look-at $ new-lookat-point
                   forward $ v-normalize look-at
                   rightward $ v-cross forward @*viewer-upward
-                  uniforms $ &js-object :lookDistance (v-length look-at) :forward (js-array & forward) :upward (js-array & @*viewer-upward) :rightward (js-array & rightward) :cameraPosition
-                    js-array & @*viewer-position
-                    , :coneBackScale back-cone-scale :viewportRatio $ &/
-                      window-number js/window.innerHeight 1
-                      window-number js/window.innerWidth 1
+                  uniforms $ &js-object :lookDistance (v-length look-at) :forward (js-array & forward) :upward (js-array & @*viewer-upward) :rightward (js-array & rightward) :cameraPosition (js-array & @*viewer-position) :coneBackScale back-cone-scale :viewportRatio $ &/ (window-number js/window.innerHeight 1) (window-number js/window.innerWidth 1)
                   draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
                   effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
                   effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
-                twgl/resizeCanvasToDisplaySize
-                  host-object-field |gl.canvas gl |canvas
-                  , dpr
+                twgl/resizeCanvasToDisplaySize (host-object-field |gl.canvas gl |canvas) dpr
                 if post-effect?
-                  do
-                    twgl/resizeFramebufferInfo gl draw-fb
-                    twgl/bindFramebufferInfo gl draw-fb
+                  do (twgl/resizeFramebufferInfo gl draw-fb) (twgl/bindFramebufferInfo gl draw-fb)
                   twgl/bindFramebufferInfo gl nil
                 gl-host .viewport! 0 0.0 scaled-width scaled-height
                 clear-gl! gl
@@ -3395,11 +3309,8 @@
                 ; .!depthFunc gl $ .-ALWAYS gl
                 ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
                 gl-host .enable! $ host-number-field |gl.BLEND gl |BLEND
-                gl-host .blend-func!
-                  host-number-field |gl.SRC_ALPHA gl |SRC_ALPHA
-                  host-number-field |gl.ONE_MINUS_SRC_ALPHA gl |ONE_MINUS_SRC_ALPHA
-                ; .!blendFunc gl (.-ONE gl)
-                  .-ONE_MINUS_SRC_ALPHA gl
+                gl-host .blend-func! (host-number-field |gl.SRC_ALPHA gl |SRC_ALPHA) (host-number-field |gl.ONE_MINUS_SRC_ALPHA gl |ONE_MINUS_SRC_ALPHA)
+                ; .!blendFunc gl (.-ONE gl) (.-ONE_MINUS_SRC_ALPHA gl)
                 ; .!enable gl $ .-CULL_FACE gl
                 ; .!cullFace gl $ .-BACK gl
                 ; .!cullFace gl $ .-FRONT_AND_BACK gl
@@ -3441,18 +3352,14 @@
                   ; .!depthFunc gl $ .-GREATER gl
                   ; .!depthMask gl true
                   twgl/bindFramebufferInfo gl nil
-                  twgl/resizeCanvasToDisplaySize
-                    host-object-field |gl.canvas gl |canvas
-                    , dpr
+                  twgl/resizeCanvasToDisplaySize (host-object-field |gl.canvas gl |canvas) dpr
                   clear-gl! gl
                   let
                       host $ unsafe-coerce gl 'WebGLDrawHost
                       program-object $ host-object-field |program.program mix-program |program
                     host .use-program! program-object
                   twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
-                  twgl/setUniforms mix-program $ &js-object :draw_tex
-                    framebuffer-first-texture draw-fb
-                    , :effect_x_tex $ framebuffer-first-texture effect-y-fb
+                  twgl/setUniforms mix-program $ &js-object :draw_tex (framebuffer-first-texture draw-fb) :effect_x_tex $ framebuffer-first-texture effect-y-fb
                   twgl/drawBufferInfo gl mix-buffer-info $ host-number-field |gl.TRIANGLES gl |TRIANGLES
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -3605,8 +3512,7 @@
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         '*proxied-dispatch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *proxied-dispatch
-            fn (op data)
-              js/console.log "|not rendered yet"
+            fn (op data) (js/console.log "|not rendered yet")
           :examples $ []
           :schema $ :: 'Ref $ :: 'Fn
             {} (:return 'Unit)
@@ -3852,9 +3758,7 @@
               ; println $ [] x' y' z'
               ; -> ([] x' y' z')
                 update 1 $ fn (v)
-                  -> v
-                    / js/window.innerHeight
-                    * js/window.innerWidth
+                  -> v (/ js/window.innerHeight) (* js/window.innerWidth)
                 map $ fn (p) p
               [] x' y' z'
           :examples $ []
@@ -3900,11 +3804,9 @@
                   , xs
               qv/v3 x y z
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :return 'quaternion.vector/V3
+          :schema $ :: 'Fn $ {} (:return 'quaternion.vector/V3)
             :args $ [] $ :: 'List 'Number
-          :tests $ [] $ %{} 'TestEntry
-            :name |round-trips-list-vectors
+          :tests $ [] $ %{} 'TestEntry (:name |round-trips-list-vectors)
             :code $ quote $ is
               = ([] 1 2 3)
                 from-v3 $ to-v3 $ [] 1 2 3
@@ -3939,8 +3841,7 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] (:: 'List 'Number) (:: 'List 'Number)
-          :tests $ [] $ %{} 'TestEntry
-            :name |dots-list-vectors
+          :tests $ [] $ %{} 'TestEntry (:name |dots-list-vectors)
             :code $ quote $ is
               = 32 $ v-dot ([] 1 2 3) ([] 4 5 6)
             :tags $ #{} :unit :vector
@@ -3964,14 +3865,12 @@
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'List 'Number) 'Number
             :return $ :: 'List 'Number
-          :tests $ [] $ %{} 'TestEntry
-            :name |scales-list-vectors
+          :tests $ [] $ %{} 'TestEntry (:name |scales-list-vectors)
             :code $ quote $ is
               = ([] 2 4 6)
                 v-scale ([] 1 2 3) 2
             :tags $ #{} :unit :vector
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.vector
-          :require
-            quaternion.vector :as qv
+          :require (quaternion.vector :as qv)
             calcit.test :refer $ is
