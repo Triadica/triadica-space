@@ -19,7 +19,7 @@ jobs:
     - name: Enable Corepack
       run: |
         corepack enable
-        corepack prepare yarn@4.12.0 --activate
+        corepack prepare yarn@4.18.0 --activate
         yarn --version
 
     - uses: calcit-lang/setup-calcit@v1
