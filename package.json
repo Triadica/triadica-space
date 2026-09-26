@@ -1,6 +1,6 @@
 {
   "name": "triadica-space",
-  "version": "0.0.39",
+  "version": "0.0.40",
   "packageManager": "yarn@4.18.0",
   "repository": "git@github.com:Quatrefoil-GL/triadica-space.git",
   "author": "tiye <jiyinyiyong@gmail.com>",
@@ -10,7 +10,7 @@
     "vite": "^4.4.9"
   },
   "dependencies": {
-    "@calcit/procs": "0.18.1",
+    "@calcit/procs": "0.22.0-alpha.3",
     "@calcit/std": "^0.0.2",
     "@triadica/touch-control": "^0.0.3",
     "mobile-detect": "^1.4.5",

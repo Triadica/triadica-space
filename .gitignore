@@ -8,3 +8,5 @@
 js-out/
 node_modules/
 dist/
+.pnp.cjs
+.pnp.loader.mjs
