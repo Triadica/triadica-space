@@ -5,7 +5,7 @@
   :entries $ {} $ :default
     {} (:description |) (:init-fn 'triadica.app.main/main!) (:mode :js) (:reload-fn 'triadica.app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |touch-control/ |respo.calcit/ |memof/ |quaternion/
+      :modules $ [] |touch-control/ |respo.calcit/ |quaternion/
       :type-slots $ {}
   :files $ {}
     'triadica.alias $ %{} 'FileEntry
@@ -894,10 +894,10 @@
                   :plate-bending $ plate-bending
                   :mushroom $ mushroom-object
                   :branches $ comp-branches $ >> states :branches
-                  :multiple-branches $ memof1-call comp-multiple-branches
+                  :multiple-branches $ respo.core/memo-value-by :multiple-branches comp-multiple-branches
                   :lamps $ comp-lamps
-                  :line-wave $ memof1-call comp-line-wave
-                  :fireworks $ memof1-call comp-fireworks
+                  :line-wave $ respo.core/memo-value-by :line-wave comp-line-wave
+                  :fireworks $ respo.core/memo-value-by :fireworks comp-fireworks
                   :fountain $ comp-fountain
                   :lotus $ comp-lotus
                   :rose $ comp-rose
@@ -919,7 +919,7 @@
                   :segments $ comp-segments-demo
                   :segments-curves $ comp-segments-curves-demo
                   :bunch-fireworks $ comp-bunch-fireworks
-                if-not hide-tabs? $ memof1-call comp-tabs tab-entries
+                if-not hide-tabs? $ respo.core/memo-value-by :tabs comp-tabs tab-entries
                   {}
                     :position $ [] -40 0 0
                     :selected $ dynamic-tag-field store :tab :bunch-fireworks
@@ -1154,7 +1154,6 @@
             triadica.comp.line :refer $ comp-tube comp-brush
             triadica.comp.bunch :refer $ comp-strip-light
             triadica.config :refer $ inline-shader
-            memof.once :refer $ memof1-call memof1-call-by
             triadica.comp.segments :refer $ comp-segments comp-segments-curves
             triadica.math :refer $ rotate-3d-fn fibo-grid-range
             triadica.vector :refer $ v-scale v-normalize v+
@@ -1226,7 +1225,7 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do (reset-memof1-caches!) (render-app!) (remove-watch *store :change)
+              do (respo.core/clear-cache!) (render-app!) (remove-watch *store :change)
                 add-watch *store :change $ fn (v _p) (render-app!)
                 replace-control-loop! 10 on-control-event
                 setup-mouse-events! canvas
@@ -1262,7 +1261,6 @@
             triadica.global :refer $ *gl-context
             triadica.hud :refer $ inject-hud!
             triadica.app.container :refer $ comp-container
-            memof.once :refer $ reset-memof1-caches!
             triadica.app.shapes :refer $ *dirty-uniforms
             js-ffi.browser :refer $ DomElementHost query-selector
     'triadica.app.shapes $ %{} 'FileEntry
@@ -2521,7 +2519,7 @@
                             count indices
                       let
                           v $ + 11 $ * 13607 idx
-                        memof1-call-by v comp-stitch $ {}
+                        respo.core/memo-value-by v comp-stitch $ {}
                           :position $ &v+ position $ [] 30 10 0
                           :chars $ [] v
                           :hit-region $ {}
@@ -2550,7 +2548,6 @@
             triadica.config :refer $ inline-shader
             triadica.alias :refer $ group object
             triadica.comp.stitch :refer $ comp-stitch
-            memof.once :refer $ memof1-call-by
             triadica.vector :refer $ &v+
             triadica.core :refer $ dynamic-number-list-field
     'triadica.config $ %{} 'FileEntry
@@ -3512,7 +3509,7 @@
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         '*proxied-dispatch $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defatom *proxied-dispatch
-            fn (op data) (js/console.log "|not rendered yet")
+            fn (op data) (println "|not rendered yet")
           :examples $ []
           :schema $ :: 'Ref $ :: 'Fn
             {} (:return 'Unit)

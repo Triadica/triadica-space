@@ -10,11 +10,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       with:
-        node-version: 20
+        node-version: 24
 
     - name: Enable Corepack
       run: |
@@ -22,10 +22,10 @@ jobs:
         corepack prepare yarn@4.18.0 --activate
         yarn --version
 
-    - uses: calcit-lang/setup-calcit@v1
+    - uses: calcit-lang/setup-calcit@ca701be5a471759e442aa053cd100720bbe1f09f # v1.5
 
     - name: Install dependencies
-      run: caps --ci && yarn install --immutable
+      run: caps --strict --ci && yarn install --immutable && caps verify --toolchain
 
     - name: Validate Calcit snapshot and quality baseline
       run: |
