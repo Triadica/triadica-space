@@ -69,10 +69,9 @@
                       :: 'Map 'Tag $ :: 'List 'Number
                   if-not (empty? attrs)
                     &doseq
-                      entry $ &map:to-list attrs
-                      aset ret
-                        turn-string $ &list:nth entry 0
-                        create-scalar-attribute-array $ &list:nth entry 1
+                      key $ keys attrs
+                      aset ret (to-string key)
+                        create-scalar-attribute-array $ .unwrap $ get attrs key
                   , ret
               let
                   raw $ &map:get options :packed-attrs
@@ -108,11 +107,21 @@
             triadica.core :refer $ create-attribute-array create-scalar-attribute-array count-recursive *local-array-counter
     'triadica.app.comp.branches $ %{} 'FileEntry
       :defs $ {}
+        'BranchInfo $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct BranchInfo
+            :position $ :: 'List 'Number
+            :length 'Number
+            :forward $ :: 'List 'Number
+            :upward $ :: 'List 'Number
+          :examples $ []
+          :schema $ :: 'StructDef
         'build-multiple-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-multiple-path (max-level parts info)
-            let-sugar
-                  {} position length forward upward
-                  , info
+            let
+                position $ :position info
+                length $ :length info
+                forward $ :forward info
+                upward $ :upward info
                 rightward $ v-cross forward upward
                 regress 0.38
                 delta-angle $ / (* 2 &PI) parts
@@ -137,20 +146,22 @@
                           v-scale side-base $ unsafe-coerce (js/Math.sin branch-angle) 'Number
                         branch $ -> side-forward $ v-scale side-length
                       [] $ if (<= max-level 0) ([])
-                        build-multiple-path (dec max-level) parts $ {} (:position base) (:length side-length) (:forward side-forward)
+                        build-multiple-path (dec max-level) parts $ %{} BranchInfo (:position base) (:length side-length) (:forward side-forward)
                           :upward $ v-normalize $ &v- side-forward
                             v-scale forward $ &/ 1 $ unsafe-coerce (js/Math.cos branch-angle) 'Number
               [] main-branch side-branches
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] 'Number 'Number $ :: 'Map 'Tag 'Dynamic
+            :args $ [] 'Number 'Number 'triadica.app.comp.branches/BranchInfo
             :features $ #{} :js-ffi
             :return $ :: 'List 'Dynamic
         'build-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-path (max-level branch-angle info)
-            let-sugar
-                  {} position length forward upward
-                  , info
+            let
+                position $ :position info
+                length $ :length info
+                forward $ :forward info
+                upward $ :upward info
                 rightward $ v-cross forward upward
                 delta-angle 2.09
                 regress 0.74
@@ -178,13 +189,13 @@
                         {} $ :position base
                         {} $ :position $ &v+ base branch
                         if (<= max-level 0) ([])
-                          build-path (dec max-level) branch-angle $ {} (:position base) (:length side-length) (:forward side-forward)
+                          build-path (dec max-level) branch-angle $ %{} BranchInfo (:position base) (:length side-length) (:forward side-forward)
                             :upward $ v-normalize $ &v- side-forward
                               v-scale forward $ &/ 1 $ unsafe-coerce (js/Math.cos branch-angle) 'Number
               [] main-branch side-branches
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] 'Number 'Number $ :: 'Map 'Tag 'Dynamic
+            :args $ [] 'Number 'Number 'triadica.app.comp.branches/BranchInfo
             :features $ #{} :js-ffi
             :return $ :: 'List 'Dynamic
         'comp-branches $ %{} 'CodeEntry (:doc |)
@@ -198,7 +209,7 @@
                 object $ {} (:draw-mode :lines)
                   :vertex-shader $ inline-shader |lines.vert
                   :fragment-shader $ inline-shader |lines.frag
-                  :packed-attrs $ build-path max-level branch-angle $ {}
+                  :packed-attrs $ build-path max-level branch-angle $ %{} BranchInfo
                     :position $ [] 0 0 0
                     :length 800
                     :forward $ [] 0 1 0
@@ -222,7 +233,7 @@
                 object $ {} (:draw-mode :lines)
                   :vertex-shader $ inline-shader |branches.vert
                   :fragment-shader $ inline-shader |branches.frag
-                  :packed-attrs $ build-multiple-path max-level parts $ {}
+                  :packed-attrs $ build-multiple-path max-level parts $ %{} BranchInfo
                     :position $ [] 0 -400 0
                     :length 400
                     :forward $ [] 0 1 0
@@ -1755,7 +1766,7 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-axis (o)
             let
-                options $ option:unwrap-or o $ assert-type {} (:: 'Map 'Tag 'Dynamic)
+                options $ option:unwrap-or o $ assert-type ({}) (:: 'Map 'Tag 'Dynamic)
                 radius $ dynamic-number-field options :radius 2
                 segments $ dynamic-number-field options :segments 10
                 length $ dynamic-number-field options :length 400
@@ -1787,13 +1798,15 @@
           :code $ quote $ defn assemble-strip-lines (xs hexagon-shape step gravity)
             if (map? xs)
               let
-                  p $ &map:get xs :from
-                  q $ &map:get xs :to
+                  p $ triadica.vector/expect-number-list $ &map:get xs :from
+                  q $ triadica.vector/expect-number-list $ &map:get xs :to
                   points $ build-strip-points p q step gravity
                 -> points $ map $ fn (position)
                   -> hexagon-shape $ map $ fn (idx)
                     {} (:position position) (:direction idx)
-              map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
+              if (list? xs)
+                .map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
+                raise |Expected-strip-map-or-nested-list
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Dynamic (:: 'List 'Number) 'Number $ :: 'List 'Number
@@ -1830,10 +1843,12 @@
             let
                 lines $ &map:get options :lines
                 color $ either (&map:get options :color) (js-array 0.2 0.9 0.6)
-                step $ either (&map:get options :step) 4
+                step $ let
+                    value $ either (&map:get options :step) 4
+                  if (number? value) value $ raise |Expected-numeric-strip-step
                 offset $ either (&map:get options :offset) 4
                 dot-radius $ either (&map:get options :dot-radius) 2
-                gravity $ either (&map:get options :gravity) ([] 0 -0.0001 0)
+                gravity $ triadica.vector/expect-number-list $ either (&map:get options :gravity) ([] 0 -0.0001 0)
                 hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
@@ -2065,10 +2080,10 @@
                       p-raw $ &list:nth points idx
                       q-raw $ &list:nth points $ inc idx
                       at-end? $ < (&+ idx 2) (count points)
-                      p $ &map:get p-raw :position
-                      q $ &map:get q-raw :position
+                      p $ triadica.vector/expect-number-list $ &map:get p-raw :position
+                      q $ triadica.vector/expect-number-list $ &map:get q-raw :position
                       q2 $ if at-end?
-                        &map:get
+                        triadica.vector/expect-number-list $ &map:get
                           &list:nth points $ &+ idx 2
                           , :position
                         , p
@@ -2482,10 +2497,9 @@
             let
                 base-position $ dynamic-number-list-field props :position $ [] 0 0 0
                 selected $ assert-type
-                  if
-                    tag? $ &map:get props :selected
-                    %some $ unsafe-coerce (&map:get props :selected) 'Tag
-                    , %none
+                  let
+                      selected-value $ &map:get props :selected
+                    if (tag? selected-value) (Option :some selected-value) (Option :none)
                   :: 'Option 'Tag
               group ({}) & $ -> entries $ map-indexed
                 fn (idx entry)
@@ -2907,9 +2921,7 @@
           :code $ quote $ defn dynamic-number-list-field (source key fallback)
             let
                 value $ &map:get source key
-              if (list? value)
-                unsafe-coerce value $ :: 'List 'Number
-                , fallback
+              if (list? value) (triadica.vector/expect-number-list value) fallback
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag $ :: 'List 'Number
@@ -3313,8 +3325,8 @@
                 ; .!cullFace gl $ .-FRONT_AND_BACK gl
                 &doseq (object @*objects-buffer)
                   let
-                      program-info $ host-object-field |object.program object |program
-                      buffer-info $ host-object-field |object.buffer object |buffer
+                      program-info $ expect-object |object.program $ .unwrap (get object :program)
+                      buffer-info $ expect-object |object.buffer $ .unwrap (get object :buffer)
                       current-uniforms $ object-uniforms object uniforms
                     gl-host .use-program! $ host-object-field |program.program program-info |program
                     twgl/setBuffersAndAttributes gl program-info buffer-info
@@ -3787,6 +3799,16 @@
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'List 'Number) (:: 'List 'Number)
+            :return $ :: 'List 'Number
+        'expect-number-list $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn expect-number-list (value)
+            if (list? value)
+              .map value $ fn (item)
+                if (number? item) item $ raise |Expected-numeric-vector-element
+              raise |Expected-numeric-vector-list
+          :examples $ []
+          :schema $ :: 'Fn $ {}
+            :args $ [] 'Dynamic
             :return $ :: 'List 'Number
         'from-v3 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn from-v3 (v)
