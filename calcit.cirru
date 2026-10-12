@@ -232,7 +232,7 @@
             :return $ :: 'List 'Dynamic
         'comp-branches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-branches (states)
-            let-sugar
+            let
                 cursor $ dynamic-list-field states :cursor
                 state $ dynamic-map-field states :data
                 max-level 3
@@ -258,7 +258,7 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'comp-multiple-branches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-multiple-branches ()
-            let-sugar
+            let
                 max-level 6
                 parts 8
               group ({})
@@ -437,12 +437,18 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'grid-n $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn grid-n (n)
-            -> (range-bothway n)
+            ->
+              range
+                inc $ negate n
+                , n
               mapcat $ fn (idx)
                 hint-fn $ {}
                   :args $ [] 'Number
                   :return $ :: 'List $ :: 'List 'Number
-                -> (range-bothway n)
+                ->
+                  range
+                    inc $ negate n
+                    , n
                   map $ fn (y-idx)
                     hint-fn $ {}
                       :args $ [] 'Number
@@ -877,30 +883,33 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'gen-lorenz-seq $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn gen-lorenz-seq (steps dt a b c scale)
-            apply-args
-                assert-type ([])
+            loop
+                acc $ assert-type ([])
                   :: 'List $ :: 'Map 'Tag 'Dynamic
-                , 2 3 4 steps
-              fn (acc x y z n) (; println |trace x y z n)
-                hint-fn $ {}
-                  :args $ []
-                    :: 'List $ :: 'Map 'Tag 'Dynamic
-                    , 'Number 'Number 'Number 'Number
-                  :return $ :: 'List $ :: 'Map 'Tag 'Dynamic
-                if (&<= n 0) acc $ let
-                    dx $ &* dt $ &* a (&- y x)
-                    dy $ &* dt $ &-
-                      &* x $ &- b z
-                      , y
-                    dz $ &* dt $ &- (&* x y) (&* c z)
-                  recur
-                    conj acc $ {}
-                      :position $ v-scale ([] x y z) scale
-                      :color_index $ - 1 $ / n steps
-                    &+ x dx
-                    &+ y dy
-                    &+ z dz
-                    dec n
+                x 2
+                y 3
+                z 4
+                n steps
+              ; println |trace x y z n
+              hint-fn $ {}
+                :args $ []
+                  :: 'List $ :: 'Map 'Tag 'Dynamic
+                  , 'Number 'Number 'Number 'Number
+                :return $ :: 'List $ :: 'Map 'Tag 'Dynamic
+              if (&<= n 0) acc $ let
+                  dx $ &* dt $ &* a (&- y x)
+                  dy $ &* dt $ &-
+                    &* x $ &- b z
+                    , y
+                  dz $ &* dt $ &- (&* x y) (&* c z)
+                recur
+                  conj acc $ {}
+                    :position $ v-scale ([] x y z) scale
+                    :color_index $ - 1 $ / n steps
+                  &+ x dx
+                  &+ y dy
+                  &+ z dz
+                  dec n
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Number 'Number 'Number 'Number 'Number 'Number
@@ -1025,27 +1034,29 @@
                       p0 $ [] -20 80 80
                       p1 $ [] -40 180 60
                       p2 $ [] -60 280 40
-                    apply-args
-                        assert-type ([])
+                    loop
+                        acc $ assert-type ([])
                           :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
-                        , p0 p1 p2 160
-                      fn (acc a b c n)
-                        hint-fn $ {}
-                          :args $ []
-                            :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
-                            :: 'List 'Number
-                            :: 'List 'Number
-                            :: 'List 'Number
-                            , 'Number
-                          :return $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
-                        if (<= n 0) acc $ recur
-                          conj acc $ []
-                            {} (:from a) (:to b)
-                            {} (:from b) (:to c)
-                          rotation a
-                          rotation b
-                          rotation c
-                          dec n
+                        a p0
+                        b p1
+                        c p2
+                        n 160
+                      hint-fn $ {}
+                        :args $ []
+                          :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
+                          :: 'List 'Number
+                          :: 'List 'Number
+                          :: 'List 'Number
+                          , 'Number
+                        :return $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
+                      if (<= n 0) acc $ recur
+                        conj acc $ []
+                          {} (:from a) (:to b)
+                          {} (:from b) (:to c)
+                        rotation a
+                        rotation b
+                        rotation c
+                        dec n
                 :width 1
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -1254,7 +1265,7 @@
             let
                 context $ .?!getContext canvas |webgl $ &js-object :antialias true
               when (js-present? context)
-                reset! *gl-context $ %some context
+                reset! *gl-context $ Option :some context
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
@@ -1270,7 +1281,7 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do (respo.core/clear-cache!) (render-app!) (remove-watch *store :change)
+              do (respo.core/clear-cache!) (render-app!) (remove-watch! *store :change)
                 add-watch! *store :change $ fn (v _p) (render-app!)
                 replace-control-loop! 10 on-control-event
                 setup-mouse-events! canvas
@@ -1355,9 +1366,7 @@
                     hint-fn $ {}
                       :args $ [] $ :: 'List 'Number
                       :return $ :: 'List 'Number
-                    let-sugar
-                          [] i j
-                          , point
+                    let[] (i j) point $ let
                         from $ + j $ * (+ 1 size) i
                       concat
                         [] from (+ from 1)
@@ -2950,7 +2959,8 @@
               if (number? value) value fallback
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag 'Number
+            :args $ [] (:: 'Map 'Tag 'V) 'Tag 'Number
+            :generics $ [] 'V
         'dynamic-number-list-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-number-list-field (source key fallback)
             let
@@ -2989,16 +2999,16 @@
                   :args $ [] 'Dynamic 'Dynamic
         'find-nearest $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn find-nearest (xs)
-            if (empty? xs) (%none)
+            if (empty? xs) (Option :none)
               let
                   candidate $ option:unwrap $ assert-type (first xs) (:: 'Option 'HitTarget)
                   remaining $ find-nearest $ rest xs
                 match remaining
-                  (:none) (%some candidate)
+                  (:none) (Option :some candidate)
                   (:some nearest)
                     if
                       < (:distance candidate) (:distance nearest)
-                      %some candidate
+                      Option :some candidate
                       , remaining
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -3101,7 +3111,7 @@
                               noted |visible-at-front $ > r $ * -0.8 back-cone-scale
                             swap! *hit-targets-buffer conj $ %{} HitTarget (:distance r)
                               :handler $ event-handler on-mousedown
-                              :coord $ %some coord
+                              :coord $ Option :some coord
                     , &unit
               match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
@@ -3222,7 +3232,7 @@
                 unsafe-coerce (&map:get b :buffer) 'JsObject
                 let
                     f $ twgl/createFramebufferInfo gl
-                  reset! *fb-ref $ %some $ {} (:buffer f)
+                  reset! *fb-ref $ Option :some $ {} (:buffer f)
                     :size $ [] w h
                   , f
           :examples $ []
@@ -3233,7 +3243,7 @@
             :features $ #{} :js-ffi
         'load-tree-node $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-tree-node (tree path)
-            if (empty? path) (%some tree)
+            if (empty? path) (Option :some tree)
               let
                   children $ scene-children tree
                   idx $ assert-type (&list:first path) 'Number
@@ -3241,7 +3251,7 @@
                   and (>= idx 0)
                     < idx $ count children
                   load-tree-node (&list:nth children idx) (rest path)
-                  %none
+                  Option :none
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'Number)
@@ -3608,11 +3618,8 @@
       :defs $ {}
         'c-distance $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn c-distance (p1 p2)
-            let-sugar
-                  [] x y
-                  , p1
-                ([] a b) p2
-              sqrt $ +
+            let[] (x y) p1 $ let[] (a b) p2 $ sqrt
+              +
                 pow (- x a) 2
                 pow (- y b) 2
           :examples $ []
@@ -3781,7 +3788,7 @@
             :return $ :: 'List 'Number
         'transform-3d $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn transform-3d (p0)
-            let-sugar
+            let
                 point $ &v- p0 @*viewer-position
                 look-distance $ new-lookat-point
                 upward @*viewer-upward
@@ -3837,7 +3844,8 @@
               raise |Expected-numeric-vector-list
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] 'Dynamic
+            :args $ [] 'T
+            :generics $ [] 'T
             :return $ :: 'List 'Number
         'from-v3 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn from-v3 (v)
@@ -3850,10 +3858,7 @@
             :return $ :: 'List 'Number
         'to-v3 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn to-v3 (xs)
-            let-sugar
-                  [] x y z
-                  , xs
-              qv/v3 x y z
+            let[] (x y z) xs $ qv/v3 x y z
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'quaternion.vector/V3)
             :args $ [] $ :: 'List 'Number
