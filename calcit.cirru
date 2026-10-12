@@ -2749,6 +2749,10 @@
           :code $ quote $ defref *effect-y-fb (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option (:: 'Map 'Tag 'Dynamic)
+        '*paint-pending? $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defref *paint-pending? false
+          :examples $ []
+          :schema $ :: 'Ref 'Bool
         '>> $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn >> (states k)
             let
@@ -3338,86 +3342,95 @@
             :args $ [] 'Number 'touch-control.core/ControlState 'touch-control.core/ControlDelta
         'paint-canvas! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn paint-canvas! ()
-            let
-                gl $ option:unwrap @*gl-context
-                gl-host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
-                scaled-width $ * dpr $ window-number js/window.innerWidth 0
-                scaled-height $ * dpr $ window-number js/window.innerHeight 0
-              ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
-              ; do (hud-display |position @*viewer-position) (hud-display |forward @*viewer-forward) (hud-display |upward @*viewer-upward)
-              let
-                  look-at $ new-lookat-point
-                  forward $ v-normalize look-at
-                  rightward $ v-cross forward @*viewer-upward
-                  uniforms $ &js-object :lookDistance (v-length look-at) :forward (js-array & forward) :upward (js-array & @*viewer-upward) :rightward (js-array & rightward) :cameraPosition (js-array & @*viewer-position) :coneBackScale back-cone-scale :viewportRatio $ &/ (window-number js/window.innerHeight 1) (window-number js/window.innerWidth 1)
-                  draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
-                  effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
-                  effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
-                twgl/resizeCanvasToDisplaySize (host-object-field |gl.canvas gl |canvas) dpr
-                if post-effect?
-                  do (twgl/resizeFramebufferInfo gl draw-fb) (twgl/bindFramebufferInfo gl draw-fb)
-                  twgl/bindFramebufferInfo gl nil
-                gl-host .viewport! 0 0.0 scaled-width scaled-height
-                clear-gl! gl
-                gl-host .enable! $ host-number-field |gl.DEPTH_TEST gl |DEPTH_TEST
-                gl-host .depth-func! $ host-number-field |gl.LESS gl |LESS
-                ; .!depthFunc gl $ .-GREATER gl
-                gl-host .depth-mask! true
-                ; .!depthFunc gl $ .-ALWAYS gl
-                ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
-                gl-host .enable! $ host-number-field |gl.BLEND gl |BLEND
-                gl-host .blend-func! (host-number-field |gl.SRC_ALPHA gl |SRC_ALPHA) (host-number-field |gl.ONE_MINUS_SRC_ALPHA gl |ONE_MINUS_SRC_ALPHA)
-                ; .!blendFunc gl (.-ONE gl) (.-ONE_MINUS_SRC_ALPHA gl)
-                ; .!enable gl $ .-CULL_FACE gl
-                ; .!cullFace gl $ .-BACK gl
-                ; .!cullFace gl $ .-FRONT_AND_BACK gl
-                &doseq (object @*objects-buffer)
+            when (not @*paint-pending?) (reset! *paint-pending? true)
+              js-ffi.browser/request-animation-frame! $ fn (timestamp)
+                hint-fn $ {}
+                  :args $ [] 'Number
+                  :return 'Unit
+                  :features $ #{} :js-ffi
+                reset! *paint-pending? false
+                let
+                    gl $ option:unwrap @*gl-context
+                    gl-host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
+                    scaled-width $ * dpr $ window-number js/window.innerWidth 0
+                    scaled-height $ * dpr $ window-number js/window.innerHeight 0
+                  ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
+                  ; do (hud-display |position @*viewer-position) (hud-display |forward @*viewer-forward) (hud-display |upward @*viewer-upward)
                   let
-                      program-info $ expect-object |object.program $ .unwrap (get object :program)
-                      buffer-info $ expect-object |object.buffer $ .unwrap (get object :buffer)
-                      current-uniforms $ object-uniforms object uniforms
-                    gl-host .use-program! $ host-object-field |program.program program-info |program
-                    twgl/setBuffersAndAttributes gl program-info buffer-info
-                    twgl/setUniforms program-info current-uniforms
-                    match (scene-draw-mode object)
-                      :triangles $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLES gl |TRIANGLES
-                      :triangle-strip $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLE_STRIP gl |TRIANGLE_STRIP
-                      :triangle-fan $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLE_FAN gl |TRIANGLE_FAN
-                      :lines $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINES gl |LINES
-                      :line-strip $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINE_STRIP gl |LINE_STRIP
-                      :line-loop $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINE_LOOP gl |LINE_LOOP
-                      _ $ do
-                        js/console.warn |unknown-draw-mode: $ scene-draw-mode object
-                        twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINES gl |LINES
-                when post-effect? $ let
-                    effect-x-program $ cached-build-program gl (inline-shader |effect-x.vert) (inline-shader |effect-x.frag)
-                    mix-program $ cached-build-program gl (inline-shader |effect-mix.vert) (inline-shader |effect-mix.frag)
-                    uv-settings $ &js-object :position $ create-attribute-array
-                      [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
-                    effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
-                    mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
-                  let
-                      host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
-                    host .disable! $ host-number-field |gl.DEPTH_TEST gl |DEPTH_TEST
-                  blur-at-direction gl draw-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
-                  blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
-                  blur-at-direction gl effect-y-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
-                  blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
-                  blur-at-direction gl effect-y-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
-                  blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
-                  ; .!depthFunc gl $ .-LESS gl
-                  ; .!depthFunc gl $ .-GREATER gl
-                  ; .!depthMask gl true
-                  twgl/bindFramebufferInfo gl nil
-                  twgl/resizeCanvasToDisplaySize (host-object-field |gl.canvas gl |canvas) dpr
-                  clear-gl! gl
-                  let
-                      host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
-                      program-object $ host-object-field |program.program mix-program |program
-                    host .use-program! program-object
-                  twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
-                  twgl/setUniforms mix-program $ &js-object :draw_tex (framebuffer-first-texture draw-fb) :effect_x_tex $ framebuffer-first-texture effect-y-fb
-                  twgl/drawBufferInfo gl mix-buffer-info $ host-number-field |gl.TRIANGLES gl |TRIANGLES
+                      look-at $ new-lookat-point
+                      forward $ v-normalize look-at
+                      rightward $ v-cross forward @*viewer-upward
+                      uniforms $ &js-object :lookDistance (v-length look-at) :forward (js-array & forward) :upward (js-array & @*viewer-upward) :rightward (js-array & rightward) :cameraPosition (js-array & @*viewer-position) :coneBackScale back-cone-scale :viewportRatio $ &/ (window-number js/window.innerHeight 1) (window-number js/window.innerWidth 1)
+                      draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
+                      effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
+                      effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
+                    twgl/resizeCanvasToDisplaySize (host-object-field |gl.canvas gl |canvas) dpr
+                    if post-effect?
+                      do (twgl/resizeFramebufferInfo gl draw-fb) (twgl/bindFramebufferInfo gl draw-fb)
+                      twgl/bindFramebufferInfo gl nil
+                    gl-host .viewport! 0 0.0 scaled-width scaled-height
+                    clear-gl! gl
+                    gl-host .enable! $ host-number-field |gl.DEPTH_TEST gl |DEPTH_TEST
+                    gl-host .depth-func! $ host-number-field |gl.LESS gl |LESS
+                    ; .!depthFunc gl $ .-GREATER gl
+                    gl-host .depth-mask! true
+                    ; .!depthFunc gl $ .-ALWAYS gl
+                    ; .!blendFunc gl (.-SRC_ALPHA gl) (.-ONE gl)
+                    gl-host .enable! $ host-number-field |gl.BLEND gl |BLEND
+                    gl-host .blend-func! (host-number-field |gl.SRC_ALPHA gl |SRC_ALPHA) (host-number-field |gl.ONE_MINUS_SRC_ALPHA gl |ONE_MINUS_SRC_ALPHA)
+                    ; .!blendFunc gl (.-ONE gl) (.-ONE_MINUS_SRC_ALPHA gl)
+                    ; .!enable gl $ .-CULL_FACE gl
+                    ; .!cullFace gl $ .-BACK gl
+                    ; .!cullFace gl $ .-FRONT_AND_BACK gl
+                    &doseq (object @*objects-buffer)
+                      let
+                          program-info $ expect-object |object.program $ .unwrap (get object :program)
+                          buffer-info $ expect-object |object.buffer $ .unwrap (get object :buffer)
+                          current-uniforms $ object-uniforms object uniforms
+                        gl-host .use-program! $ host-object-field |program.program program-info |program
+                        twgl/setBuffersAndAttributes gl program-info buffer-info
+                        twgl/setUniforms program-info current-uniforms
+                        match (scene-draw-mode object)
+                          :triangles $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLES gl |TRIANGLES
+                          :triangle-strip $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLE_STRIP gl |TRIANGLE_STRIP
+                          :triangle-fan $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLE_FAN gl |TRIANGLE_FAN
+                          :lines $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINES gl |LINES
+                          :line-strip $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINE_STRIP gl |LINE_STRIP
+                          :line-loop $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINE_LOOP gl |LINE_LOOP
+                          _ $ do
+                            js/console.warn |unknown-draw-mode: $ scene-draw-mode object
+                            twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINES gl |LINES
+                    when post-effect? $ let
+                        effect-x-program $ cached-build-program gl (inline-shader |effect-x.vert) (inline-shader |effect-x.frag)
+                        mix-program $ cached-build-program gl (inline-shader |effect-mix.vert) (inline-shader |effect-mix.frag)
+                        uv-settings $ &js-object :position $ create-attribute-array
+                          [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
+                        effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
+                        mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
+                      let
+                          host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
+                        host .disable! $ host-number-field |gl.DEPTH_TEST gl |DEPTH_TEST
+                      blur-at-direction gl draw-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                      blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
+                      blur-at-direction gl effect-y-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                      blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
+                      blur-at-direction gl effect-y-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
+                      blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
+                      ; .!depthFunc gl $ .-LESS gl
+                      ; .!depthFunc gl $ .-GREATER gl
+                      ; .!depthMask gl true
+                      twgl/bindFramebufferInfo gl nil
+                      twgl/resizeCanvasToDisplaySize (host-object-field |gl.canvas gl |canvas) dpr
+                      clear-gl! gl
+                      let
+                          host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
+                          program-object $ host-object-field |program.program mix-program |program
+                        host .use-program! program-object
+                      twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
+                      twgl/setUniforms mix-program $ &js-object :draw_tex (framebuffer-first-texture draw-fb) :effect_x_tex $ framebuffer-first-texture effect-y-fb
+                      twgl/drawBufferInfo gl mix-buffer-info $ host-number-field |gl.TRIANGLES gl |TRIANGLES
+                , &unit
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
