@@ -901,10 +901,10 @@
                   :plate-bending $ plate-bending
                   :mushroom $ mushroom-object
                   :branches $ comp-branches $ >> states :branches
-                  :multiple-branches $ respo.core/memo-value-by :multiple-branches comp-multiple-branches
+                  :multiple-branches $ comp-multiple-branches
                   :lamps $ comp-lamps
-                  :line-wave $ respo.core/memo-value-by :line-wave comp-line-wave
-                  :fireworks $ respo.core/memo-value-by :fireworks comp-fireworks
+                  :line-wave $ comp-line-wave
+                  :fireworks $ comp-fireworks
                   :fountain $ comp-fountain
                   :lotus $ comp-lotus
                   :rose $ comp-rose
@@ -929,11 +929,13 @@
                   _ $ do
                     println "|unknown tab" $ dynamic-tag-field store :tab :bunch-fireworks
                     comp-axis
-                if-not hide-tabs? $ respo.core/memo-value-by :tabs comp-tabs tab-entries
-                  {}
-                    :position $ [] -40 0 0
-                    :selected $ dynamic-tag-field store :tab :bunch-fireworks
-                  fn (key d!) (d! :tab-focus key)
+                if hide-tabs?
+                  group $ {}
+                  comp-tabs tab-entries
+                    {}
+                      :position $ [] -40 0 0
+                      :selected $ dynamic-tag-field store :tab :bunch-fireworks
+                    fn (key d!) (d! :tab-focus key)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] $ :: 'Map 'Tag 'Dynamic
@@ -1224,8 +1226,8 @@
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
-            add-watch *store :change $ fn (v _p) (render-app!)
-            add-watch *dirty-uniforms :change $ fn (v _p) (paint-canvas!)
+            add-watch! *store :change $ fn (v _p) (render-app!)
+            add-watch! *dirty-uniforms :change $ fn (v _p) (paint-canvas!)
             set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
             ; render-loop!
             setup-mouse-events! canvas
@@ -1237,7 +1239,7 @@
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
               do (respo.core/clear-cache!) (render-app!) (remove-watch *store :change)
-                add-watch *store :change $ fn (v _p) (render-app!)
+                add-watch! *store :change $ fn (v _p) (render-app!)
                 replace-control-loop! 10 on-control-event
                 setup-mouse-events! canvas
                 set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
@@ -2532,7 +2534,7 @@
                             count indices
                       let
                           v $ + 11 $ * 13607 idx
-                        respo.core/memo-value-by v comp-stitch $ {}
+                        comp-stitch $ {}
                           :position $ &v+ position $ [] 30 10 0
                           :chars $ [] v
                           :hit-region $ {}
@@ -2547,7 +2549,7 @@
               :: 'Fn $ {} (:return 'Unit)
                 :args $ [] 'Tag $ :: 'Fn
                   {} (:return 'Unit)
-                    :args $ [] 'Tag 'Number
+                    :args $ [] 'Tag 'Tag
             :features $ #{} :js-ffi
             :return $ :: 'Map 'Tag 'Dynamic
         'dice-shape-points $ %{} 'CodeEntry (:doc |)
@@ -3391,16 +3393,11 @@
             :args $ [] 'js-ffi.browser/DomElementHost
         'scene-arrays $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-arrays (object)
-            let
-                value $ &map:get object :arrays
-              if (map? value)
-                unsafe-coerce value $ :: 'Map 'Tag 'Dynamic
-                {}
+            expect-object |scene.arrays $ .unwrap $ get object :arrays
           :examples $ []
-          :schema $ :: 'Fn $ {}
+          :schema $ :: 'Fn $ {} (:return 'JsObject)
             :args $ [] $ :: 'Map 'Tag 'Dynamic
             :features $ #{} :js-ffi
-            :return $ :: 'Map 'Tag 'Dynamic
         'scene-children $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-children (tree)
             let
