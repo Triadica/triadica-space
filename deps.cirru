@@ -1,7 +1,7 @@
 
-{} (:calcit-version |0.24.3)
+{} (:calcit-version |0.29.0)
   :version |0.0.40
-  :dependencies $ {} (|Quatrefoil-GL/touch-control |0.0.22)
-    |Respo/respo.calcit |0.16.112
-    |calcit-lang/quaternion |0.2.9
-    |calcit-lang/js-ffi |0.1.35
+  :dependencies $ {} (|Triadica/touch-control |0.0.26)
+    |Respo/respo.calcit |0.16.114
+    |calcit-lang/quaternion |0.2.11
+    |calcit-lang/js-ffi |0.2.1
