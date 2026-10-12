@@ -75,11 +75,43 @@
                   , ret
               let
                   raw $ &map:get options :packed-attrs
-                if (list? raw)
+                when (list? raw)
+                  when (empty? raw) (js/console.error options) (raise |expected-data-in-packed-attributes)
                   let
-                      packed-attrs $ unsafe-coerce raw $ :: 'List 'Dynamic
-                    when (empty? packed-attrs) (js/console.error options) (raise "|expected data in packed attributes")
-                  , nil
+                      ret $ &js-object
+                      g0 $ peek-packed-attrs raw
+                      names $ keys g0
+                      size $ count-recursive raw
+                      counter $ ref 0
+                    &doseq (name names)
+                      let
+                          value $ .unwrap $ get g0 name
+                          width $ if (list? value) (count value) 1
+                        aset ret (to-string name)
+                          js-ffi.contract/expect-object |packed.attribute $ .!createAugmentedTypedArray twgl/primitives width size
+                    build-packed-attrs raw $ fn (info)
+                      let
+                          idx @counter
+                        swap! counter inc
+                        &doseq (name names)
+                          let
+                              value $ .unwrap $ get info name
+                              target $ triadica.core/host-object-field |packed.attribute ret $ to-string name
+                            if (number? value) (aset target idx value)
+                              if (list? value)
+                                let
+                                    components $ triadica.vector/expect-number-list value
+                                    width $ count components
+                                  if
+                                    and (>= width 1) (<= width 3)
+                                    map-indexed components $ fn (component-index component)
+                                      aset target
+                                        + (* idx width) component-index
+                                        , component
+                                    js/console.log |Unknown-data-to-build: name value
+                                js/console.log |Unknown-data-to-build: name value
+                      , &unit
+                    js/Object.assign arrays ret
               -> options (assoc :type :object) (assoc :arrays arrays)
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -2693,15 +2725,15 @@
     'triadica.core $ %{} 'FileEntry
       :defs $ {}
         '*draw-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *draw-fb %none
+          :code $ quote $ defref *draw-fb (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option (:: 'Map 'Tag 'Dynamic)
         '*effect-x-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *effect-x-fb %none
+          :code $ quote $ defref *effect-x-fb (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option (:: 'Map 'Tag 'Dynamic)
         '*effect-y-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *effect-y-fb %none
+          :code $ quote $ defref *effect-y-fb (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option (:: 'Map 'Tag 'Dynamic)
         '>> $ %{} 'CodeEntry (:doc |)
@@ -2796,7 +2828,7 @@
         'blur-at-direction $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn blur-at-direction (gl from-fb to-fb direction program buffer)
             let
-                gl-host $ unsafe-coerce gl 'WebGLDrawHost
+                gl-host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                 canvas $ host-object-field |gl.canvas gl |canvas
                 program-object $ host-object-field |program.program program |program
                 texture $ framebuffer-first-texture from-fb
@@ -3294,7 +3326,7 @@
           :code $ quote $ defn paint-canvas! ()
             let
                 gl $ option:unwrap @*gl-context
-                gl-host $ unsafe-coerce gl 'WebGLDrawHost
+                gl-host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                 scaled-width $ * dpr $ window-number js/window.innerWidth 0
                 scaled-height $ * dpr $ window-number js/window.innerHeight 0
               ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
@@ -3351,7 +3383,7 @@
                     effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                     mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                   let
-                      host $ unsafe-coerce gl 'WebGLDrawHost
+                      host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                     host .disable! $ host-number-field |gl.DEPTH_TEST gl |DEPTH_TEST
                   blur-at-direction gl draw-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
                   blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
@@ -3366,7 +3398,7 @@
                   twgl/resizeCanvasToDisplaySize (host-object-field |gl.canvas gl |canvas) dpr
                   clear-gl! gl
                   let
-                      host $ unsafe-coerce gl 'WebGLDrawHost
+                      host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                       program-object $ host-object-field |program.program mix-program |program
                     host .use-program! program-object
                   twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
@@ -3499,7 +3531,7 @@
     'triadica.global $ %{} 'FileEntry
       :defs $ {}
         '*gl-context $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *gl-context %none
+          :code $ quote $ defref *gl-context (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option 'JsObject
         '*mouse-holding-paths $ %{} 'CodeEntry (:doc |)
