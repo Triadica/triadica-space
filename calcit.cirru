@@ -97,11 +97,15 @@
                           let
                               value $ .unwrap $ get info name
                               target $ triadica.core/host-object-field |packed.attribute ret $ to-string name
+                              first-value $ .unwrap $ get g0 name
+                              width $ if (list? first-value) (count first-value) 1
+                            when
+                              not= width $ if (list? value) (count value) 1
+                              raise |inconsistent-packed-attribute-width
                             if (number? value) (aset target idx value)
                               if (list? value)
                                 let
                                     components $ triadica.vector/expect-number-list value
-                                    width $ count components
                                   if
                                     and (>= width 1) (<= width 3)
                                     map-indexed components $ fn (component-index component)
