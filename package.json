@@ -7,10 +7,10 @@
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.5",
-    "vite": "^4.4.9"
+    "vite": "8.3.4"
   },
   "dependencies": {
-    "@calcit/procs": "0.24.3",
+    "@calcit/procs": "0.29.0",
     "@calcit/std": "^0.0.2",
     "@triadica/touch-control": "^0.0.3",
     "mobile-detect": "^1.4.5",

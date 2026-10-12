@@ -69,18 +69,53 @@
                       :: 'Map 'Tag $ :: 'List 'Number
                   if-not (empty? attrs)
                     &doseq
-                      entry $ &map:to-list attrs
-                      aset ret
-                        turn-string $ &list:nth entry 0
-                        create-scalar-attribute-array $ &list:nth entry 1
-                  wo-js-log ret
+                      key $ keys attrs
+                      aset ret (to-string key)
+                        create-scalar-attribute-array $ .unwrap $ get attrs key
+                  , ret
               let
                   raw $ &map:get options :packed-attrs
-                if (list? raw)
+                when (list? raw)
+                  when (empty? raw) (js/console.error options) (raise |expected-data-in-packed-attributes)
                   let
-                      packed-attrs $ unsafe-coerce raw $ :: 'List 'Dynamic
-                    when (empty? packed-attrs) (js/console.error options) (raise "|expected data in packed attributes")
-                  , nil
+                      ret $ &js-object
+                      g0 $ peek-packed-attrs raw
+                      names $ keys g0
+                      size $ count-recursive raw
+                      counter $ ref 0
+                    &doseq (name names)
+                      let
+                          value $ .unwrap $ get g0 name
+                          width $ if (list? value) (count value) 1
+                        aset ret (to-string name)
+                          js-ffi.contract/expect-object |packed.attribute $ .!createAugmentedTypedArray twgl/primitives width size
+                    build-packed-attrs raw $ fn (info)
+                      let
+                          idx @counter
+                        swap! counter inc
+                        &doseq (name names)
+                          let
+                              value $ .unwrap $ get info name
+                              target $ triadica.core/host-object-field |packed.attribute ret $ to-string name
+                              first-value $ .unwrap $ get g0 name
+                              width $ if (list? first-value) (count first-value) 1
+                            when
+                              not= width $ if (list? value) (count value) 1
+                              raise |inconsistent-packed-attribute-width
+                            if (number? value) (aset target idx value)
+                              if (list? value)
+                                let
+                                    components $ triadica.vector/expect-number-list value
+                                  if
+                                    and (>= width 1) (<= width 3)
+                                    map-indexed components $ fn (component-index component)
+                                      aset target
+                                        + (* idx width) component-index
+                                        , component
+                                    js/console.log |Unknown-data-to-build: name value
+                                js/console.log |Unknown-data-to-build: name value
+                      , &unit
+                    js/Object.assign arrays ret
               -> options (assoc :type :object) (assoc :arrays arrays)
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -108,17 +143,27 @@
             triadica.core :refer $ create-attribute-array create-scalar-attribute-array count-recursive *local-array-counter
     'triadica.app.comp.branches $ %{} 'FileEntry
       :defs $ {}
+        'BranchInfo $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct BranchInfo
+            :position $ :: 'List 'Number
+            :length 'Number
+            :forward $ :: 'List 'Number
+            :upward $ :: 'List 'Number
+          :examples $ []
+          :schema $ :: 'StructDef
         'build-multiple-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-multiple-path (max-level parts info)
-            let-sugar
-                  {} position length forward upward
-                  , info
+            let
+                position $ :position info
+                length $ :length info
+                forward $ :forward info
+                upward $ :upward info
                 rightward $ v-cross forward upward
                 regress 0.38
                 delta-angle $ / (* 2 &PI) parts
                 branch-angle 1.57
                 color-index max-level
-                main-branch $ wo-log $ []
+                main-branch $ []
                   {} (:color_index color-index) (:position position)
                   {} (:color_index color-index)
                     :position $ &v+ position $ v-scale forward length
@@ -137,25 +182,27 @@
                           v-scale side-base $ unsafe-coerce (js/Math.sin branch-angle) 'Number
                         branch $ -> side-forward $ v-scale side-length
                       [] $ if (<= max-level 0) ([])
-                        build-multiple-path (dec max-level) parts $ {} (:position base) (:length side-length) (:forward side-forward)
+                        build-multiple-path (dec max-level) parts $ %{} BranchInfo (:position base) (:length side-length) (:forward side-forward)
                           :upward $ v-normalize $ &v- side-forward
                             v-scale forward $ &/ 1 $ unsafe-coerce (js/Math.cos branch-angle) 'Number
               [] main-branch side-branches
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] 'Number 'Number $ :: 'Map 'Tag 'Dynamic
+            :args $ [] 'Number 'Number 'triadica.app.comp.branches/BranchInfo
             :features $ #{} :js-ffi
             :return $ :: 'List 'Dynamic
         'build-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-path (max-level branch-angle info)
-            let-sugar
-                  {} position length forward upward
-                  , info
+            let
+                position $ :position info
+                length $ :length info
+                forward $ :forward info
+                upward $ :upward info
                 rightward $ v-cross forward upward
                 delta-angle 2.09
                 regress 0.74
                 segments 4
-                main-branch $ wo-log $ []
+                main-branch $ []
                   {} $ :position position
                   {} $ :position $ &v+ position (v-scale forward length)
                 side-branches $ ->
@@ -178,18 +225,18 @@
                         {} $ :position base
                         {} $ :position $ &v+ base branch
                         if (<= max-level 0) ([])
-                          build-path (dec max-level) branch-angle $ {} (:position base) (:length side-length) (:forward side-forward)
+                          build-path (dec max-level) branch-angle $ %{} BranchInfo (:position base) (:length side-length) (:forward side-forward)
                             :upward $ v-normalize $ &v- side-forward
                               v-scale forward $ &/ 1 $ unsafe-coerce (js/Math.cos branch-angle) 'Number
               [] main-branch side-branches
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] 'Number 'Number $ :: 'Map 'Tag 'Dynamic
+            :args $ [] 'Number 'Number 'triadica.app.comp.branches/BranchInfo
             :features $ #{} :js-ffi
             :return $ :: 'List 'Dynamic
         'comp-branches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-branches (states)
-            let-sugar
+            let
                 cursor $ dynamic-list-field states :cursor
                 state $ dynamic-map-field states :data
                 max-level 3
@@ -198,7 +245,7 @@
                 object $ {} (:draw-mode :lines)
                   :vertex-shader $ inline-shader |lines.vert
                   :fragment-shader $ inline-shader |lines.frag
-                  :packed-attrs $ build-path max-level branch-angle $ {}
+                  :packed-attrs $ build-path max-level branch-angle $ %{} BranchInfo
                     :position $ [] 0 0 0
                     :length 800
                     :forward $ [] 0 1 0
@@ -215,14 +262,14 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'comp-multiple-branches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-multiple-branches ()
-            let-sugar
+            let
                 max-level 6
                 parts 8
               group ({})
                 object $ {} (:draw-mode :lines)
                   :vertex-shader $ inline-shader |branches.vert
                   :fragment-shader $ inline-shader |branches.frag
-                  :packed-attrs $ build-multiple-path max-level parts $ {}
+                  :packed-attrs $ build-multiple-path max-level parts $ %{} BranchInfo
                     :position $ [] 0 -400 0
                     :length 400
                     :forward $ [] 0 1 0
@@ -394,12 +441,18 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'grid-n $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn grid-n (n)
-            -> (range-bothway n)
+            ->
+              range
+                inc $ negate n
+                , n
               mapcat $ fn (idx)
                 hint-fn $ {}
                   :args $ [] 'Number
                   :return $ :: 'List $ :: 'List 'Number
-                -> (range-bothway n)
+                ->
+                  range
+                    inc $ negate n
+                    , n
                   map $ fn (y-idx)
                     hint-fn $ {}
                       :args $ [] 'Number
@@ -834,30 +887,33 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'gen-lorenz-seq $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn gen-lorenz-seq (steps dt a b c scale)
-            apply-args
-                assert-type ([])
+            loop
+                acc $ assert-type ([])
                   :: 'List $ :: 'Map 'Tag 'Dynamic
-                , 2 3 4 steps
-              fn (acc x y z n) (; println |trace x y z n)
-                hint-fn $ {}
-                  :args $ []
-                    :: 'List $ :: 'Map 'Tag 'Dynamic
-                    , 'Number 'Number 'Number 'Number
-                  :return $ :: 'List $ :: 'Map 'Tag 'Dynamic
-                if (&<= n 0) acc $ let
-                    dx $ &* dt $ &* a (&- y x)
-                    dy $ &* dt $ &-
-                      &* x $ &- b z
-                      , y
-                    dz $ &* dt $ &- (&* x y) (&* c z)
-                  recur
-                    conj acc $ {}
-                      :position $ v-scale ([] x y z) scale
-                      :color_index $ - 1 $ / n steps
-                    &+ x dx
-                    &+ y dy
-                    &+ z dz
-                    dec n
+                x 2
+                y 3
+                z 4
+                n steps
+              ; println |trace x y z n
+              hint-fn $ {}
+                :args $ []
+                  :: 'List $ :: 'Map 'Tag 'Dynamic
+                  , 'Number 'Number 'Number 'Number
+                :return $ :: 'List $ :: 'Map 'Tag 'Dynamic
+              if (&<= n 0) acc $ let
+                  dx $ &* dt $ &* a (&- y x)
+                  dy $ &* dt $ &-
+                    &* x $ &- b z
+                    , y
+                  dz $ &* dt $ &- (&* x y) (&* c z)
+                recur
+                  conj acc $ {}
+                    :position $ v-scale ([] x y z) scale
+                    :color_index $ - 1 $ / n steps
+                  &+ x dx
+                  &+ y dy
+                  &+ z dz
+                  dec n
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Number 'Number 'Number 'Number 'Number 'Number
@@ -877,10 +933,7 @@
                 cursor $ []
                 state $ dynamic-map-field states :data
               group ({})
-                case-default (dynamic-tag-field store :tab :bunch-fireworks)
-                  do
-                    println "|unknown tab" $ dynamic-tag-field store :tab :bunch-fireworks
-                    comp-axis
+                match (dynamic-tag-field store :tab :bunch-fireworks)
                   :axis $ comp-axis
                   :cubes $ cubes-object
                   :spin-city $ group ({})
@@ -889,15 +942,14 @@
                   :bg $ bg-object
                   :conch $ conch-object
                   :curve-ball $ curve-ball
-                  :spin-city $ spin-city
                   :fiber-bending $ fiber-bending
                   :plate-bending $ plate-bending
                   :mushroom $ mushroom-object
                   :branches $ comp-branches $ >> states :branches
-                  :multiple-branches $ respo.core/memo-value-by :multiple-branches comp-multiple-branches
+                  :multiple-branches $ comp-multiple-branches
                   :lamps $ comp-lamps
-                  :line-wave $ respo.core/memo-value-by :line-wave comp-line-wave
-                  :fireworks $ respo.core/memo-value-by :fireworks comp-fireworks
+                  :line-wave $ comp-line-wave
+                  :fireworks $ comp-fireworks
                   :fountain $ comp-fountain
                   :lotus $ comp-lotus
                   :rose $ comp-rose
@@ -919,11 +971,16 @@
                   :segments $ comp-segments-demo
                   :segments-curves $ comp-segments-curves-demo
                   :bunch-fireworks $ comp-bunch-fireworks
-                if-not hide-tabs? $ respo.core/memo-value-by :tabs comp-tabs tab-entries
-                  {}
-                    :position $ [] -40 0 0
-                    :selected $ dynamic-tag-field store :tab :bunch-fireworks
-                  fn (key d!) (d! :tab-focus key)
+                  _ $ do
+                    println "|unknown tab" $ dynamic-tag-field store :tab :bunch-fireworks
+                    comp-axis
+                if hide-tabs?
+                  group $ {}
+                  comp-tabs tab-entries
+                    {}
+                      :position $ [] -40 0 0
+                      :selected $ dynamic-tag-field store :tab :bunch-fireworks
+                    fn (key d!) (d! :tab-focus key)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] $ :: 'Map 'Tag 'Dynamic
@@ -981,27 +1038,29 @@
                       p0 $ [] -20 80 80
                       p1 $ [] -40 180 60
                       p2 $ [] -60 280 40
-                    apply-args
-                        assert-type ([])
+                    loop
+                        acc $ assert-type ([])
                           :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
-                        , p0 p1 p2 160
-                      fn (acc a b c n)
-                        hint-fn $ {}
-                          :args $ []
-                            :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
-                            :: 'List 'Number
-                            :: 'List 'Number
-                            :: 'List 'Number
-                            , 'Number
-                          :return $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
-                        if (<= n 0) acc $ recur
-                          conj acc $ []
-                            {} (:from a) (:to b)
-                            {} (:from b) (:to c)
-                          rotation a
-                          rotation b
-                          rotation c
-                          dec n
+                        a p0
+                        b p1
+                        c p2
+                        n 160
+                      hint-fn $ {}
+                        :args $ []
+                          :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
+                          :: 'List 'Number
+                          :: 'List 'Number
+                          :: 'List 'Number
+                          , 'Number
+                        :return $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
+                      if (<= n 0) acc $ recur
+                        conj acc $ []
+                          {} (:from a) (:to b)
+                          {} (:from b) (:to c)
+                        rotation a
+                        rotation b
+                        rotation c
+                        dec n
                 :width 1
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -1161,7 +1220,7 @@
     'triadica.app.main $ %{} 'FileEntry
       :defs $ {}
         '*store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *store
+          :code $ quote $ defref *store
             {} (:v 0)
               :tab $ turn-tag $ option:unwrap-or (get-env |tab) |bunch-fireworks
               :p1 $ [] 0 0 0
@@ -1188,14 +1247,15 @@
                   store $ assert-type @*store $ :: 'Map 'Tag 'Dynamic
                   next $ if (list? op)
                     update-states store $ [] op data
-                    case-default (unsafe-coerce op 'Tag)
-                      do (js/console.warn "|unknown op" op) nil
+                    match (unsafe-coerce op 'Tag)
                       :cube-right $ update store :v $ fn (x)
                         inc $ assert-type x 'Number
                       :tab-focus $ assoc store :tab data
                       :move-p1 $ assoc store :p1 data
+                      _ $ do (js/console.warn "|unknown op" op) nil
                 when (map? next)
                   reset! *store $ unsafe-coerce next $ :: 'Map 'Tag 'Dynamic
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Dynamic 'Dynamic
@@ -1209,12 +1269,12 @@
             let
                 context $ .?!getContext canvas |webgl $ &js-object :antialias true
               when (js-present? context)
-                reset! *gl-context $ %some context
+                reset! *gl-context $ Option :some context
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
-            add-watch *store :change $ fn (v _p) (render-app!)
-            add-watch *dirty-uniforms :change $ fn (v _p) (paint-canvas!)
+            add-watch! *store :change $ fn (v _p) (render-app!)
+            add-watch! *dirty-uniforms :change $ fn (v _p) (paint-canvas!)
             set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
             ; render-loop!
             setup-mouse-events! canvas
@@ -1225,8 +1285,8 @@
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
-              do (respo.core/clear-cache!) (render-app!) (remove-watch *store :change)
-                add-watch *store :change $ fn (v _p) (render-app!)
+              do (respo.core/clear-cache!) (render-app!) (remove-watch! *store :change)
+                add-watch! *store :change $ fn (v _p) (render-app!)
                 replace-control-loop! 10 on-control-event
                 setup-mouse-events! canvas
                 set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
@@ -1266,12 +1326,12 @@
     'triadica.app.shapes $ %{} 'FileEntry
       :defs $ {}
         '*dirty-uniforms $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *dirty-uniforms
+          :code $ quote $ defref *dirty-uniforms
             {} $ :spin-city 0
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Number
         '*prev-mouse-x $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *prev-mouse-x 0
+          :code $ quote $ defref *prev-mouse-x 0
           :examples $ []
           :schema $ :: 'Ref 'Number
         'bg-object $ %{} 'CodeEntry (:doc |)
@@ -1310,9 +1370,7 @@
                     hint-fn $ {}
                       :args $ [] $ :: 'List 'Number
                       :return $ :: 'List 'Number
-                    let-sugar
-                          [] i j
-                          , point
+                    let[] (i j) point $ let
                         from $ + j $ * (+ 1 size) i
                       concat
                         [] from (+ from 1)
@@ -1677,8 +1735,7 @@
                   :depth $ map data $ fn (info) (&map:get info :depth)
                   :angle $ map data $ fn (info) (&map:get info :angle)
                   :index $ map data $ fn (info) (&map:get info :index)
-                :get-uniforms $ fn () $ &js-object :citySpin
-                  wo-log $ dynamic-number-field @*dirty-uniforms :spin-city 0
+                :get-uniforms $ fn () $ &js-object :citySpin (dynamic-number-field @*dirty-uniforms :spin-city 0)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ []
@@ -1756,7 +1813,7 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-axis (o)
             let
-                options $ option:unwrap-or o $ assert-type {} (:: 'Map 'Tag 'Dynamic)
+                options $ option:unwrap-or o $ assert-type ({}) (:: 'Map 'Tag 'Dynamic)
                 radius $ dynamic-number-field options :radius 2
                 segments $ dynamic-number-field options :segments 10
                 length $ dynamic-number-field options :length 400
@@ -1788,13 +1845,15 @@
           :code $ quote $ defn assemble-strip-lines (xs hexagon-shape step gravity)
             if (map? xs)
               let
-                  p $ &map:get xs :from
-                  q $ &map:get xs :to
+                  p $ triadica.vector/expect-number-list $ &map:get xs :from
+                  q $ triadica.vector/expect-number-list $ &map:get xs :to
                   points $ build-strip-points p q step gravity
                 -> points $ map $ fn (position)
                   -> hexagon-shape $ map $ fn (idx)
                     {} (:position position) (:direction idx)
-              map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
+              if (list? xs)
+                .map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
+                raise |Expected-strip-map-or-nested-list
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] 'Dynamic (:: 'List 'Number) 'Number $ :: 'List 'Number
@@ -1831,10 +1890,12 @@
             let
                 lines $ &map:get options :lines
                 color $ either (&map:get options :color) (js-array 0.2 0.9 0.6)
-                step $ either (&map:get options :step) 4
+                step $ let
+                    value $ either (&map:get options :step) 4
+                  if (number? value) value $ raise |Expected-numeric-strip-step
                 offset $ either (&map:get options :offset) 4
                 dot-radius $ either (&map:get options :dot-radius) 2
-                gravity $ either (&map:get options :gravity) ([] 0 -0.0001 0)
+                gravity $ triadica.vector/expect-number-list $ either (&map:get options :gravity) ([] 0 -0.0001 0)
                 hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
@@ -1859,7 +1920,7 @@
     'triadica.comp.drag-point $ %{} 'FileEntry
       :defs $ {}
         '*drag-cache $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *drag-cache
+          :code $ quote $ defref *drag-cache
             {} (:x 0) (:y 0)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Number
@@ -2041,10 +2102,10 @@
                     q $ &map:get q-raw :position
                   []
                     [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
-                    if (some? brush1)
+                    if (non-nil? brush1)
                       [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush1)
                       []
-                    if (some? brush2)
+                    if (non-nil? brush2)
                       [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
                       []
           :examples $ []
@@ -2066,10 +2127,10 @@
                       p-raw $ &list:nth points idx
                       q-raw $ &list:nth points $ inc idx
                       at-end? $ < (&+ idx 2) (count points)
-                      p $ &map:get p-raw :position
-                      q $ &map:get q-raw :position
+                      p $ triadica.vector/expect-number-list $ &map:get p-raw :position
+                      q $ triadica.vector/expect-number-list $ &map:get q-raw :position
                       q2 $ if at-end?
-                        &map:get
+                        triadica.vector/expect-number-list $ &map:get
                           &list:nth points $ &+ idx 2
                           , :position
                         , p
@@ -2483,10 +2544,9 @@
             let
                 base-position $ dynamic-number-list-field props :position $ [] 0 0 0
                 selected $ assert-type
-                  if
-                    tag? $ &map:get props :selected
-                    %some $ unsafe-coerce (&map:get props :selected) 'Tag
-                    , %none
+                  let
+                      selected-value $ &map:get props :selected
+                    if (tag? selected-value) (Option :some selected-value) (Option :none)
                   :: 'Option 'Tag
               group ({}) & $ -> entries $ map-indexed
                 fn (idx entry)
@@ -2519,7 +2579,7 @@
                             count indices
                       let
                           v $ + 11 $ * 13607 idx
-                        respo.core/memo-value-by v comp-stitch $ {}
+                        comp-stitch $ {}
                           :position $ &v+ position $ [] 30 10 0
                           :chars $ [] v
                           :hit-region $ {}
@@ -2534,7 +2594,7 @@
               :: 'Fn $ {} (:return 'Unit)
                 :args $ [] 'Tag $ :: 'Fn
                   {} (:return 'Unit)
-                    :args $ [] 'Tag 'Number
+                    :args $ [] 'Tag 'Tag
             :features $ #{} :js-ffi
             :return $ :: 'Map 'Tag 'Dynamic
         'dice-shape-points $ %{} 'CodeEntry (:doc |)
@@ -2553,7 +2613,7 @@
     'triadica.config $ %{} 'FileEntry
       :defs $ {}
         '*shader-programs $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *shader-programs ({})
+          :code $ quote $ defref *shader-programs ({})
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'String 'JsObject
         'back-cone-scale $ %{} 'CodeEntry (:doc |)
@@ -2570,7 +2630,7 @@
                     program $ twgl/createProgramInfo gl
                       js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
                       &js-object :errorCallback $ fn (msg)
-                        if (some? msg) (hud! |error msg)
+                        if (non-nil? msg) (hud! |error msg)
                   if (nil? program) (raise "|Failed to compile shader")
                   swap! *shader-programs assoc field program
                   , program
@@ -2678,15 +2738,15 @@
     'triadica.core $ %{} 'FileEntry
       :defs $ {}
         '*draw-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *draw-fb %none
+          :code $ quote $ defref *draw-fb (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option (:: 'Map 'Tag 'Dynamic)
         '*effect-x-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *effect-x-fb %none
+          :code $ quote $ defref *effect-x-fb (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option (:: 'Map 'Tag 'Dynamic)
         '*effect-y-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *effect-y-fb %none
+          :code $ quote $ defref *effect-y-fb (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option (:: 'Map 'Tag 'Dynamic)
         '>> $ %{} 'CodeEntry (:doc |)
@@ -2781,7 +2841,7 @@
         'blur-at-direction $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn blur-at-direction (gl from-fb to-fb direction program buffer)
             let
-                gl-host $ unsafe-coerce gl 'WebGLDrawHost
+                gl-host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                 canvas $ host-object-field |gl.canvas gl |canvas
                 program-object $ host-object-field |program.program program |program
                 texture $ framebuffer-first-texture from-fb
@@ -2830,7 +2890,7 @@
         'create-attribute-array $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn create-attribute-array (points)
             let
-                p0 $ if (empty? points) ([]) (&list:first points)
+                p0 $ .unwrap-or (.first points) ([])
                 pps $ unsafe-coerce (&list:flatten points) (:: 'List 'Number)
                 num $ count p0
                 position-array $ unsafe-coerce
@@ -2903,14 +2963,13 @@
               if (number? value) value fallback
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
-            :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag 'Number
+            :args $ [] (:: 'Map 'Tag 'V) 'Tag 'Number
+            :generics $ [] 'V
         'dynamic-number-list-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-number-list-field (source key fallback)
             let
                 value $ &map:get source key
-              if (list? value)
-                unsafe-coerce value $ :: 'List 'Number
-                , fallback
+              if (list? value) (triadica.vector/expect-number-list value) fallback
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag $ :: 'List 'Number
@@ -2944,16 +3003,16 @@
                   :args $ [] 'Dynamic 'Dynamic
         'find-nearest $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn find-nearest (xs)
-            if (empty? xs) (%none)
+            if (empty? xs) (Option :none)
               let
                   candidate $ option:unwrap $ assert-type (first xs) (:: 'Option 'HitTarget)
                   remaining $ find-nearest $ rest xs
                 match remaining
-                  (:none) (%some candidate)
+                  (:none) (Option :some candidate)
                   (:some nearest)
                     if
                       < (:distance candidate) (:distance nearest)
-                      %some candidate
+                      Option :some candidate
                       , remaining
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -2961,10 +3020,10 @@
             :return $ :: 'Option 'triadica.core/HitTarget
         'flatten-objects $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn flatten-objects (tree)
-            case-default (scene-draw-mode tree)
-              do (js/console.log |unknown-type-in: tree) ([])
+            match (scene-draw-mode tree)
               :group $ mapcat (scene-children tree) flatten-objects
               :object $ [] tree
+              _ $ do (js/console.log |unknown-type-in: tree) ([])
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] $ :: 'Map 'Tag 'Dynamic
@@ -3011,7 +3070,7 @@
                               noted |visible-at-front $ > r $ * -0.8 back-cone-scale
                             swap! *hit-targets-buffer conj $ %{} HitTarget (:distance r)
                               :handler $ event-handler on-hit
-                              :coord %none
+                              :coord $ Option :none
                     , &unit
               match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
@@ -3056,7 +3115,7 @@
                               noted |visible-at-front $ > r $ * -0.8 back-cone-scale
                             swap! *hit-targets-buffer conj $ %{} HitTarget (:distance r)
                               :handler $ event-handler on-mousedown
-                              :coord $ %some coord
+                              :coord $ Option :some coord
                     , &unit
               match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
@@ -3156,6 +3215,7 @@
                     swap! *objects-buffer conj $ {} (:program program) (:buffer buffer)
                       :draw-mode $ scene-draw-mode obj
                       :get-uniforms $ &map:get obj :get-uniforms
+                  , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] (:: 'Map 'Tag 'Dynamic)
@@ -3168,7 +3228,7 @@
                 b $ option:unwrap-or
                   assert-type (deref *fb-ref)
                     :: 'Option $ :: 'Map 'Tag 'Dynamic
-                  assert-type {} $ :: 'Map 'Tag 'Dynamic
+                  assert-type ({}) (:: 'Map 'Tag 'Dynamic)
               if
                 and (contains? b :buffer)
                   &= ([] w h)
@@ -3176,7 +3236,7 @@
                 unsafe-coerce (&map:get b :buffer) 'JsObject
                 let
                     f $ twgl/createFramebufferInfo gl
-                  reset! *fb-ref $ %some $ {} (:buffer f)
+                  reset! *fb-ref $ Option :some $ {} (:buffer f)
                     :size $ [] w h
                   , f
           :examples $ []
@@ -3187,7 +3247,7 @@
             :features $ #{} :js-ffi
         'load-tree-node $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-tree-node (tree path)
-            if (empty? path) (%some tree)
+            if (empty? path) (Option :some tree)
               let
                   children $ scene-children tree
                   idx $ assert-type (&list:first path) 'Number
@@ -3195,7 +3255,7 @@
                   and (>= idx 0)
                     < idx $ count children
                   load-tree-node (&list:nth children idx) (rest path)
-                  %none
+                  Option :none
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'Number)
@@ -3280,7 +3340,7 @@
           :code $ quote $ defn paint-canvas! ()
             let
                 gl $ option:unwrap @*gl-context
-                gl-host $ unsafe-coerce gl 'WebGLDrawHost
+                gl-host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                 scaled-width $ * dpr $ window-number js/window.innerWidth 0
                 scaled-height $ * dpr $ window-number js/window.innerHeight 0
               ; js/console.log @*viewer-position @*viewer-forward @*viewer-upward
@@ -3313,22 +3373,22 @@
                 ; .!cullFace gl $ .-FRONT_AND_BACK gl
                 &doseq (object @*objects-buffer)
                   let
-                      program-info $ host-object-field |object.program object |program
-                      buffer-info $ host-object-field |object.buffer object |buffer
+                      program-info $ expect-object |object.program $ .unwrap (get object :program)
+                      buffer-info $ expect-object |object.buffer $ .unwrap (get object :buffer)
                       current-uniforms $ object-uniforms object uniforms
                     gl-host .use-program! $ host-object-field |program.program program-info |program
                     twgl/setBuffersAndAttributes gl program-info buffer-info
                     twgl/setUniforms program-info current-uniforms
-                    case-default (scene-draw-mode object)
-                      do
-                        js/console.warn |unknown-draw-mode: $ scene-draw-mode object
-                        twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINES gl |LINES
+                    match (scene-draw-mode object)
                       :triangles $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLES gl |TRIANGLES
                       :triangle-strip $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLE_STRIP gl |TRIANGLE_STRIP
                       :triangle-fan $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLE_FAN gl |TRIANGLE_FAN
                       :lines $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINES gl |LINES
                       :line-strip $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINE_STRIP gl |LINE_STRIP
                       :line-loop $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINE_LOOP gl |LINE_LOOP
+                      _ $ do
+                        js/console.warn |unknown-draw-mode: $ scene-draw-mode object
+                        twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINES gl |LINES
                 when post-effect? $ let
                     effect-x-program $ cached-build-program gl (inline-shader |effect-x.vert) (inline-shader |effect-x.frag)
                     mix-program $ cached-build-program gl (inline-shader |effect-mix.vert) (inline-shader |effect-mix.frag)
@@ -3337,7 +3397,7 @@
                     effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                     mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
                   let
-                      host $ unsafe-coerce gl 'WebGLDrawHost
+                      host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                     host .disable! $ host-number-field |gl.DEPTH_TEST gl |DEPTH_TEST
                   blur-at-direction gl draw-fb effect-x-fb 1 effect-x-program effect-x-buffer-info
                   blur-at-direction gl effect-x-fb effect-y-fb 0 effect-x-program effect-x-buffer-info
@@ -3352,7 +3412,7 @@
                   twgl/resizeCanvasToDisplaySize (host-object-field |gl.canvas gl |canvas) dpr
                   clear-gl! gl
                   let
-                      host $ unsafe-coerce gl 'WebGLDrawHost
+                      host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                       program-object $ host-object-field |program.program mix-program |program
                     host .use-program! program-object
                   twgl/setBuffersAndAttributes gl mix-program mix-buffer-info
@@ -3379,16 +3439,11 @@
             :args $ [] 'js-ffi.browser/DomElementHost
         'scene-arrays $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-arrays (object)
-            let
-                value $ &map:get object :arrays
-              if (map? value)
-                unsafe-coerce value $ :: 'Map 'Tag 'Dynamic
-                {}
+            expect-object |scene.arrays $ .unwrap $ get object :arrays
           :examples $ []
-          :schema $ :: 'Fn $ {}
+          :schema $ :: 'Fn $ {} (:return 'JsObject)
             :args $ [] $ :: 'Map 'Tag 'Dynamic
             :features $ #{} :js-ffi
-            :return $ :: 'Map 'Tag 'Dynamic
         'scene-children $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-children (tree)
             let
@@ -3430,10 +3485,7 @@
             :features $ #{} :js-ffi
         'traverse-tree $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn traverse-tree (tree coord cb)
-            case-default (&map:get tree :type)
-              do
-                js/console.warn |Unknown-element-type: $ &map:get tree :type
-                , &unit
+            match (&map:get tree :type)
               :object $ do
                 cb (dissoc tree :children) coord
                 , &unit
@@ -3445,6 +3497,9 @@
                     :return 'Unit
                     :features $ #{} :js-ffi
                   traverse-tree child (conj coord idx) cb
+                , &unit
+              _ $ do
+                js/console.warn |Unknown-element-type: $ &map:get tree :type
                 , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -3490,25 +3545,25 @@
     'triadica.global $ %{} 'FileEntry
       :defs $ {}
         '*gl-context $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *gl-context %none
+          :code $ quote $ defref *gl-context (Option :none)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Option 'JsObject
         '*mouse-holding-paths $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *mouse-holding-paths
+          :code $ quote $ defref *mouse-holding-paths
             noted "|handling move events" $ []
           :examples $ []
           :schema $ :: 'Ref $ :: 'List (:: 'List 'Number)
         '*objects-buffer $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *objects-buffer ([])
+          :code $ quote $ defref *objects-buffer ([])
           :examples $ []
           :schema $ :: 'Ref $ :: 'List (:: 'Map 'Tag 'Dynamic)
         '*objects-tree $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *objects-tree
+          :code $ quote $ defref *objects-tree
             noted |tree-for-rendering-and-events $ {}
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         '*proxied-dispatch $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *proxied-dispatch
+          :code $ quote $ defref *proxied-dispatch
             fn (op data) (println "|not rendered yet")
           :examples $ []
           :schema $ :: 'Ref $ :: 'Fn
@@ -3519,7 +3574,7 @@
     'triadica.hud $ %{} 'FileEntry
       :defs $ {}
         '*debug-info $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *debug-info ({})
+          :code $ quote $ defref *debug-info ({})
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'String 'Dynamic
         'css-debug $ %{} 'CodeEntry (:doc |)
@@ -3567,11 +3622,8 @@
       :defs $ {}
         'c-distance $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn c-distance (p1 p2)
-            let-sugar
-                  [] x y
-                  , p1
-                ([] a b) p2
-              sqrt $ +
+            let[] (x y) p1 $ let[] (a b) p2 $ sqrt
+              +
                 pow (- x a) 2
                 pow (- y b) 2
           :examples $ []
@@ -3651,15 +3703,15 @@
     'triadica.perspective $ %{} 'FileEntry
       :defs $ {}
         '*viewer-forward $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *viewer-forward ([] 0 0 -1)
+          :code $ quote $ defref *viewer-forward ([] 0 0 -1)
           :examples $ []
           :schema $ :: 'Ref $ :: 'List 'Number
         '*viewer-position $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *viewer-position ([] 0 0 400)
+          :code $ quote $ defref *viewer-position ([] 0 0 400)
           :examples $ []
           :schema $ :: 'Ref $ :: 'List 'Number
         '*viewer-upward $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *viewer-upward ([] 0 1 0)
+          :code $ quote $ defref *viewer-upward ([] 0 1 0)
           :examples $ []
           :schema $ :: 'Ref $ :: 'List 'Number
         'move-viewer-by! $ %{} 'CodeEntry (:doc |)
@@ -3669,6 +3721,7 @@
                 position @*viewer-position
               reset! *viewer-position $ &v+ position dv
               ; println ([] x0 y0 z0) |=> $ [] dx dy dz
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Number 'Number 'Number
@@ -3700,6 +3753,7 @@
                 reset! *viewer-upward $ &v+
                   v-scale upward $ unsafe-coerce (js/Math.cos da) 'Number
                   v-scale forward $ negate $ unsafe-coerce (js/Math.sin da) 'Number
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Number 'Number
@@ -3715,6 +3769,7 @@
                 reset! *viewer-upward $ &v+
                   v-scale upward $ unsafe-coerce (js/Math.cos da) 'Number
                   v-scale rightward $ unsafe-coerce (js/Math.sin da) 'Number
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Number
@@ -3737,13 +3792,13 @@
             :return $ :: 'List 'Number
         'transform-3d $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn transform-3d (p0)
-            let-sugar
+            let
                 point $ &v- p0 @*viewer-position
-                look-distance $ wo-log $ new-lookat-point
+                look-distance $ new-lookat-point
                 upward @*viewer-upward
                 rightward $ v-cross upward @*viewer-forward
                 s $ noted "|size factor of light cone in negative direction" back-cone-scale
-                r $ wo-log $ &/ (v-dot point look-distance)
+                r $ &/ (v-dot point look-distance)
                   +
                     square $ &list:nth look-distance 0
                     square $ &list:nth look-distance 1
@@ -3785,6 +3840,17 @@
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'List 'Number) (:: 'List 'Number)
             :return $ :: 'List 'Number
+        'expect-number-list $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn expect-number-list (value)
+            if (list? value)
+              .map value $ fn (item)
+                if (number? item) item $ raise |Expected-numeric-vector-element
+              raise |Expected-numeric-vector-list
+          :examples $ []
+          :schema $ :: 'Fn $ {}
+            :args $ [] 'T
+            :generics $ [] 'T
+            :return $ :: 'List 'Number
         'from-v3 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn from-v3 (v)
             match v $
@@ -3796,10 +3862,7 @@
             :return $ :: 'List 'Number
         'to-v3 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn to-v3 (xs)
-            let-sugar
-                  [] x y z
-                  , xs
-              qv/v3 x y z
+            let[] (x y z) xs $ qv/v3 x y z
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'quaternion.vector/V3)
             :args $ [] $ :: 'List 'Number

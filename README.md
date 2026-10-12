@@ -58,6 +58,10 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 
 https://github.com/Triadica/triadica-workflow
 
+当前源码使用 `calcit.cirru` 与 `deps.cirru`，Calcit / `@calcit/procs` 固定为正式版 `0.29.0`，依赖使用正式 tag。先运行 `caps --strict --ci` 和 `yarn install --immutable`，再运行 `caps verify --toolchain`、`calcit --check-only --all-defs --strict-types`、`calcit test --require-match` 和 `calcit js`。本地开发使用 Node 24 和 `yarn vite`。
+
+CI 构建前端时将资源 base 设置为 `https://cos-sh.tiye.me/Triadica/triadica-space/`。仅当前 main push 上传 `dist/`，通过 COS action 的 `public-base-url` 内置逐文件校验；PR 只构建隔离的资源路径，不读取部署 secrets。需要授权 `COS_BUCKET`、`COS_SECRET_ID`、`COS_SECRET_KEY` 和原有 `rsync_private_key`。原页面部署目录 `/web-assets/repo/${github.repository}` 不变，不迁移服务端目录。串行部署和过期 SHA 检查不代表原子发布。
+
 ### License
 
 MIT
