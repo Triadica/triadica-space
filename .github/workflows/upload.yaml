@@ -17,11 +17,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7.0.1
+      with:
+        persist-credentials: false
 
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@v6.5.0
       with:
         node-version: 24
+        package-manager-cache: false
 
     - name: Enable Corepack
       run: |
@@ -36,11 +39,16 @@ jobs:
 
     - name: Validate snapshot, types and original tests
       run: |
+        test ! -e compact.cirru
+        test ! -e package.cirru
         calcit calcit.cirru edit format
         git diff --exit-code -- calcit.cirru
         calcit calcit.cirru --check-only --all-defs --strict-types
+        calcit calcit.cirru fix --workflow strict --verify
         calcit calcit.cirru analyze quality --baseline config/calcit-quality.json
         calcit calcit.cirru test --require-match --summary-only --format json
+        calcit calcit.cirru docs format-md README.md --check
+        calcit calcit.cirru docs check-md README.md --dep ./ --failures-only
 
     - name: Select frontend CDN path
       id: asset-path

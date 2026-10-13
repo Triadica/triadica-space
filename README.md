@@ -16,27 +16,35 @@
 
 ### Object definition
 
-For example:
+For example, define the following factory and call it after browser/WebGL
+initialization. The documentation check validates the definition; it does not
+invoke WebGL in the native process.
 
 ```cirru
-object $ {} (:draw-mode :lines)
-  :vertex-shader $ inline-shader "\"shape.vert"
-  :fragment-shader $ inline-shader "\"shape.frag"
-  :points $ map geo
-    fn (p)
-      -> p
-        map $ fn (i)
-          * i 40
-        &v+  $ [] 400 300 -1200
-  :indices indices
-  :hit-region $ {}
-    :position $ [] 400 300 -1200
-    :radius 20
-    :on-hit $ fn (e d!)
-      js/alert "\"hit on cube"
-    :on-mousedown $ fn (e d!)
-    :on-mousemove $ fn (e d!)
-    :on-mouseup $ fn (e d!)
+ns example.scene $ :require
+  triadica.alias :refer $ [] object
+  triadica.config :refer $ [] inline-shader
+  triadica.vector :refer $ [] &v+
+
+defn make-example-object ()
+  hint-fn $ {}
+    :args $ []
+    :return $ :: 'Map 'Tag 'Dynamic
+    :features $ #{} :js-ffi
+  let
+      geo $ [] ([] 0 0 0) ([] 1 0 0) ([] 1 1 0)
+      indices $ [] 0 1 1 2
+    object $ {} (:draw-mode :lines)
+      :vertex-shader $ inline-shader |lines.vert
+      :fragment-shader $ inline-shader |lines.frag
+      :points $ map geo $ fn (p)
+        hint-fn $ {}
+          :args $ [] $ :: 'List 'Number
+          :return $ :: 'List 'Number
+        -> p
+          map $ fn (i) (* i 40)
+          &v+ $ [] 400 300 -1200
+      :indices indices
 ```
 
 - `:draw-mode` supports `:lines`, `:triangles`, `:line-strip`
@@ -58,7 +66,11 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 
 https://github.com/Triadica/triadica-workflow
 
-当前源码使用 `calcit.cirru` 与 `deps.cirru`，Calcit / `@calcit/procs` 固定为正式版 `0.29.1`，依赖使用正式 tag。先运行 `caps --strict --ci` 和 `yarn install --immutable`，再运行 `caps verify --toolchain`、`calcit --check-only --all-defs --strict-types`、`calcit test --require-match` 和 `calcit js`。本地开发使用 Node 24 和 `yarn vite`。
+当前源码使用 `calcit.cirru` 与 `deps.cirru`，Calcit / `@calcit/procs` 固定为正式版 `0.29.3`，依赖使用正式 tag。先运行 `caps --strict --ci` 和 `yarn install --immutable`，再运行 `caps verify --toolchain`、`calcit --check-only --all-defs --strict-types`、`calcit fix --workflow strict --verify`、`calcit test --require-match` 和 `calcit js`。本地开发使用 Node 24 和 `yarn vite`。
+
+迁移验收覆盖完整 strict、原有向量测试、公开模块检查和 README 工厂定义。
+浏览器回归保持原参数与默认 glow，验证控制点拖动、分支滑块、玫瑰、高密度烟花、管线和分段曲线；
+真实 Triangles 消费者也验证了新增及拖动后重绘。未覆盖全部场景、移动硬件或 VR/gamepad。
 
 `paint-canvas!` 返回 Unit，并将绘制安排到浏览器下一帧；调用者无需等待句柄。同一帧前的多次请求合并为一次绘制，回调开始时清除 pending 标记，并读取最新场景状态。DOM 状态更新和控制点拖动沿用默认 glow 后处理，不通过关闭效果绕过重绘问题。此帧边界调整是语义变更：绘制不再在调用栈内同步完成。
 
