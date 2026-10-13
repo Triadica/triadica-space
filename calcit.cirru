@@ -14,7 +14,7 @@
           :code $ quote $ defn build-packed-attrs (data collect!)
             if (list? data)
               let
-                  items $ unsafe-coerce data $ :: 'List 'Dynamic
+                  items $ decode-map-as data $ :: 'List 'Dynamic
                 loop
                     idx 0
                   if
@@ -23,7 +23,7 @@
                       build-packed-attrs (&list:nth items idx) collect!
                       recur $ inc idx
                     , &unit
-              collect! $ unsafe-coerce data $ :: 'Map 'Tag 'Dynamic
+              collect! $ decode-map-as data $ :: 'Map 'Tag 'Dynamic
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -49,23 +49,21 @@
                           raw-points $ &map:get options :points
                         when (list? raw-points)
                           let
-                              points $ unsafe-coerce raw-points $ :: 'List (:: 'List 'Number)
+                              points $ decode-map-as raw-points $ :: 'List (:: 'List 'Number)
                               position-key |position
                             aset ret position-key $ create-attribute-array points
                       let
                           raw-indices $ &map:get options :indices
                         when (list? raw-indices)
                           let
-                              ys $ unsafe-coerce raw-indices $ :: 'List 'Number
+                              ys $ decode-map-as raw-indices $ :: 'List 'Number
                               indices-key |indices
-                            aset ret indices-key $ js-array & ys
+                            aset ret indices-key $ to-js-data ys $ {} (:js-array true)
                       , ret
-                    attrs $ unsafe-coerce
+                    attrs $ decode-map-as
                       let
                           raw $ &map:get options :attributes
-                        if (map? raw)
-                          unsafe-coerce raw $ :: 'Map 'Tag $ :: 'List 'Number
-                          {}
+                        if (map? raw) raw $ {}
                       :: 'Map 'Tag $ :: 'List 'Number
                   if-not (empty? attrs)
                     &doseq
@@ -130,7 +128,7 @@
                   unsafe-coerce packed-attrs $ :: 'List 'Dynamic
                   , 0
               (map? packed-attrs)
-                unsafe-coerce packed-attrs $ :: 'Map 'Tag 'Dynamic
+                decode-map-as packed-attrs $ :: 'Map 'Tag 'Dynamic
               true $ do (js/console.warn |unknown-attribute-group packed-attrs) ({})
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -174,17 +172,16 @@
                         base $ &v+ position $ v-scale forward length
                         alpha $ &* delta-angle n
                         side-base $ &v+
-                          v-scale upward $ unsafe-coerce (js/Math.cos alpha) 'Number
-                          v-scale rightward $ unsafe-coerce (js/Math.sin alpha) 'Number
+                          v-scale upward $ cos alpha
+                          v-scale rightward $ sin alpha
                         side-length $ &* length regress
                         side-forward $ &v+
-                          v-scale forward $ unsafe-coerce (js/Math.cos branch-angle) 'Number
-                          v-scale side-base $ unsafe-coerce (js/Math.sin branch-angle) 'Number
+                          v-scale forward $ cos branch-angle
+                          v-scale side-base $ sin branch-angle
                         branch $ -> side-forward $ v-scale side-length
                       [] $ if (<= max-level 0) ([])
-                        build-multiple-path (dec max-level) parts $ %{} BranchInfo (:position base) (:length side-length) (:forward side-forward)
-                          :upward $ v-normalize $ &v- side-forward
-                            v-scale forward $ &/ 1 $ unsafe-coerce (js/Math.cos branch-angle) 'Number
+                        build-multiple-path (dec max-level) parts $ BranchInfo :position base :length side-length :forward side-forward :upward $ v-normalize
+                          &v- side-forward $ v-scale forward $ &/ 1 (cos branch-angle)
               [] main-branch side-branches
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -213,21 +210,20 @@
                           &* length $ &/ n segments
                         alpha $ &* delta-angle n
                         side-base $ &v+
-                          v-scale upward $ unsafe-coerce (js/Math.cos alpha) 'Number
-                          v-scale rightward $ unsafe-coerce (js/Math.sin alpha) 'Number
+                          v-scale upward $ cos alpha
+                          v-scale rightward $ sin alpha
                         side-length $ &* (&* length regress)
                           &- 1 $ &* 0.16 $ dec n
                         side-forward $ &v+
-                          v-scale forward $ unsafe-coerce (js/Math.cos branch-angle) 'Number
-                          v-scale side-base $ unsafe-coerce (js/Math.sin branch-angle) 'Number
+                          v-scale forward $ cos branch-angle
+                          v-scale side-base $ sin branch-angle
                         branch $ -> side-forward $ v-scale side-length
                       []
                         {} $ :position base
                         {} $ :position $ &v+ base branch
                         if (<= max-level 0) ([])
-                          build-path (dec max-level) branch-angle $ %{} BranchInfo (:position base) (:length side-length) (:forward side-forward)
-                            :upward $ v-normalize $ &v- side-forward
-                              v-scale forward $ &/ 1 $ unsafe-coerce (js/Math.cos branch-angle) 'Number
+                          build-path (dec max-level) branch-angle $ BranchInfo :position base :length side-length :forward side-forward :upward $ v-normalize
+                            &v- side-forward $ v-scale forward $ &/ 1 (cos branch-angle)
               [] main-branch side-branches
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -245,11 +241,7 @@
                 object $ {} (:draw-mode :lines)
                   :vertex-shader $ inline-shader |lines.vert
                   :fragment-shader $ inline-shader |lines.frag
-                  :packed-attrs $ build-path max-level branch-angle $ %{} BranchInfo
-                    :position $ [] 0 0 0
-                    :length 800
-                    :forward $ [] 0 1 0
-                    :upward $ [] 1 0 0
+                  :packed-attrs $ build-path max-level branch-angle $ BranchInfo :position ([] 0 0 0) :length 800 :forward ([] 0 1 0) :upward ([] 1 0 0)
                 comp-slider
                   {} $ :position $ [] 200 0 0
                   fn (data d!)
@@ -269,11 +261,7 @@
                 object $ {} (:draw-mode :lines)
                   :vertex-shader $ inline-shader |branches.vert
                   :fragment-shader $ inline-shader |branches.frag
-                  :packed-attrs $ build-multiple-path max-level parts $ %{} BranchInfo
-                    :position $ [] 0 -400 0
-                    :length 400
-                    :forward $ [] 0 1 0
-                    :upward $ [] 1 0 0
+                  :packed-attrs $ build-multiple-path max-level parts $ BranchInfo :position ([] 0 -400 0) :length 400 :forward ([] 0 1 0) :upward ([] 1 0 0)
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ []
@@ -298,9 +286,7 @@
                       rx-delta $ sin $ * i angle0
                       rx $ * r0 rx-delta
                       ry $ * r0 $ cos (* i angle0)
-                      ball-size $ unsafe-coerce
-                        js/Math.ceil $ + 0.2 $ * rx-delta rx-delta size
-                        , 'Number
+                      ball-size $ ceil $ + 0.2 (* rx-delta rx-delta size)
                       angle1 $ / (* 2 &PI) ball-size
                     -> (range ball-size)
                       map $ fn (j)
@@ -344,11 +330,14 @@
                         hint-fn $ {}
                           :args $ [] $ :: 'List 'Number
                           :return $ :: 'List 'Number
-                        &v+ v $ [] (rand-shift 0 seed) (rand-shift 0 seed) (rand-shift 0 seed)
+                        &v+ v $ []
+                          js-ffi.contract/expect-number |rand-shift $ rand-shift 0 seed
+                          js-ffi.contract/expect-number |rand-shift $ rand-shift 0 seed
+                          js-ffi.contract/expect-number |rand-shift $ rand-shift 0 seed
                       map-indexed $ fn (bunch-idx direction)
                         hint-fn $ {}
                           :args $ [] 'Number $ :: 'List 'Number
-                          :return $ :: 'List $ :: 'List (:: 'Map 'Tag 'Number)
+                          :return $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
                         -> (range 30)
                           map $ fn (spark-idx)
                             map hexagon-shape $ fn (hex-idx)
@@ -367,10 +356,13 @@
               :packed-attrs $ -> (range 60)
                 map $ fn (i)
                   build-firework
-                    [] (rand-between -2000 2000) (rand-between -60 60) (rand-between -2000 2000)
-                    noted r $ rand-between 20 200
-                    noted size $ rand-between 8 32
-                    noted seconds $ rand-between 6 12
+                    []
+                      js-ffi.contract/expect-number |rand-between $ rand-between -2000 2000
+                      js-ffi.contract/expect-number |rand-between $ rand-between -60 60
+                      js-ffi.contract/expect-number |rand-between $ rand-between -2000 2000
+                    noted r $ js-ffi.contract/expect-number |rand-between $ rand-between 20 200
+                    noted size $ js-ffi.contract/expect-number |rand-between $ rand-between 8 32
+                    noted seconds $ js-ffi.contract/expect-number |rand-between $ rand-between 6 12
               :get-uniforms $ fn ()
                 hint-fn $ {}
                   :args $ []
@@ -774,9 +766,7 @@
                 center-radius $ + 60 $ * 8 idx
                 center-y-radian $ - (* 0.5 &PI) (* idx 0.08)
                 direction-radian $ + 2 $ * 18
-                  unsafe-coerce
-                    js/Math.log $ + 8 idx
-                    , 'Number
+                  js-ffi.contract/expect-number |js/Math.log $ js/Math.log $ + 8 idx
                 patel-width-ratio $ + 0.7 $ * idx 0.08
                 ring-size 8
                 sector-size 8
@@ -800,8 +790,8 @@
                       let
                           this-radian $ * center-y-radian $ / ring-idx ring-size
                           next-radian $ * center-y-radian $ / (inc ring-idx) ring-size
-                          ring-radius $ * direction-length $ unsafe-coerce (js/Math.tan this-radian) 'Number
-                          ring-radius-next $ * direction-length $ unsafe-coerce (js/Math.tan next-radian) 'Number
+                          ring-radius $ * direction-length $ js-ffi.contract/expect-number |js/Math.tan (js/Math.tan this-radian)
+                          ring-radius-next $ * direction-length $ js-ffi.contract/expect-number |js/Math.tan (js/Math.tan next-radian)
                           sector-radian $ * 2 &PI $ / sector-idx sector-size
                           sector-radian-next $ * 2 &PI $ / (inc sector-idx) sector-size
                           p0 $ let
@@ -811,7 +801,7 @@
                                 v+ direction-vector
                                   v-scale radius-horizontal-perp $ * ring-radius $ cos sector-radian
                                   v-scale up-vector $ * ring-radius $ sin sector-radian
-                                unsafe-coerce (js/Math.cos this-radian) 'Number
+                                cos this-radian
                               v-scale direction-vector $ f-top-bend ring-y-ratio
                           p1 $ let
                               ring-y-ratio $ * (/ ring-idx ring-size) (sin sector-radian-next)
@@ -820,7 +810,7 @@
                                 v+ direction-vector
                                   v-scale radius-horizontal-perp $ * ring-radius $ cos sector-radian-next
                                   v-scale up-vector $ * ring-radius $ sin sector-radian-next
-                                unsafe-coerce (js/Math.cos this-radian) 'Number
+                                cos this-radian
                               v-scale direction-vector $ f-top-bend ring-y-ratio
                           p2 $ let
                               ring-y-ratio $ *
@@ -831,7 +821,7 @@
                                 v+ direction-vector
                                   v-scale radius-horizontal-perp $ * ring-radius-next $ cos sector-radian
                                   v-scale up-vector $ * ring-radius-next $ sin sector-radian
-                                unsafe-coerce (js/Math.cos next-radian) 'Number
+                                cos next-radian
                               v-scale direction-vector $ f-top-bend ring-y-ratio
                           p3 $ let
                               ring-y-ratio $ *
@@ -842,7 +832,7 @@
                                 v+ direction-vector
                                   v-scale radius-horizontal-perp $ * ring-radius-next $ cos sector-radian-next
                                   v-scale up-vector $ * ring-radius-next $ sin sector-radian-next
-                                unsafe-coerce (js/Math.cos next-radian) 'Number
+                                cos next-radian
                               v-scale direction-vector $ f-top-bend ring-y-ratio
                         []
                           {} (:position p0) (:direction direction-vector)
@@ -962,7 +952,7 @@
                       {} (:size 10)
                         :position $ [] 100 100 0
                         :color $ [] 0.24 0.8 0.5
-                      fn (e d!) (println |clicked)
+                      fn (e d!) (println |clicked) &unit
                   :stitch $ comp-stitch $ {}
                     :chars $ [] 0xf2dfea34 0xc3c4a59d 0x88737645
                   :sparklers $ comp-sparklers
@@ -1133,7 +1123,7 @@
         'rand-bothway $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rand-bothway ()
             let
-                a $ unsafe-coerce js/Math.random 'Number
+                a $ js-ffi.contract/expect-number |Math.random $ js/Math.random
               - a 0.5
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
@@ -1237,24 +1227,24 @@
             when dev? $ js/console.log |Dispatch: op data
             if
               and (tag? op)
-                = (unsafe-coerce op 'Tag) :city-spin
-              do $ swap! *dirty-uniforms update :spin-city $ fn (x)
+                = (decode-map-as op 'Tag) :city-spin
+              swap! *dirty-uniforms update :spin-city $ fn (x)
                 hint-fn $ {}
                   :args $ [] 'Number
                   :return 'Number
-                + x $ * 0.01 $ if (number? data) (assert-type data 'Number) 0
+                + x $ * 0.01 $ if (number? data) (decode-map-as data 'Number) 0
               let
                   store $ assert-type @*store $ :: 'Map 'Tag 'Dynamic
                   next $ if (list? op)
                     update-states store $ [] op data
-                    match (unsafe-coerce op 'Tag)
+                    match (decode-map-as op 'Tag)
                       :cube-right $ update store :v $ fn (x)
-                        inc $ assert-type x 'Number
+                        inc $ decode-map-as x 'Number
                       :tab-focus $ assoc store :tab data
                       :move-p1 $ assoc store :p1 data
                       _ $ do (js/console.warn "|unknown op" op) nil
                 when (map? next)
-                  reset! *store $ unsafe-coerce next $ :: 'Map 'Tag 'Dynamic
+                  reset! *store $ decode-map-as next $ :: 'Map 'Tag 'Dynamic
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -1292,6 +1282,7 @@
                 set! js/window.onresize $ fn (event) (reset-canvas-size! canvas) (paint-canvas!)
                 hud! |ok~ |OK
               hud! |error build-errors
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -1864,7 +1855,7 @@
                 v $ &v- q p
                 l $ v-length v
                 dd $ &/ l step
-                size $ unsafe-coerce (js/Math.floor dd) 'Number
+                size $ floor dd
                 left $ &* 0.5 $ - l (&* size step)
                 unit $ v-normalize v
                 dist $ ->
@@ -1874,9 +1865,7 @@
                 l-middle $ * 0.25 l l
               -> dist $ map $ fn (ratio)
                 let
-                    s $ unsafe-coerce
-                      js/Math.abs $ &- ratio $ &* 0.5 l
-                      , 'Number
+                    s $ abs $ &- ratio (&* 0.5 l)
                   &v+
                     &v+ p $ v-scale unit ratio
                     v-scale gravity $ &- l-middle $ pow s 2
@@ -1936,7 +1925,15 @@
                 :vertex-shader $ either (&map:get props :vertex-shader) (inline-shader |drag-point.vert)
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader |drag-point.frag)
                 :hit-region $ {} (:position position) (:radius size)
-                  :on-hit $ fn (e d!) (on-click e d!)
+                  :on-hit $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                      :features $ #{} :js-ffi
+                    on-click e d!
                 :packed-attrs $ -> indices $ map
                   fn (i)
                     {}
@@ -1963,6 +1960,13 @@
                 color $ dynamic-number-list-field props :color $ [] 0.6 1 0.56
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
+                  hint-fn $ {}
+                    :args $ [] 'Number 'Number $ :: 'Fn
+                      {}
+                        :args $ [] 'Dynamic 'Dynamic
+                        :return 'Unit
+                    :return 'Unit
+                    :features $ #{} :js-ffi
                   let
                       prev @*drag-cache
                       dx $ - x $ dynamic-number-field prev :x 0
@@ -1990,21 +1994,45 @@
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader |drag-point.frag)
                 :hit-region $ {} (:position position) (:radius size)
                   :on-mousedown $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                      :features $ #{} :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
                       reset! *drag-cache $ {} (:x x) (:y y)
+                    , &unit
                   :on-mousemove $ if-not ignore-moving? $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                      :features $ #{} :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
                       handle-drag! x y d!
                       reset! *drag-cache $ {} (:x x) (:y y)
+                    , &unit
                   :on-mouseup $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                      :features $ #{} :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
                       handle-drag! x y d!
+                    , &unit
                 :packed-attrs $ -> indices $ map
                   fn (i)
                     {}
@@ -2030,6 +2058,13 @@
                 color $ dynamic-number-list-field props :color $ [] 0.6 1 0.56
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
+                  hint-fn $ {}
+                    :args $ [] 'Number 'Number $ :: 'Fn
+                      {}
+                        :args $ [] 'Dynamic 'Dynamic
+                        :return 'Unit
+                    :return 'Unit
+                    :features $ #{} :js-ffi
                   let
                       prev @*drag-cache
                       dx $ - x $ dynamic-number-field prev :x 0
@@ -2041,21 +2076,45 @@
                 :fragment-shader $ either (&map:get props :fragment-shader) (inline-shader |drag-point.frag)
                 :hit-region $ {} (:position position) (:radius 20)
                   :on-mousedown $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                      :features $ #{} :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
                       reset! *drag-cache $ {} (:x x) (:y y)
+                    , &unit
                   :on-mousemove $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                      :features $ #{} :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
                       handle-drag! x y d!
                       reset! *drag-cache $ {} (:x x) (:y y)
+                    , &unit
                   :on-mouseup $ fn (e d!)
+                    hint-fn $ {}
+                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                        {}
+                          :args $ [] 'Dynamic 'Dynamic
+                          :return 'Unit
+                      :return 'Unit
+                      :features $ #{} :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
                       handle-drag! x y d!
+                    , &unit
                 :packed-attrs $ -> indices $ map
                   fn (i)
                     {}
@@ -2074,7 +2133,7 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'drag-number $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn drag-number (value fallback)
-            if (js-present? value) (unsafe-coerce value 'Number) fallback
+            if (js-present? value) (js-ffi.contract/expect-number |pointer.coordinate value) fallback
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] (:: 'JsNullish 'JsObject) 'Number
@@ -2173,8 +2232,8 @@
         'comp-brush $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-brush (options)
             let
-                points $ unsafe-coerce (&map:get options :curve) (:: 'List 'Dynamic)
-                brush $ unsafe-coerce
+                points $ decode-map-as (&map:get options :curve) (:: 'List 'Dynamic)
+                brush $ decode-map-as
                   either (&map:get options :brush) ([] 8 0)
                   :: 'List 'Number
                 brush1 $ &map:get options :brush1
@@ -2188,10 +2247,10 @@
                     not $ empty? points
                     list? $ &list:nth points 0
                   map
-                    unsafe-coerce points $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
+                    decode-map-as points $ :: 'List $ :: 'List (:: 'Map 'Tag 'Dynamic)
                     fn (child) (build-brush-points child brush brush1 brush2)
                   build-brush-points
-                    unsafe-coerce points $ :: 'List $ :: 'Map 'Tag 'Dynamic
+                    decode-map-as points $ :: 'List $ :: 'Map 'Tag 'Dynamic
                     , brush brush1 brush2
                 :get-uniforms $ &map:get options :get-uniforms
           :examples $ []
@@ -2203,12 +2262,12 @@
           :code $ quote $ defn comp-tube (options)
             let
                 points-raw $ &map:get options :curve
-                points $ unsafe-coerce points-raw $ :: 'List 'Dynamic
+                points $ decode-map-as points-raw $ :: 'List 'Dynamic
                 radius-raw $ &map:get options :radius
                 radius $ if (number? radius-raw) radius-raw 10
                 normal0-raw $ &map:get options :normal0
                 normal0 $ if (list? normal0-raw)
-                  unsafe-coerce normal0-raw $ :: 'List 'Number
+                  decode-map-as normal0-raw $ :: 'List 'Number
                   [] 0 0 1
                 circle-step-raw $ &map:get options :circle-step
                 circle-step $ if (number? circle-step-raw) circle-step-raw 8
@@ -2217,11 +2276,11 @@
                       first-point $ &list:nth points 0
                     if (list? first-point)
                       let
-                          curves $ unsafe-coerce points $ :: 'List
+                          curves $ decode-map-as points $ :: 'List
                             :: 'List $ :: 'Map 'Tag 'Dynamic
                         map curves $ fn (child) (build-tube-points child radius normal0 circle-step)
                       build-tube-points
-                        unsafe-coerce points $ :: 'List $ :: 'Map 'Tag 'Dynamic
+                        decode-map-as points $ :: 'List $ :: 'Map 'Tag 'Dynamic
                         , radius normal0 circle-step
               object $ {}
                 :draw-mode $ either (&map:get options :draw-mode) :triangles
@@ -2310,12 +2369,16 @@
                 :vertex-shader $ either (&map:get options :vertex-shader) (inline-shader |segments.vert)
                 :fragment-shader $ either (&map:get options :fragment-shader) (inline-shader |segments.frag)
                 :packed-attrs $ traverse-lines segments $ fn (item)
+                  hint-fn $ {}
+                    :args $ [] 'Dynamic
+                    :return 'Dynamic
                   let
-                      from $ &map:get item :from
-                      to $ &map:get item :to
+                      segment $ decode-map-as item $ :: 'Map 'Tag 'Dynamic
+                      from $ decode-map-as (&map:get segment :from) (:: 'List 'Number)
+                      to $ decode-map-as (&map:get segment :to) (:: 'List 'Number)
                       direction $ &v- to from
-                      color-idx $ either (&map:get item :color-index) 0
-                      width $ either (&map:get item :width) w0
+                      color-idx $ either (&map:get segment :color-index) 0
+                      width $ either (&map:get segment :width) w0
                     []
                       {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
                       {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
@@ -2331,7 +2394,7 @@
         'comp-segments-curves $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-segments-curves (options)
             let
-                curves $ unsafe-coerce
+                curves $ decode-map-as
                   either (&map:get options :curves) ([])
                   :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
               object $ {}
@@ -2554,8 +2617,8 @@
                     :args $ [] 'Number $ :: 'Map 'Tag 'Dynamic
                     :return $ :: 'Map 'Tag 'Dynamic
                   let
-                      key $ unsafe-coerce (&map:get entry :key) 'Tag
-                      position $ &v+ base-position $ unsafe-coerce (&map:get entry :position) (:: 'List 'Number)
+                      key $ decode-map-as (&map:get entry :key) 'Tag
+                      position $ &v+ base-position $ decode-map-as (&map:get entry :position) (:: 'List 'Number)
                       geo dice-shape-points
                       indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                     group ({})
@@ -2568,7 +2631,15 @@
                             &v+ position
                         :indices indices
                         :hit-region $ {} (:position position) (:radius 20)
-                          :on-hit $ fn (e d!) (on-click key d!)
+                          :on-hit $ fn (e d!)
+                            hint-fn $ {}
+                              :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                                {}
+                                  :args $ [] 'Dynamic 'Dynamic
+                                  :return 'Unit
+                              :return 'Unit
+                              :features $ #{} :js-ffi
+                            on-click key d!
                         :attributes $ {} $ :color_index
                           repeat
                             if
@@ -2585,7 +2656,15 @@
                           :hit-region $ {}
                             :position $ &v+ position $ [] 30 10 0
                             :radius 20
-                            :on-hit $ fn (e d!) (on-click key d!)
+                            :on-hit $ fn (e d!)
+                              hint-fn $ {}
+                                :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                                  {}
+                                    :args $ [] 'Dynamic 'Dynamic
+                                    :return 'Unit
+                                :return 'Unit
+                                :features $ #{} :js-ffi
+                              on-click key d!
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ []
@@ -2627,7 +2706,7 @@
                 field $ str vs &newline |@@@@@@ &newline fs
               if (&map:contains? caches field) (&map:get caches field)
                 let
-                    program $ twgl/createProgramInfo gl
+                    program $ js-ffi.contract/expect-object |twgl.createProgramInfo $ twgl/createProgramInfo gl
                       js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
                       &js-object :errorCallback $ fn (msg)
                         if (non-nil? msg) (hud! |error msg)
@@ -2712,9 +2791,9 @@
         'replace-fragment-shader $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replace-fragment-shader (fs)
             let
-                colors-replaced $ unsafe-coerce (.!replace fs |{{triadica_colors}} glsl-colors-code) 'String
-                noises-replaced $ unsafe-coerce (.!replace colors-replaced |{{triadica_noises}} glsl-noises-code) 'String
-              unsafe-coerce (.!replace noises-replaced |{{triadica_hsluv}} glsl-hsluv-code) 'String
+                colors-replaced $ js-ffi.contract/expect-string |shader.replace $ .!replace fs |{{triadica_colors}} glsl-colors-code
+                noises-replaced $ js-ffi.contract/expect-string |shader.replace $ .!replace colors-replaced |{{triadica_noises}} glsl-noises-code
+              js-ffi.contract/expect-string |shader.replace $ .!replace noises-replaced |{{triadica_hsluv}} glsl-hsluv-code
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] 'String
@@ -2722,9 +2801,9 @@
         'replace-vertex-shader $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn replace-vertex-shader (vs)
             let
-                perspective-replaced $ unsafe-coerce (.!replace vs |{{triadica_perspective}} glsl-perspective-code) 'String
-                noises-replaced $ unsafe-coerce (.!replace perspective-replaced |{{triadica_noises}} glsl-noises-code) 'String
-              unsafe-coerce (.!replace noises-replaced |{{triadica_rotation}} glsl-rotation-code) 'String
+                perspective-replaced $ js-ffi.contract/expect-string |shader.replace $ .!replace vs |{{triadica_perspective}} glsl-perspective-code
+                noises-replaced $ js-ffi.contract/expect-string |shader.replace $ .!replace perspective-replaced |{{triadica_noises}} glsl-noises-code
+              js-ffi.contract/expect-string |shader.replace $ .!replace noises-replaced |{{triadica_rotation}} glsl-rotation-code
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] 'String
@@ -2758,11 +2837,11 @@
             let
                 cursor-raw $ &map:get states :cursor
                 parent-cursor $ if (list? cursor-raw)
-                  unsafe-coerce cursor-raw $ :: 'List 'Tag
+                  decode-map-as cursor-raw $ :: 'List 'Tag
                   assert-type ([]) (:: 'List 'Tag)
                 branch-raw $ &map:get states k
                 branch $ if (map? branch-raw)
-                  unsafe-coerce branch-raw $ :: 'Map 'Tag 'Dynamic
+                  decode-map-as branch-raw $ :: 'Map 'Tag 'Dynamic
                   {}
               assoc branch :cursor $ conj parent-cursor k
           :examples $ []
@@ -2895,11 +2974,9 @@
           :code $ quote $ defn create-attribute-array (points)
             let
                 p0 $ .unwrap-or (.first points) ([])
-                pps $ unsafe-coerce (&list:flatten points) (:: 'List 'Number)
+                pps $ decode-map-as (&list:flatten points) (:: 'List 'Number)
                 num $ count p0
-                position-array $ unsafe-coerce
-                  .!createAugmentedTypedArray twgl/primitives num $ count points
-                  , 'JsObject
+                position-array $ expect-object |twgl.createAugmentedTypedArray $ .!createAugmentedTypedArray twgl/primitives num (count points)
               map-indexed pps $ fn (idx x)
                 hint-fn $ {}
                   :args $ [] 'Number 'Number
@@ -2953,7 +3030,7 @@
             let
                 value $ &map:get source key
               if (map? value)
-                unsafe-coerce value $ :: 'Map 'Tag 'Dynamic
+                decode-map-as value $ :: 'Map 'Tag 'Dynamic
                 {}
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -3056,26 +3133,23 @@
                   :: 'Ref $ :: 'List 'HitTarget
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
-                  do
-                    let
-                        region $ dynamic-map-field obj :hit-region
-                        on-hit $ &map:get region :on-hit
-                      when (fn? on-hit)
-                        let
-                            mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
-                            screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
-                            r $ &list:nth mapped-position 2
-                            mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
-                              &/ (inc back-cone-scale) (&+ r back-cone-scale)
-                            distance $ c-distance screen-position $ [] x y
-                          if
-                            and
-                              <= distance $ &max touch-deviation mapped-radius
-                              noted |visible-at-front $ > r $ * -0.8 back-cone-scale
-                            swap! *hit-targets-buffer conj $ %{} HitTarget (:distance r)
-                              :handler $ event-handler on-hit
-                              :coord $ Option :none
-                    , &unit
+                  let
+                      region $ dynamic-map-field obj :hit-region
+                      on-hit $ &map:get region :on-hit
+                    when (fn? on-hit)
+                      let
+                          mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
+                          screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
+                          r $ &list:nth mapped-position 2
+                          mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
+                            &/ (inc back-cone-scale) (&+ r back-cone-scale)
+                          distance $ c-distance screen-position $ [] x y
+                        if
+                          and
+                            <= distance $ &max touch-deviation mapped-radius
+                            noted |visible-at-front $ > r $ * -0.8 back-cone-scale
+                          swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-hit) :coord $ Option :none
+                  , &unit
               match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
                 (:some nearest)
@@ -3101,26 +3175,23 @@
                   :: 'Ref $ :: 'List 'HitTarget
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
-                  do
-                    let
-                        region $ dynamic-map-field obj :hit-region
-                        on-mousedown $ &map:get region :on-mousedown
-                      when (fn? on-mousedown)
-                        let
-                            mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
-                            screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
-                            r $ &list:nth mapped-position 2
-                            mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
-                              &/ (inc back-cone-scale) (&+ r back-cone-scale)
-                            distance $ c-distance screen-position $ [] x y
-                          if
-                            and
-                              <= distance $ &max touch-deviation mapped-radius
-                              noted |visible-at-front $ > r $ * -0.8 back-cone-scale
-                            swap! *hit-targets-buffer conj $ %{} HitTarget (:distance r)
-                              :handler $ event-handler on-mousedown
-                              :coord $ Option :some coord
-                    , &unit
+                  let
+                      region $ dynamic-map-field obj :hit-region
+                      on-mousedown $ &map:get region :on-mousedown
+                    when (fn? on-mousedown)
+                      let
+                          mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
+                          screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
+                          r $ &list:nth mapped-position 2
+                          mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
+                            &/ (inc back-cone-scale) (&+ r back-cone-scale)
+                          distance $ c-distance screen-position $ [] x y
+                        if
+                          and
+                            <= distance $ &max touch-deviation mapped-radius
+                            noted |visible-at-front $ > r $ * -0.8 back-cone-scale
+                          swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-mousedown) :coord $ Option :some coord
+                  , &unit
               match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
                 (:some nearest)
@@ -3135,11 +3206,36 @@
             :features $ #{} :js-ffi
         'handle-screen-mousemove! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mousemove! (event)
-            do
-              let
-                  paths @*mouse-holding-paths
-                if
-                  not $ empty? paths
+            let
+                paths @*mouse-holding-paths
+              if
+                not $ empty? paths
+                &doseq (p paths)
+                  do
+                    match (load-tree-node @*objects-tree p)
+                      (:none) &unit
+                      (:some node)
+                        do
+                          when
+                            = :object $ dynamic-tag-field node :type :unknown
+                            let
+                                region $ dynamic-map-field node :hit-region
+                                on-move $ &map:get region :on-mousemove
+                              when (fn? on-move)
+                                (event-handler on-move) event @*proxied-dispatch
+                          , &unit
+                    , &unit
+            , &unit
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'js-ffi.browser/MouseEventHost
+            :features $ #{} :js-ffi
+        'handle-screen-mouseup! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn handle-screen-mouseup! (event)
+            let
+                paths @*mouse-holding-paths
+              if-not (empty? paths)
+                do
                   &doseq (p paths)
                     do
                       match (load-tree-node @*objects-tree p)
@@ -3150,40 +3246,13 @@
                               = :object $ dynamic-tag-field node :type :unknown
                               let
                                   region $ dynamic-map-field node :hit-region
-                                  on-move $ &map:get region :on-mousemove
-                                when (fn? on-move)
-                                  (event-handler on-move) event @*proxied-dispatch
+                                  on-up $ &map:get region :on-mouseup
+                                when (fn? on-up)
+                                  (event-handler on-up) event @*proxied-dispatch
                             , &unit
                       , &unit
-              , &unit
-          :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'js-ffi.browser/MouseEventHost
-            :features $ #{} :js-ffi
-        'handle-screen-mouseup! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn handle-screen-mouseup! (event)
-            do
-              let
-                  paths @*mouse-holding-paths
-                if-not (empty? paths)
-                  do
-                    &doseq (p paths)
-                      do
-                        match (load-tree-node @*objects-tree p)
-                          (:none) &unit
-                          (:some node)
-                            do
-                              when
-                                = :object $ dynamic-tag-field node :type :unknown
-                                let
-                                    region $ dynamic-map-field node :hit-region
-                                    on-up $ &map:get region :on-mouseup
-                                  when (fn? on-up)
-                                    (event-handler on-up) event @*proxied-dispatch
-                              , &unit
-                        , &unit
-                    reset! *mouse-holding-paths $ []
-              , &unit
+                  reset! *mouse-holding-paths $ []
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'js-ffi.browser/MouseEventHost
@@ -3237,9 +3306,9 @@
                 and (contains? b :buffer)
                   &= ([] w h)
                     unsafe-coerce (&map:get b :size) (:: 'List 'Number)
-                unsafe-coerce (&map:get b :buffer) 'JsObject
+                js-ffi.contract/expect-object |framebuffer.cache $ &map:get b :buffer
                 let
-                    f $ twgl/createFramebufferInfo gl
+                    f $ js-ffi.contract/expect-object |twgl.createFramebufferInfo $ twgl/createFramebufferInfo gl
                   reset! *fb-ref $ Option :some $ {} (:buffer f)
                     :size $ [] w h
                   , f
@@ -3254,7 +3323,7 @@
             if (empty? path) (Option :some tree)
               let
                   children $ scene-children tree
-                  idx $ assert-type (&list:first path) 'Number
+                  idx $ option:unwrap $ .first path
                 if
                   and (>= idx 0)
                     < idx $ count children
@@ -3274,8 +3343,8 @@
               true $ raise "|unknown data to write to augmented array"
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] (:: 'List 'Dynamic)
-              :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Dynamic $ :: 'Fn
+              {} (:return 'Unit)
                 :args $ [] 'Number
             :features $ #{} :js-ffi
         'object-uniforms $ %{} 'CodeEntry (:doc |)
@@ -3299,44 +3368,43 @@
             :features $ #{} :js-ffi
         'on-control-event $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-control-event (elapsed states delta)
-            do
-              let
-                  l-move $ map (:left-move states) refine-strength
-                  r-move $ map (:right-move states) refine-strength
-                  r-delta $ :right-move delta
-                  l-delta $ :left-move delta
-                  left-a? $ :left-a? states
-                  right-a? $ or (:right-a? states) (:shift? states)
-                  right-b? $ :right-b? states
-                  left-b? $ :left-b? states
-                ; println |L l-move |R r-move
-                when
-                  not= 0 $ &list:nth l-move 1
-                  move-viewer-by! 0 0 $ negate $ * 2 elapsed (&list:nth l-move 1)
-                when
-                  not= 0 $ &list:nth l-move 0
-                  rotate-glance-by!
-                    * -0.05 elapsed $ &list:nth l-move 0
-                    , 0
-                when
-                  and (not right-a?)
-                    not= ([] 0 0) r-move
-                  move-viewer-by!
-                    * 2 elapsed $ &list:nth r-move 0
-                    * 2 elapsed $ &list:nth r-move 1
-                    , 0
-                when
-                  and right-a? $ not= 0 $ &list:nth r-move 1
-                  rotate-glance-by! 0 $ * 0.05 (&list:nth r-move 1) elapsed
-                when
-                  and right-a? $ not= 0 $ &list:nth r-move 0
-                  spin-glance-by! $ * -0.05 (&list:nth r-move 0) elapsed
-                when
-                  or
-                    not= l-move $ [] 0 0
-                    not= r-move $ [] 0 0
-                  paint-canvas!
-              , &unit
+            let
+                l-move $ map (:left-move states) refine-strength
+                r-move $ map (:right-move states) refine-strength
+                r-delta $ :right-move delta
+                l-delta $ :left-move delta
+                left-a? $ :left-a? states
+                right-a? $ or (:right-a? states) (:shift? states)
+                right-b? $ :right-b? states
+                left-b? $ :left-b? states
+              ; println |L l-move |R r-move
+              when
+                not= 0 $ &list:nth l-move 1
+                move-viewer-by! 0 0 $ negate $ * 2 elapsed (&list:nth l-move 1)
+              when
+                not= 0 $ &list:nth l-move 0
+                rotate-glance-by!
+                  * -0.05 elapsed $ &list:nth l-move 0
+                  , 0
+              when
+                and (not right-a?)
+                  not= ([] 0 0) r-move
+                move-viewer-by!
+                  * 2 elapsed $ &list:nth r-move 0
+                  * 2 elapsed $ &list:nth r-move 1
+                  , 0
+              when
+                and right-a? $ not= 0 $ &list:nth r-move 1
+                rotate-glance-by! 0 $ * 0.05 (&list:nth r-move 1) elapsed
+              when
+                and right-a? $ not= 0 $ &list:nth r-move 0
+                spin-glance-by! $ * -0.05 (&list:nth r-move 0) elapsed
+              when
+                or
+                  not= l-move $ [] 0 0
+                  not= r-move $ [] 0 0
+                paint-canvas!
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Number 'touch-control.core/ControlState 'touch-control.core/ControlDelta
@@ -3360,7 +3428,15 @@
                       look-at $ new-lookat-point
                       forward $ v-normalize look-at
                       rightward $ v-cross forward @*viewer-upward
-                      uniforms $ &js-object :lookDistance (v-length look-at) :forward (js-array & forward) :upward (js-array & @*viewer-upward) :rightward (js-array & rightward) :cameraPosition (js-array & @*viewer-position) :coneBackScale back-cone-scale :viewportRatio $ &/ (window-number js/window.innerHeight 1) (window-number js/window.innerWidth 1)
+                      uniforms $ &js-object :lookDistance (v-length look-at) :forward
+                        to-js-data forward $ {} $ :js-array true
+                        , :upward
+                          to-js-data @*viewer-upward $ {} $ :js-array true
+                          , :rightward
+                            to-js-data rightward $ {} $ :js-array true
+                            , :cameraPosition
+                              to-js-data @*viewer-position $ {} $ :js-array true
+                              , :coneBackScale back-cone-scale :viewportRatio $ &/ (window-number js/window.innerHeight 1) (window-number js/window.innerWidth 1)
                       draw-fb $ load-sized-buffer! gl *draw-fb scaled-width scaled-height
                       effect-x-fb $ load-sized-buffer! gl *effect-x-fb scaled-width scaled-height
                       effect-y-fb $ load-sized-buffer! gl *effect-y-fb scaled-width scaled-height
@@ -3405,8 +3481,8 @@
                         mix-program $ cached-build-program gl (inline-shader |effect-mix.vert) (inline-shader |effect-mix.frag)
                         uv-settings $ &js-object :position $ create-attribute-array
                           [] ([] -1 -1) ([] 1 -1) ([] 1 1) ([] -1 -1) ([] -1 1) ([] 1 1)
-                        effect-x-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
-                        mix-buffer-info $ twgl/createBufferInfoFromArrays gl uv-settings
+                        effect-x-buffer-info $ expect-object |post-effect.buffer $ twgl/createBufferInfoFromArrays gl uv-settings
+                        mix-buffer-info $ expect-object |post-effect.buffer $ twgl/createBufferInfoFromArrays gl uv-settings
                       let
                           host $ unsafe-coerce gl 'triadica.core/WebGLDrawHost
                         host .disable! $ host-number-field |gl.DEPTH_TEST gl |DEPTH_TEST
@@ -3462,7 +3538,7 @@
             let
                 children $ &map:get tree :children
               if (list? children)
-                unsafe-coerce children $ :: 'List $ :: 'Map 'Tag 'Dynamic
+                decode-map-as children $ :: 'List $ :: 'Map 'Tag 'Dynamic
                 []
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -3492,6 +3568,7 @@
             set! (.-onpointermove canvas) handle-screen-mousemove!
             set! (.-onpointerup canvas) handle-screen-mouseup!
             set! (.-onpointerleave canvas) handle-screen-mouseup!
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'js-ffi.browser/DomElementHost
@@ -3523,9 +3600,13 @@
         'update-states $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn update-states (store pair)
             let
-                cursor $ unsafe-coerce (&list:nth pair 0) (:: 'List 'Tag)
+                cursor $ decode-map-as (&list:nth pair 0) (:: 'List 'Tag)
                 new-state $ &list:nth pair 1
-              assoc-in store ([] :states & cursor :data) new-state
+              decode-map-as
+                assoc-in store
+                  concat ([] :states) cursor $ [] :data
+                  , new-state
+                :: 'Map 'Tag 'Dynamic
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'Dynamic)
@@ -3650,8 +3731,8 @@
                   , total
                 t $ sqrt $ &- 1 (&* z z)
                 t2 $ * 2 &PI n phi
-                x $ &* t $ unsafe-coerce (js/Math.cos t2) 'Number
-                y $ &* t $ unsafe-coerce (js/Math.sin t2) 'Number
+                x $ &* t $ cos t2
+                y $ &* t $ sin t2
               [] x y z
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -3676,9 +3757,12 @@
           :code $ quote $ defn rotate-3d-fn (origin axis angle)
             let
                 axis-0 $ v-normalize axis
-                cos-d $ unsafe-coerce (js/Math.cos angle) 'Number
-                sin-d $ unsafe-coerce (js/Math.sin angle) 'Number
+                cos-d $ cos angle
+                sin-d $ sin angle
               defn rotate-3d-apply (p)
+                hint-fn $ {}
+                  :args $ [] $ :: 'List 'Number
+                  :return $ :: 'List 'Number
                 let
                     p-v $ &v- p origin
                     h $ v-dot axis-0 p-v
@@ -3753,19 +3837,19 @@
                   upward @*viewer-upward
                   rightward $ v-cross upward forward
                 reset! *viewer-forward $ &v+
-                  v-scale forward $ unsafe-coerce (js/Math.cos da) 'Number
-                  v-scale rightward $ unsafe-coerce (js/Math.sin da) 'Number
+                  v-scale forward $ cos da
+                  v-scale rightward $ sin da
             if (not= y 0)
               let
                   da $ * y 0.1
                   forward @*viewer-forward
                   upward @*viewer-upward
                 reset! *viewer-forward $ &v+
-                  v-scale forward $ unsafe-coerce (js/Math.cos da) 'Number
-                  v-scale upward $ unsafe-coerce (js/Math.sin da) 'Number
+                  v-scale forward $ cos da
+                  v-scale upward $ sin da
                 reset! *viewer-upward $ &v+
-                  v-scale upward $ unsafe-coerce (js/Math.cos da) 'Number
-                  v-scale forward $ negate $ unsafe-coerce (js/Math.sin da) 'Number
+                  v-scale upward $ cos da
+                  v-scale forward $ negate $ sin da
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -3780,8 +3864,8 @@
                   upward @*viewer-upward
                   rightward $ v-cross upward forward
                 reset! *viewer-upward $ &v+
-                  v-scale upward $ unsafe-coerce (js/Math.cos da) 'Number
-                  v-scale rightward $ unsafe-coerce (js/Math.sin da) 'Number
+                  v-scale upward $ cos da
+                  v-scale rightward $ sin da
             , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
