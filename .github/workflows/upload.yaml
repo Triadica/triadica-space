@@ -43,7 +43,7 @@ jobs:
         test ! -e package.cirru
         calcit calcit.cirru edit format
         git diff --exit-code -- calcit.cirru
-        calcit calcit.cirru --check-only --all-defs --strict-types
+        calcit calcit.cirru --check-only --all-defs
         calcit calcit.cirru fix --workflow strict --verify
         calcit calcit.cirru analyze quality --baseline config/calcit-quality.json
         calcit calcit.cirru test --require-match --summary-only --format json

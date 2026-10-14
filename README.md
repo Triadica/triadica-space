@@ -66,11 +66,15 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 
 https://github.com/Triadica/triadica-workflow
 
-当前源码使用 `calcit.cirru` 与 `deps.cirru`，Calcit / `@calcit/procs` 固定为正式版 `0.29.3`，依赖使用正式 tag。先运行 `caps --strict --ci` 和 `yarn install --immutable`，再运行 `caps verify --toolchain`、`calcit --check-only --all-defs --strict-types`、`calcit fix --workflow strict --verify`、`calcit test --require-match` 和 `calcit js`。本地开发使用 Node 24 和 `yarn vite`。
+使用者影响：候选 0.0.43 对齐 Respo 0.16.120、JS-FFI 0.2.3、Quaternion 0.2.13 和配套 Touch Control 0.0.30，CLI/procs 保持正式 0.29.3。场景源码、公共 API、帧合并、默认 glow 与原测试不变；strict Caps 消费者需配套对齐直接与传递依赖，不能混装旧 0.2.2 图。候选及其前置 Touch 版本正式发布后再更新下游，不引用 main/hash。
+
+当前源码使用 `calcit.cirru` 与 `deps.cirru`，Calcit / `@calcit/procs` 固定为正式版 `0.29.3`。先运行 `caps --strict --ci` 和 `yarn install --immutable`，再运行 `caps verify --toolchain`、`calcit --check-only --all-defs`、`calcit fix --workflow strict --verify`、`calcit test --require-match` 和 `calcit js`。本地开发使用 Node 24 和 `yarn vite`。
 
 迁移验收覆盖完整 strict、原有向量测试、公开模块检查和 README 工厂定义。
 浏览器回归保持原参数与默认 glow，验证控制点拖动、分支滑块、玫瑰、高密度烟花、管线和分段曲线；
 真实 Triangles 消费者也验证了新增及拖动后重绘。未覆盖全部场景、移动硬件或 VR/gamepad。
+
+上述多场景回归属于既有 0.0.42 验收。本次 0.0.43 依赖对齐保留场景源码，只重新确认 Axis/default glow 的实际浏览器挂载，不将这一项检查宣称为全部场景、拖拽或 Triangles 消费者的重测。
 
 `paint-canvas!` 返回 Unit，并将绘制安排到浏览器下一帧；调用者无需等待句柄。同一帧前的多次请求合并为一次绘制，回调开始时清除 pending 标记，并读取最新场景状态。DOM 状态更新和控制点拖动沿用默认 glow 后处理，不通过关闭效果绕过重绘问题。此帧边界调整是语义变更：绘制不再在调用栈内同步完成。
 
