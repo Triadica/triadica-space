@@ -22,9 +22,9 @@ invoke WebGL in the native process.
 
 ```cirru
 ns example.scene $ :require
-  triadica.alias :refer $ [] object
-  triadica.config :refer $ [] inline-shader
-  triadica.vector :refer $ [] &v+
+  triadica.alias :refer $ object
+  triadica.config :refer $ inline-shader
+  triadica.vector :refer $ &v+
 
 defn make-example-object ()
   hint-fn $ {}
@@ -65,6 +65,25 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 ### Workflow
 
 https://github.com/Triadica/triadica-workflow
+
+### 0.30.1 迁移工作分支（尚未完成）
+
+CLI/procs 已配对到已发布的 `0.30.1-alpha.4`（预发布），正式模块依赖同步至
+Touch Control 0.0.31、Respo 0.16.122、Quaternion 0.2.14 和 JS-FFI 0.2.3。
+已迁移 87 处低层 Map 读取与 55 处 List 索引，保留缺失、Some nil、false、0 和越界抛错，
+不新增业务默认值；另修正 Spin City 的两处未解包数值。全定义检查 254/254（含依赖）、
+公开 API 131 个定义、strict、6 个原有/直接回归、README 工厂、JS 生成及生产构建通过。
+真实浏览器覆盖 Axis、Spin City、管线、喷泉、玫瑰、分段曲线、控制点拖动和分支滑块；默认 glow 保留。
+纯 List 使用受检 decoder，WebGL/DOM 使用现有 external-object trait 的形状检查，返回宿主对象
+使用正式 `expect-object`。同一帧复用已有 gl-host，不重复转型；uniform 函数在 `fn?` 分支直接调用。
+源码 unsafe 从正式 0.0.43 的 16 处降到 1 处，仅保留事件回调签名的显式信任边界；形状检查不代表深层字段值已验证。
+旧 quality 基线仍报失败：显式保留旧 nullable 行为被计为新增 nil；未放宽或跳过，尚待逐项审阅。
+下游 workflow 的候选源码图已通过 141/141 检查、strict、构建及真实浏览器波形挂载；已恢复正式依赖图。
+正式 tag 消费者验收仍待发版，本分支不能作为正式依赖；这些结果不等于全部场景或设备覆盖。
+跟踪 [#64](https://github.com/Triadica/triadica-space/issues/64)。以下为 0.0.43 的历史验收记录，
+不表示本轮已经通过；默认 glow 和原帧调度语义保持不变。
+
+### 已发布 0.0.43 的历史说明
 
 使用者影响：候选 0.0.43 对齐 Respo 0.16.120、JS-FFI 0.2.3、Quaternion 0.2.13 和配套 Touch Control 0.0.30，CLI/procs 保持正式 0.29.3。场景源码、公共 API、帧合并、默认 glow 与原测试不变；strict Caps 消费者需配套对齐直接与传递依赖，不能混装旧 0.2.2 图。候选及其前置 Touch 版本正式发布后再更新下游，不引用 main/hash。
 
