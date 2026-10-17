@@ -66,6 +66,18 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 
 https://github.com/Triadica/triadica-workflow
 
+### 0.30.1 迁移工作分支（尚未完成）
+
+CLI/procs 已配对到已发布的 `0.30.1-alpha.4`（预发布），正式模块依赖同步至
+Touch Control 0.0.31、Respo 0.16.122、Quaternion 0.2.14 和 JS-FFI 0.2.3。
+当前仅完成第一批字段/缓存读取迁移：显式处理 Option，保留缺失、Some nil、false、0 的区别，
+不新增业务默认值。原有 3 个测试和 1 个直接回归通过；完整公开检查仍有几何属性/索引及其他读取
+待迁移，strict、浏览器和真实消费者尚未验收。此分支不能发版或作为 workflow 的正式依赖。
+跟踪 [#64](https://github.com/Triadica/triadica-space/issues/64)。以下为 0.0.43 的历史验收记录，
+不表示本轮已经通过；默认 glow 和原帧调度语义保持不变。
+
+### 已发布 0.0.43 的历史说明
+
 使用者影响：候选 0.0.43 对齐 Respo 0.16.120、JS-FFI 0.2.3、Quaternion 0.2.13 和配套 Touch Control 0.0.30，CLI/procs 保持正式 0.29.3。场景源码、公共 API、帧合并、默认 glow 与原测试不变；strict Caps 消费者需配套对齐直接与传递依赖，不能混装旧 0.2.2 图。候选及其前置 Touch 版本正式发布后再更新下游，不引用 main/hash。
 
 当前源码使用 `calcit.cirru` 与 `deps.cirru`，Calcit / `@calcit/procs` 固定为正式版 `0.29.3`。先运行 `caps --strict --ci` 和 `yarn install --immutable`，再运行 `caps verify --toolchain`、`calcit --check-only --all-defs`、`calcit fix --workflow strict --verify`、`calcit test --require-match` 和 `calcit js`。本地开发使用 Node 24 和 `yarn vite`。

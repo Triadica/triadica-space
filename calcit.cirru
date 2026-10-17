@@ -46,14 +46,14 @@
                     ret $ let
                         ret $ &js-object
                       let
-                          raw-points $ &map:get options :points
+                          raw-points $ .unwrap-or (get options :points) nil
                         when (list? raw-points)
                           let
                               points $ decode-map-as raw-points $ :: 'List (:: 'List 'Number)
                               position-key |position
                             aset ret position-key $ create-attribute-array points
                       let
-                          raw-indices $ &map:get options :indices
+                          raw-indices $ .unwrap-or (get options :indices) nil
                         when (list? raw-indices)
                           let
                               ys $ decode-map-as raw-indices $ :: 'List 'Number
@@ -62,7 +62,7 @@
                       , ret
                     attrs $ decode-map-as
                       let
-                          raw $ &map:get options :attributes
+                          raw $ .unwrap-or (get options :attributes) nil
                         if (map? raw) raw $ {}
                       :: 'Map 'Tag $ :: 'List 'Number
                   if-not (empty? attrs)
@@ -72,7 +72,7 @@
                         create-scalar-attribute-array $ .unwrap $ get attrs key
                   , ret
               let
-                  raw $ &map:get options :packed-attrs
+                  raw $ .unwrap-or (get options :packed-attrs) nil
                 when (list? raw)
                   when (empty? raw) (js/console.error options) (raise |expected-data-in-packed-attributes)
                   let
@@ -2704,7 +2704,8 @@
             let
                 caches @*shader-programs
                 field $ str vs &newline |@@@@@@ &newline fs
-              if (&map:contains? caches field) (&map:get caches field)
+              if (&map:contains? caches field)
+                .unwrap $ get caches field
                 let
                     program $ js-ffi.contract/expect-object |twgl.createProgramInfo $ twgl/createProgramInfo gl
                       js-array (replace-vertex-shader vs) (replace-fragment-shader fs)
@@ -3007,19 +3008,21 @@
             :features $ #{} :js-ffi
         'dynamic-bool-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-bool-field (source key fallback)
-            let
-                value $ &map:get source key
-              if (bool? value) value fallback
+            match (get source key)
+              (:some value)
+                if (bool? value) value fallback
+              (:none) fallback
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Bool)
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag 'Bool
         'dynamic-list-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-list-field (source key)
-            let
-                value $ &map:get source key
-              if (list? value)
-                unsafe-coerce value $ :: 'List 'Dynamic
-                []
+            match (get source key)
+              (:some value)
+                if (list? value)
+                  decode-map-as value $ :: 'List 'Dynamic
+                  []
+              (:none) ([])
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag
@@ -3027,11 +3030,12 @@
             :return $ :: 'List 'Dynamic
         'dynamic-map-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-map-field (source key)
-            let
-                value $ &map:get source key
-              if (map? value)
-                decode-map-as value $ :: 'Map 'Tag 'Dynamic
-                {}
+            match (get source key)
+              (:some value)
+                if (map? value)
+                  decode-map-as value $ :: 'Map 'Tag 'Dynamic
+                  {}
+              (:none) ({})
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag
@@ -3039,18 +3043,32 @@
             :return $ :: 'Map 'Tag 'Dynamic
         'dynamic-number-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-number-field (source key fallback)
-            let
-                value $ &map:get source key
-              if (number? value) value fallback
+            match (get source key)
+              (:some value)
+                if (number? value) value fallback
+              (:none) fallback
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Number)
             :args $ [] (:: 'Map 'Tag 'V) 'Tag 'Number
             :generics $ [] 'V
+          :tests $ [] $ %{} 'TestEntry (:name |preserves-optional-field-values)
+            :code $ quote $ do
+              assert= 9 $ dynamic-number-field ({}) :v 9
+              assert= 0 $ dynamic-number-field
+                {} $ :v 0
+                , :v 9
+              assert= 9 $ dynamic-number-field
+                {} $ :v nil
+                , :v 9
+              assert= false $ dynamic-bool-field
+                {} $ :v false
+                , :v true
         'dynamic-number-list-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-number-list-field (source key fallback)
-            let
-                value $ &map:get source key
-              if (list? value) (triadica.vector/expect-number-list value) fallback
+            match (get source key)
+              (:some value)
+                if (list? value) (triadica.vector/expect-number-list value) fallback
+              (:none) fallback
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag $ :: 'List 'Number
@@ -3058,9 +3076,10 @@
             :return $ :: 'List 'Number
         'dynamic-tag-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-tag-field (source key fallback)
-            let
-                value $ &map:get source key
-              if (tag? value) value fallback
+            match (get source key)
+              (:some value)
+                if (tag? value) value fallback
+              (:none) fallback
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Tag)
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag 'Tag
@@ -3350,7 +3369,7 @@
         'object-uniforms $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn object-uniforms (object uniforms)
             let
-                get-u $ &map:get object :get-uniforms
+                get-u $ .unwrap-or (get object :get-uniforms) nil
                 provider $ unsafe-coerce get-u $ :: 'Fn
                   {}
                     :args $ []
@@ -3535,11 +3554,12 @@
             :features $ #{} :js-ffi
         'scene-children $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-children (tree)
-            let
-                children $ &map:get tree :children
-              if (list? children)
-                decode-map-as children $ :: 'List $ :: 'Map 'Tag 'Dynamic
-                []
+            match (get tree :children)
+              (:some children)
+                if (list? children)
+                  decode-map-as children $ :: 'List $ :: 'Map 'Tag 'Dynamic
+                  []
+              (:none) ([])
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] $ :: 'Map 'Tag 'Dynamic
@@ -3547,17 +3567,20 @@
             :return $ :: 'List $ :: 'Map 'Tag 'Dynamic
         'scene-draw-mode $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-draw-mode (object)
-            let
-                value $ &map:get object :draw-mode
-              if (tag? value) value :triangles
+            match (get object :draw-mode)
+              (:some value)
+                if (tag? value) value :triangles
+              (:none) :triangles
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Tag)
             :args $ [] $ :: 'Map 'Tag 'Dynamic
         'scene-string-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-string-field (object key)
-            let
-                value $ &map:get object key
-              if (string? value) value $ raise $ str-spaced |Expected-string-scene-field: key
+            match (get object key)
+              (:some value)
+                if (string? value) value $ raise $ str-spaced |Expected-string-scene-field: key
+              (:none)
+                raise $ str-spaced |Expected-string-scene-field: key
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] (:: 'Map 'Tag 'Dynamic) 'Tag
