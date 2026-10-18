@@ -8,13 +8,13 @@
   "metrics": {
     "typeNone": 0,
     "typeNotFull": 83,
-    "schemaDynamic": 52,
+    "schemaDynamic": 51,
     "codeDynamic": 0,
-    "codeNil": 5,
-    "unresolved": 57,
+    "codeNil": 11,
+    "unresolved": 62,
     "declaredOptional": 0,
     "deprecatedCalls": 0,
-    "unsafeCoerce": 89
+    "unsafeCoerce": 1
   },
   "definitions": {
     "triadica.alias/build-packed-attrs": {
@@ -26,7 +26,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     },
     "triadica.alias/group": {
       "typeNone": 0,
@@ -44,11 +44,11 @@
       "typeNotFull": 1,
       "schemaDynamic": 0,
       "codeDynamic": 0,
-      "codeNil": 1,
-      "unresolved": 1,
+      "codeNil": 0,
+      "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 5
+      "unsafeCoerce": 0
     },
     "triadica.alias/peek-packed-attrs": {
       "typeNone": 0,
@@ -59,7 +59,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     },
     "triadica.app.comp.branches/build-multiple-path": {
       "typeNone": 0,
@@ -70,7 +70,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 5
+      "unsafeCoerce": 0
     },
     "triadica.app.comp.branches/build-path": {
       "typeNone": 0,
@@ -81,7 +81,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 5
+      "unsafeCoerce": 0
     },
     "triadica.app.comp.branches/comp-branches": {
       "typeNone": 0,
@@ -114,7 +114,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.app.comp.fireworks/comp-bunch-fireworks": {
       "typeNone": 0,
@@ -224,7 +224,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 7
+      "unsafeCoerce": 0
     },
     "triadica.app.comp.line-wave/comp-line-wave": {
       "typeNone": 0,
@@ -312,7 +312,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.app.container/tab-entries": {
       "typeNone": 0,
@@ -345,7 +345,7 @@
       "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 3
+      "unsafeCoerce": 0
     },
     "triadica.app.shapes/bg-object": {
       "typeNone": 0,
@@ -477,7 +477,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     },
     "triadica.comp.bunch/comp-strip-light": {
       "typeNone": 0,
@@ -532,7 +532,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.comp.line/build-brush-points": {
       "typeNone": 0,
@@ -561,22 +561,22 @@
       "typeNotFull": 1,
       "schemaDynamic": 0,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 0,
+      "codeNil": 3,
+      "unresolved": 3,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 4
+      "unsafeCoerce": 0
     },
     "triadica.comp.line/comp-tube": {
       "typeNone": 0,
       "typeNotFull": 1,
       "schemaDynamic": 0,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 0,
+      "codeNil": 1,
+      "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 4
+      "unsafeCoerce": 0
     },
     "triadica.comp.segments/build-curve-points": {
       "typeNone": 0,
@@ -594,8 +594,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 2,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 2,
+      "codeNil": 1,
+      "unresolved": 3,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -605,11 +605,11 @@
       "typeNotFull": 1,
       "schemaDynamic": 0,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 0,
+      "codeNil": 1,
+      "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.comp.segments/traverse-lines": {
       "typeNone": 0,
@@ -620,15 +620,15 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.comp.stitch/comp-stitch": {
       "typeNone": 0,
       "typeNotFull": 1,
       "schemaDynamic": 0,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 0,
+      "codeNil": 1,
+      "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -653,7 +653,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 3
+      "unsafeCoerce": 0
     },
     "triadica.config/replace-fragment-shader": {
       "typeNone": 0,
@@ -664,7 +664,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 3
+      "unsafeCoerce": 0
     },
     "triadica.config/replace-vertex-shader": {
       "typeNone": 0,
@@ -675,7 +675,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 3
+      "unsafeCoerce": 0
     },
     "triadica.core/*draw-fb": {
       "typeNone": 0,
@@ -719,7 +719,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     },
     "triadica.core/blur-at-direction": {
       "typeNone": 0,
@@ -730,7 +730,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/clear-gl!": {
       "typeNone": 0,
@@ -741,7 +741,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/count-recursive": {
       "typeNone": 0,
@@ -752,7 +752,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/create-attribute-array": {
       "typeNone": 0,
@@ -763,7 +763,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     },
     "triadica.core/create-scalar-attribute-array": {
       "typeNone": 0,
@@ -774,7 +774,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/dynamic-bool-field": {
       "typeNone": 0,
@@ -796,7 +796,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/dynamic-map-field": {
       "typeNone": 0,
@@ -807,15 +807,15 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/dynamic-number-field": {
       "typeNone": 0,
       "typeNotFull": 1,
-      "schemaDynamic": 1,
+      "schemaDynamic": 0,
       "codeDynamic": 0,
       "codeNil": 0,
-      "unresolved": 1,
+      "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -829,7 +829,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/dynamic-tag-field": {
       "typeNone": 0,
@@ -869,8 +869,8 @@
       "typeNotFull": 1,
       "schemaDynamic": 0,
       "codeDynamic": 0,
-      "codeNil": 0,
-      "unresolved": 0,
+      "codeNil": 1,
+      "unresolved": 1,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
       "unsafeCoerce": 0
@@ -884,7 +884,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     },
     "triadica.core/load-tree-node": {
       "typeNone": 0,
@@ -913,11 +913,11 @@
       "typeNotFull": 1,
       "schemaDynamic": 0,
       "codeDynamic": 0,
-      "codeNil": 1,
-      "unresolved": 1,
+      "codeNil": 0,
+      "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 3
+      "unsafeCoerce": 0
     },
     "triadica.core/paint-canvas!": {
       "typeNone": 0,
@@ -928,7 +928,7 @@
       "unresolved": 2,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 3
+      "unsafeCoerce": 0
     },
     "triadica.core/scene-arrays": {
       "typeNone": 0,
@@ -939,7 +939,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/scene-children": {
       "typeNone": 0,
@@ -950,7 +950,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.core/scene-draw-mode": {
       "typeNone": 0,
@@ -994,7 +994,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.global/*objects-buffer": {
       "typeNone": 0,
@@ -1049,7 +1049,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 1
+      "unsafeCoerce": 0
     },
     "triadica.math/fibo-grid-n": {
       "typeNone": 0,
@@ -1060,7 +1060,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     },
     "triadica.math/rotate-3d-fn": {
       "typeNone": 0,
@@ -1071,7 +1071,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     },
     "triadica.perspective/rotate-glance-by!": {
       "typeNone": 0,
@@ -1082,7 +1082,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 6
+      "unsafeCoerce": 0
     },
     "triadica.perspective/spin-glance-by!": {
       "typeNone": 0,
@@ -1093,7 +1093,7 @@
       "unresolved": 0,
       "declaredOptional": 0,
       "deprecatedCalls": 0,
-      "unsafeCoerce": 2
+      "unsafeCoerce": 0
     }
   }
 }

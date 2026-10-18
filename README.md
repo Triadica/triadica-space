@@ -22,9 +22,9 @@ invoke WebGL in the native process.
 
 ```cirru
 ns example.scene $ :require
-  triadica.alias :refer $ [] object
-  triadica.config :refer $ [] inline-shader
-  triadica.vector :refer $ [] &v+
+  triadica.alias :refer $ object
+  triadica.config :refer $ inline-shader
+  triadica.vector :refer $ &v+
 
 defn make-example-object ()
   hint-fn $ {}
@@ -65,6 +65,38 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 ### Workflow
 
 https://github.com/Triadica/triadica-workflow
+
+### 0.30.1 迁移工作分支（尚未完成）
+
+CLI/procs 已配对到已发布的 `0.30.1-alpha.4`（预发布），正式模块依赖同步至
+Touch Control 0.0.31、Respo 0.16.122、Quaternion 0.2.14 和 JS-FFI 0.2.3。
+已迁移 87 处低层 Map 读取与 55 处 List 索引，保留缺失、Some nil、false、0 和越界抛错，
+不新增业务默认值；另修正 Spin City 的两处未解包数值。全定义检查 254/254（含依赖）、
+公开 API 131 个定义、strict、6 个原有/直接回归、README 工厂、JS 生成及生产构建通过。
+真实浏览器覆盖 Axis、Spin City、管线、喷泉、玫瑰、分段曲线、控制点拖动和分支滑块；默认 glow 保留。
+纯 List 使用受检 decoder，WebGL/DOM 使用现有 external-object trait 的形状检查，返回宿主对象
+使用正式 `expect-object`。同一帧复用已有 gl-host，不重复转型；uniform 函数在 `fn?` 分支直接调用。
+源码 unsafe 从正式 0.0.43 的 16 处降到 1 处，仅保留事件回调签名的显式信任边界；形状检查不代表深层字段值已验证。
+后续修复将冗余 nil 往返从 81 处降至 11 处：直接匹配 Option、解包构造不变量与必填字段、复用已有字段 decoder，并移除两处未使用的字段读取；没有新增集中返回 nil 的 helper。默认值仍惰性求值，Some nil 使用原默认值，false/0 保留。缺少必填几何字段会更早报错；缺少场景 `:type` 的警告明确显示 `missing :type`。
+
+经维护者明确授权，基线只迁移下表 8 个真实兼容边界，并将全局 unsafe 上限 89→1、其他定义 unsafe 上限清零。全局 codeNil 5→11、unresolved 57→62，同时收紧 schemaDynamic 52→51；其余预算不放宽，原 quality 门禁继续执行。
+
+| 定义 | 保留的 nullable 合同 | 计数 |
+| --- | --- | --- |
+| `comp-brush` | 可选 `brush1`/`brush2` 原公开参数及 `:get-uniforms` Map 字段 | 3 |
+| `comp-tube` | 保留 `:get-uniforms` 字段，缺失时仍为 nil | 1 |
+| `comp-segments` | 同上 | 1 |
+| `comp-segments-curves` | 同上 | 1 |
+| `comp-stitch` | 原可选 `:hit-region` Map 字段 | 1 |
+| `load-objects!` | 场景对象到绘制缓存的 `:get-uniforms` 字段 | 1 |
+
+这些值没有改成 Option、删键或新增业务默认值；不是整库 nil/类型债务清零。1 处 unsafe 仍只在已说明的事件回调签名边界。
+下游 workflow 的候选源码图已通过 141/141 检查、strict、构建及真实浏览器波形挂载；已恢复正式依赖图。
+正式 tag 消费者验收仍待发版，本分支不能作为正式依赖；这些结果不等于全部场景或设备覆盖。
+跟踪 [#64](https://github.com/Triadica/triadica-space/issues/64)。以下为 0.0.43 的历史验收记录，
+不表示本轮已经通过；默认 glow 和原帧调度语义保持不变。
+
+### 已发布 0.0.43 的历史说明
 
 使用者影响：候选 0.0.43 对齐 Respo 0.16.120、JS-FFI 0.2.3、Quaternion 0.2.13 和配套 Touch Control 0.0.30，CLI/procs 保持正式 0.29.3。场景源码、公共 API、帧合并、默认 glow 与原测试不变；strict Caps 消费者需配套对齐直接与传递依赖，不能混装旧 0.2.2 图。候选及其前置 Touch 版本正式发布后再更新下游，不引用 main/hash。
 
