@@ -77,7 +77,20 @@ Touch Control 0.0.31、Respo 0.16.122、Quaternion 0.2.14 和 JS-FFI 0.2.3。
 纯 List 使用受检 decoder，WebGL/DOM 使用现有 external-object trait 的形状检查，返回宿主对象
 使用正式 `expect-object`。同一帧复用已有 gl-host，不重复转型；uniform 函数在 `fn?` 分支直接调用。
 源码 unsafe 从正式 0.0.43 的 16 处降到 1 处，仅保留事件回调签名的显式信任边界；形状检查不代表深层字段值已验证。
-旧 quality 基线仍报失败：显式保留旧 nullable 行为被计为新增 nil；未放宽或跳过，尚待逐项审阅。
+后续修复将冗余 nil 往返从 81 处降至 11 处：直接匹配 Option、解包构造不变量与必填字段、复用已有字段 decoder，并移除两处未使用的字段读取；没有新增集中返回 nil 的 helper。默认值仍惰性求值，Some nil 使用原默认值，false/0 保留。缺少必填几何字段会更早报错；缺少场景 `:type` 的警告明确显示 `missing :type`。
+
+经维护者明确授权，基线只迁移下表 8 个真实兼容边界，并将全局 unsafe 上限 89→1、其他定义 unsafe 上限清零。全局 codeNil 5→11、unresolved 57→62，同时收紧 schemaDynamic 52→51；其余预算不放宽，原 quality 门禁继续执行。
+
+| 定义 | 保留的 nullable 合同 | 计数 |
+| --- | --- | --- |
+| `comp-brush` | 可选 `brush1`/`brush2` 原公开参数及 `:get-uniforms` Map 字段 | 3 |
+| `comp-tube` | 保留 `:get-uniforms` 字段，缺失时仍为 nil | 1 |
+| `comp-segments` | 同上 | 1 |
+| `comp-segments-curves` | 同上 | 1 |
+| `comp-stitch` | 原可选 `:hit-region` Map 字段 | 1 |
+| `load-objects!` | 场景对象到绘制缓存的 `:get-uniforms` 字段 | 1 |
+
+这些值没有改成 Option、删键或新增业务默认值；不是整库 nil/类型债务清零。1 处 unsafe 仍只在已说明的事件回调签名边界。
 下游 workflow 的候选源码图已通过 141/141 检查、strict、构建及真实浏览器波形挂载；已恢复正式依赖图。
 正式 tag 消费者验收仍待发版，本分支不能作为正式依赖；这些结果不等于全部场景或设备覆盖。
 跟踪 [#64](https://github.com/Triadica/triadica-space/issues/64)。以下为 0.0.43 的历史验收记录，

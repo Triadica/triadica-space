@@ -47,25 +47,32 @@
                 arrays $ let
                     ret $ let
                         ret $ &js-object
-                      let
-                          raw-points $ .unwrap-or (get options :points) nil
-                        when (list? raw-points)
-                          let
-                              points $ decode-map-as raw-points $ :: 'List (:: 'List 'Number)
-                              position-key |position
-                            aset ret position-key $ create-attribute-array points
-                      let
-                          raw-indices $ .unwrap-or (get options :indices) nil
-                        when (list? raw-indices)
-                          let
-                              ys $ decode-map-as raw-indices $ :: 'List 'Number
-                              indices-key |indices
-                            aset ret indices-key $ to-js-data ys $ {} (:js-array true)
+                      if-let
+                        raw-points $ get options :points
+                        do
+                          when (list? raw-points)
+                            let
+                                points $ decode-map-as raw-points $ :: 'List (:: 'List 'Number)
+                                position-key |position
+                              aset ret position-key $ create-attribute-array points
+                          , &unit
+                        , &unit
+                      if-let
+                        raw-indices $ get options :indices
+                        do
+                          when (list? raw-indices)
+                            let
+                                ys $ decode-map-as raw-indices $ :: 'List 'Number
+                                indices-key |indices
+                              aset ret indices-key $ to-js-data ys $ {} (:js-array true)
+                          , &unit
+                        , &unit
                       , ret
                     attrs $ decode-map-as
-                      let
-                          raw $ .unwrap-or (get options :attributes) nil
-                        if (map? raw) raw $ {}
+                      match (get options :attributes)
+                        (:some raw)
+                          if (map? raw) raw $ {}
+                        (:none) ({})
                       :: 'Map 'Tag $ :: 'List 'Number
                   if-not (empty? attrs)
                     &doseq
@@ -73,49 +80,52 @@
                       aset ret (to-string key)
                         create-scalar-attribute-array $ .unwrap $ get attrs key
                   , ret
-              let
-                  raw $ .unwrap-or (get options :packed-attrs) nil
-                when (list? raw)
-                  when (empty? raw) (js/console.error options) (raise |expected-data-in-packed-attributes)
-                  let
-                      ret $ &js-object
-                      g0 $ peek-packed-attrs raw
-                      names $ keys g0
-                      size $ count-recursive raw
-                      counter $ ref 0
-                    &doseq (name names)
-                      let
-                          value $ .unwrap $ get g0 name
-                          width $ if (list? value) (count value) 1
-                        aset ret (to-string name)
-                          js-ffi.contract/expect-object |packed.attribute $ .!createAugmentedTypedArray twgl/primitives width size
-                    build-packed-attrs raw $ fn (info)
-                      let
-                          idx @counter
-                        swap! counter inc
-                        &doseq (name names)
-                          let
-                              value $ .unwrap $ get info name
-                              target $ triadica.core/host-object-field |packed.attribute ret $ to-string name
-                              first-value $ .unwrap $ get g0 name
-                              width $ if (list? first-value) (count first-value) 1
-                            when
-                              not= width $ if (list? value) (count value) 1
-                              raise |inconsistent-packed-attribute-width
-                            if (number? value) (aset target idx value)
-                              if (list? value)
-                                let
-                                    components $ triadica.vector/expect-number-list value
-                                  if
-                                    and (>= width 1) (<= width 3)
-                                    map-indexed components $ fn (component-index component)
-                                      aset target
-                                        + (* idx width) component-index
-                                        , component
-                                    js/console.log |Unknown-data-to-build: name value
-                                js/console.log |Unknown-data-to-build: name value
-                      , &unit
-                    js/Object.assign arrays ret
+              if-let
+                raw $ get options :packed-attrs
+                do
+                  when (list? raw)
+                    when (empty? raw) (js/console.error options) (raise |expected-data-in-packed-attributes)
+                    let
+                        ret $ &js-object
+                        g0 $ peek-packed-attrs raw
+                        names $ keys g0
+                        size $ count-recursive raw
+                        counter $ ref 0
+                      &doseq (name names)
+                        let
+                            value $ .unwrap $ get g0 name
+                            width $ if (list? value) (count value) 1
+                          aset ret (to-string name)
+                            js-ffi.contract/expect-object |packed.attribute $ .!createAugmentedTypedArray twgl/primitives width size
+                      build-packed-attrs raw $ fn (info)
+                        let
+                            idx @counter
+                          swap! counter inc
+                          &doseq (name names)
+                            let
+                                value $ .unwrap $ get info name
+                                target $ triadica.core/host-object-field |packed.attribute ret $ to-string name
+                                first-value $ .unwrap $ get g0 name
+                                width $ if (list? first-value) (count first-value) 1
+                              when
+                                not= width $ if (list? value) (count value) 1
+                                raise |inconsistent-packed-attribute-width
+                              if (number? value) (aset target idx value)
+                                if (list? value)
+                                  let
+                                      components $ triadica.vector/expect-number-list value
+                                    if
+                                      and (>= width 1) (<= width 3)
+                                      map-indexed components $ fn (component-index component)
+                                        aset target
+                                          + (* idx width) component-index
+                                          , component
+                                      js/console.log |Unknown-data-to-build: name value
+                                  js/console.log |Unknown-data-to-build: name value
+                        , &unit
+                      js/Object.assign arrays ret
+                  , &unit
+                , &unit
               -> options (assoc :type :object) (assoc :arrays arrays)
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -1753,13 +1763,13 @@
                 :fragment-shader $ inline-shader |spin-city.frag
                 :attributes $ {}
                   :radius $ map data $ fn (info)
-                    .unwrap-or (get info :radius) nil
+                    .unwrap $ get info :radius
                   :depth $ map data $ fn (info)
-                    .unwrap-or (get info :depth) nil
+                    .unwrap $ get info :depth
                   :angle $ map data $ fn (info)
-                    .unwrap-or (get info :angle) nil
+                    .unwrap $ get info :angle
                   :index $ map data $ fn (info)
-                    .unwrap-or (get info :index) nil
+                    .unwrap $ get info :index
                 :get-uniforms $ fn () $ &js-object :citySpin (dynamic-number-field @*dirty-uniforms :spin-city 0)
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -1870,8 +1880,8 @@
           :code $ quote $ defn assemble-strip-lines (xs hexagon-shape step gravity)
             if (map? xs)
               let
-                  p $ triadica.vector/expect-number-list $ .unwrap-or (get xs :from) nil
-                  q $ triadica.vector/expect-number-list $ .unwrap-or (get xs :to) nil
+                  p $ triadica.vector/expect-number-list $ .unwrap (get xs :from)
+                  q $ triadica.vector/expect-number-list $ .unwrap (get xs :to)
                   points $ build-strip-points p q step gravity
                 -> points $ map $ fn (position)
                   -> hexagon-shape $ map $ fn (idx)
@@ -1911,35 +1921,39 @@
         'comp-strip-light $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-strip-light (options)
             let
-                lines $ .unwrap-or (get options :lines) nil
-                color $ either
-                  .unwrap-or (get options :color) nil
-                  js-array 0.2 0.9 0.6
+                lines $ .unwrap $ get options :lines
+                color $ match (get options :color)
+                  (:some field-value)
+                    either field-value $ js-array 0.2 0.9 0.6
+                  (:none) (js-array 0.2 0.9 0.6)
                 step $ let
-                    value $ either
-                      .unwrap-or (get options :step) nil
-                      , 4
+                    value $ match (get options :step)
+                      (:some field-value) (either field-value 4)
+                      (:none) 4
                   if (number? value) value $ raise |Expected-numeric-strip-step
-                offset $ either
-                  .unwrap-or (get options :offset) nil
-                  , 4
-                dot-radius $ either
-                  .unwrap-or (get options :dot-radius) nil
-                  , 2
-                gravity $ triadica.vector/expect-number-list $ either
-                  .unwrap-or (get options :gravity) nil
-                  [] 0 -0.0001 0
+                offset $ match (get options :offset)
+                  (:some field-value) (either field-value 4)
+                  (:none) 4
+                dot-radius $ match (get options :dot-radius)
+                  (:some field-value) (either field-value 2)
+                  (:none) 2
+                gravity $ triadica.vector/expect-number-list $ match (get options :gravity)
+                  (:some field-value)
+                    either field-value $ [] 0 -0.0001 0
+                  (:none) ([] 0 -0.0001 0)
                 hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
               object $ {}
-                :draw-mode $ either
-                  .unwrap-or (get options :draw-mode) nil
-                  , :triangles
-                :vertex-shader $ either
-                  .unwrap-or (get options :vertex-shader) nil
-                  inline-shader |strip-light.vert
-                :fragment-shader $ either
-                  .unwrap-or (get options :fragment-shader) nil
-                  inline-shader |strip-light.frag
+                :draw-mode $ match (get options :draw-mode)
+                  (:some field-value) (either field-value :triangles)
+                  (:none) :triangles
+                :vertex-shader $ match (get options :vertex-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |strip-light.vert
+                  (:none) (inline-shader |strip-light.vert)
+                :fragment-shader $ match (get options :fragment-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |strip-light.frag
+                  (:none) (inline-shader |strip-light.frag)
                 :packed-attrs $ assemble-strip-lines lines hexagon-shape step gravity
                 :get-uniforms $ fn () $ &js-object :u_color
                   if (list? color) (to-js-data color) color
@@ -1972,12 +1986,14 @@
                 geo $ [] ([] 1 0 0) ([] -1 0 0) ([] 0 1 0) ([] 0 -1 0) ([] 0 0 1) ([] 0 0 -1)
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
               object $ {} (:draw-mode :triangles)
-                :vertex-shader $ either
-                  .unwrap-or (get props :vertex-shader) nil
-                  inline-shader |drag-point.vert
-                :fragment-shader $ either
-                  .unwrap-or (get props :fragment-shader) nil
-                  inline-shader |drag-point.frag
+                :vertex-shader $ match (get props :vertex-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |drag-point.vert
+                  (:none) (inline-shader |drag-point.vert)
+                :fragment-shader $ match (get props :fragment-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |drag-point.frag
+                  (:none) (inline-shader |drag-point.frag)
                 :hit-region $ {} (:position position) (:radius size)
                   :on-hit $ fn (e d!)
                     hint-fn $ {}
@@ -2045,12 +2061,14 @@
                         &/ screen_scale scale-radio
                       , d!
               object $ {} (:draw-mode :triangles)
-                :vertex-shader $ either
-                  .unwrap-or (get props :vertex-shader) nil
-                  inline-shader |drag-point.vert
-                :fragment-shader $ either
-                  .unwrap-or (get props :fragment-shader) nil
-                  inline-shader |drag-point.frag
+                :vertex-shader $ match (get props :vertex-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |drag-point.vert
+                  (:none) (inline-shader |drag-point.vert)
+                :fragment-shader $ match (get props :fragment-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |drag-point.frag
+                  (:none) (inline-shader |drag-point.frag)
                 :hit-region $ {} (:position position) (:radius size)
                   :on-mousedown $ fn (e d!)
                     hint-fn $ {}
@@ -2132,12 +2150,14 @@
                     ; println r s screen_scale dx dy $ [] (v-scale rightward dx) (v-scale upward dy)
                     on-move ([] dx dy) d!
               object $ {} (:draw-mode :triangles)
-                :vertex-shader $ either
-                  .unwrap-or (get props :vertex-shader) nil
-                  inline-shader |drag-point.vert
-                :fragment-shader $ either
-                  .unwrap-or (get props :fragment-shader) nil
-                  inline-shader |drag-point.frag
+                :vertex-shader $ match (get props :vertex-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |drag-point.vert
+                  (:none) (inline-shader |drag-point.vert)
+                :fragment-shader $ match (get props :fragment-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |drag-point.frag
+                  (:none) (inline-shader |drag-point.frag)
                 :hit-region $ {} (:position position) (:radius 20)
                   :on-mousedown $ fn (e d!)
                     hint-fn $ {}
@@ -2222,8 +2242,6 @@
                 let
                     p-raw $ .unwrap $ nth points idx
                     q-raw $ .unwrap $ nth points (inc idx)
-                    p $ .unwrap-or (get p-raw :position) nil
-                    q $ .unwrap-or (get q-raw :position) nil
                   []
                     [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
                     if (non-nil? brush1)
@@ -2251,14 +2269,12 @@
                       p-raw $ .unwrap $ nth points idx
                       q-raw $ .unwrap $ nth points (inc idx)
                       at-end? $ < (&+ idx 2) (count points)
-                      p $ triadica.vector/expect-number-list $ .unwrap-or (get p-raw :position) nil
-                      q $ triadica.vector/expect-number-list $ .unwrap-or (get q-raw :position) nil
+                      p $ triadica.vector/expect-number-list $ .unwrap (get p-raw :position)
+                      q $ triadica.vector/expect-number-list $ .unwrap (get q-raw :position)
                       q2 $ if at-end?
-                        triadica.vector/expect-number-list $ .unwrap-or
-                          get
-                            .unwrap $ nth points $ &+ idx 2
-                            , :position
-                          , nil
+                        triadica.vector/expect-number-list $ .unwrap $ get
+                          .unwrap $ nth points $ &+ idx 2
+                          , :position
                         , p
                       v $ &v- q p
                       v2 $ if at-end? (&v- q2 q) (&v- q p)
@@ -2319,25 +2335,28 @@
           :code $ quote $ defn comp-brush (options)
             let
                 points $ decode-map-as
-                  .unwrap-or (get options :curve) nil
+                  .unwrap $ get options :curve
                   :: 'List 'Dynamic
                 brush $ decode-map-as
-                  either
-                    .unwrap-or (get options :brush) nil
-                    [] 8 0
+                  match (get options :brush)
+                    (:some field-value)
+                      either field-value $ [] 8 0
+                    (:none) ([] 8 0)
                   :: 'List 'Number
                 brush1 $ .unwrap-or (get options :brush1) nil
                 brush2 $ .unwrap-or (get options :brush2) nil
               object $ {}
-                :draw-mode $ either
-                  .unwrap-or (get options :draw-mode) nil
-                  , :triangles
-                :vertex-shader $ either
-                  .unwrap-or (get options :vertex-shader) nil
-                  inline-shader |brush.vert
-                :fragment-shader $ either
-                  .unwrap-or (get options :fragment-shader) nil
-                  inline-shader |brush.frag
+                :draw-mode $ match (get options :draw-mode)
+                  (:some field-value) (either field-value :triangles)
+                  (:none) :triangles
+                :vertex-shader $ match (get options :vertex-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |brush.vert
+                  (:none) (inline-shader |brush.vert)
+                :fragment-shader $ match (get options :fragment-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |brush.frag
+                  (:none) (inline-shader |brush.frag)
                 :packed-attrs $ if
                   and
                     not $ empty? points
@@ -2357,16 +2376,11 @@
         'comp-tube $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-tube (options)
             let
-                points-raw $ .unwrap-or (get options :curve) nil
+                points-raw $ .unwrap $ get options :curve
                 points $ decode-map-as points-raw $ :: 'List 'Dynamic
-                radius-raw $ .unwrap-or (get options :radius) nil
-                radius $ if (number? radius-raw) radius-raw 10
-                normal0-raw $ .unwrap-or (get options :normal0) nil
-                normal0 $ if (list? normal0-raw)
-                  decode-map-as normal0-raw $ :: 'List 'Number
-                  [] 0 0 1
-                circle-step-raw $ .unwrap-or (get options :circle-step) nil
-                circle-step $ if (number? circle-step-raw) circle-step-raw 8
+                radius $ triadica.core/dynamic-number-field options :radius 10
+                normal0 $ triadica.core/dynamic-number-list-field options :normal0 $ [] 0 0 1
+                circle-step $ triadica.core/dynamic-number-field options :circle-step 8
                 packed-attrs $ if (empty? points) ([])
                   let
                       first-point $ .unwrap $ nth points 0
@@ -2379,15 +2393,17 @@
                         decode-map-as points $ :: 'List $ :: 'Map 'Tag 'Dynamic
                         , radius normal0 circle-step
               object $ {}
-                :draw-mode $ either
-                  .unwrap-or (get options :draw-mode) nil
-                  , :triangles
-                :vertex-shader $ either
-                  .unwrap-or (get options :vertex-shader) nil
-                  inline-shader |lines.vert
-                :fragment-shader $ either
-                  .unwrap-or (get options :fragment-shader) nil
-                  inline-shader |lines.frag
+                :draw-mode $ match (get options :draw-mode)
+                  (:some field-value) (either field-value :triangles)
+                  (:none) :triangles
+                :vertex-shader $ match (get options :vertex-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |lines.vert
+                  (:none) (inline-shader |lines.vert)
+                :fragment-shader $ match (get options :fragment-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |lines.frag
+                  (:none) (inline-shader |lines.frag)
                 :packed-attrs packed-attrs
                 :get-uniforms $ .unwrap-or (get options :get-uniforms) nil
           :examples $ []
@@ -2464,20 +2480,22 @@
         'comp-segments $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-segments (options)
             let
-                segments $ .unwrap-or (get options :segments) nil
-                w0 $ either
-                  .unwrap-or (get options :width) nil
-                  , 2
+                segments $ .unwrap $ get options :segments
+                w0 $ match (get options :width)
+                  (:some field-value) (either field-value 2)
+                  (:none) 2
               object $ {}
-                :draw-mode $ either
-                  .unwrap-or (get options :draw-mode) nil
-                  , :triangles
-                :vertex-shader $ either
-                  .unwrap-or (get options :vertex-shader) nil
-                  inline-shader |segments.vert
-                :fragment-shader $ either
-                  .unwrap-or (get options :fragment-shader) nil
-                  inline-shader |segments.frag
+                :draw-mode $ match (get options :draw-mode)
+                  (:some field-value) (either field-value :triangles)
+                  (:none) :triangles
+                :vertex-shader $ match (get options :vertex-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |segments.vert
+                  (:none) (inline-shader |segments.vert)
+                :fragment-shader $ match (get options :fragment-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |segments.frag
+                  (:none) (inline-shader |segments.frag)
                 :packed-attrs $ traverse-lines segments $ fn (item)
                   hint-fn $ {}
                     :args $ [] 'Dynamic
@@ -2485,18 +2503,18 @@
                   let
                       segment $ decode-map-as item $ :: 'Map 'Tag 'Dynamic
                       from $ decode-map-as
-                        .unwrap-or (get segment :from) nil
+                        .unwrap $ get segment :from
                         :: 'List 'Number
                       to $ decode-map-as
-                        .unwrap-or (get segment :to) nil
+                        .unwrap $ get segment :to
                         :: 'List 'Number
                       direction $ &v- to from
-                      color-idx $ either
-                        .unwrap-or (get segment :color-index) nil
-                        , 0
-                      width $ either
-                        .unwrap-or (get segment :width) nil
-                        , w0
+                      color-idx $ match (get segment :color-index)
+                        (:some field-value) (either field-value 0)
+                        (:none) 0
+                      width $ match (get segment :width)
+                        (:some field-value) (either field-value w0)
+                        (:none) w0
                     []
                       {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
                       {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
@@ -2513,20 +2531,23 @@
           :code $ quote $ defn comp-segments-curves (options)
             let
                 curves $ decode-map-as
-                  either
-                    .unwrap-or (get options :curves) nil
-                    []
+                  match (get options :curves)
+                    (:some field-value)
+                      either field-value $ []
+                    (:none) ([])
                   :: 'List $ :: 'List $ :: 'Map 'Tag 'Dynamic
               object $ {}
-                :draw-mode $ either
-                  .unwrap-or (get options :draw-mode) nil
-                  , :triangles
-                :vertex-shader $ either
-                  .unwrap-or (get options :vertex-shader) nil
-                  inline-shader |segments-curves.vert
-                :fragment-shader $ either
-                  .unwrap-or (get options :fragment-shader) nil
-                  inline-shader |segments-curves.frag
+                :draw-mode $ match (get options :draw-mode)
+                  (:some field-value) (either field-value :triangles)
+                  (:none) :triangles
+                :vertex-shader $ match (get options :vertex-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |segments-curves.vert
+                  (:none) (inline-shader |segments-curves.vert)
+                :fragment-shader $ match (get options :fragment-shader)
+                  (:some field-value)
+                    either field-value $ inline-shader |segments-curves.frag
+                  (:none) (inline-shader |segments-curves.frag)
                 :packed-attrs $ let
                     size $ count curves
                   map-indexed curves $ fn (idx c)
@@ -2733,9 +2754,10 @@
             let
                 base-position $ dynamic-number-list-field props :position $ [] 0 0 0
                 selected $ assert-type
-                  let
-                      selected-value $ .unwrap-or (get props :selected) nil
-                    if (tag? selected-value) (Option :some selected-value) (Option :none)
+                  match (get props :selected)
+                    (:some selected-value)
+                      if (tag? selected-value) (Option :some selected-value) (Option :none)
+                    (:none) (Option :none)
                   :: 'Option 'Tag
               group ({}) & $ -> entries $ map-indexed
                 fn (idx entry)
@@ -2744,10 +2766,10 @@
                     :return $ :: 'Map 'Tag 'Dynamic
                   let
                       key $ decode-map-as
-                        .unwrap-or (get entry :key) nil
+                        .unwrap $ get entry :key
                         , 'Tag
                       position $ &v+ base-position $ decode-map-as
-                        .unwrap-or (get entry :position) nil
+                        .unwrap $ get entry :position
                         :: 'List 'Number
                       geo dice-shape-points
                       indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
@@ -2966,14 +2988,13 @@
         '>> $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn >> (states k)
             let
-                cursor-raw $ .unwrap-or (get states :cursor) nil
-                parent-cursor $ if (list? cursor-raw)
-                  decode-map-as cursor-raw $ :: 'List 'Tag
-                  assert-type ([]) (:: 'List 'Tag)
-                branch-raw $ .unwrap-or (get states k) nil
-                branch $ if (map? branch-raw)
-                  decode-map-as branch-raw $ :: 'Map 'Tag 'Dynamic
-                  {}
+                parent-cursor $ match (get states :cursor)
+                  (:some value)
+                    if (list? value)
+                      decode-map-as value $ :: 'List 'Tag
+                      []
+                  (:none) ([])
+                branch $ dynamic-map-field states k
               assoc branch :cursor $ conj parent-cursor k
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -3282,20 +3303,24 @@
                 fn (obj coord)
                   let
                       region $ dynamic-map-field obj :hit-region
-                      on-hit $ .unwrap-or (get region :on-hit) nil
-                    when (fn? on-hit)
-                      let
-                          mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
-                          screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
-                          r $ .unwrap $ nth mapped-position 2
-                          mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
-                            &/ (inc back-cone-scale) (&+ r back-cone-scale)
-                          distance $ c-distance screen-position $ [] x y
-                        if
-                          and
-                            <= distance $ &max touch-deviation mapped-radius
-                            noted |visible-at-front $ > r $ * -0.8 back-cone-scale
-                          swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-hit) :coord $ Option :none
+                    if-let
+                      on-hit $ get region :on-hit
+                      do
+                        when (fn? on-hit)
+                          let
+                              mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
+                              screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
+                              r $ .unwrap $ nth mapped-position 2
+                              mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
+                                &/ (inc back-cone-scale) (&+ r back-cone-scale)
+                              distance $ c-distance screen-position $ [] x y
+                            if
+                              and
+                                <= distance $ &max touch-deviation mapped-radius
+                                noted |visible-at-front $ > r $ * -0.8 back-cone-scale
+                              swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-hit) :coord $ Option :none
+                        , &unit
+                      , &unit
                   , &unit
               match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
@@ -3324,20 +3349,24 @@
                 fn (obj coord)
                   let
                       region $ dynamic-map-field obj :hit-region
-                      on-mousedown $ .unwrap-or (get region :on-mousedown) nil
-                    when (fn? on-mousedown)
-                      let
-                          mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
-                          screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
-                          r $ .unwrap $ nth mapped-position 2
-                          mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
-                            &/ (inc back-cone-scale) (&+ r back-cone-scale)
-                          distance $ c-distance screen-position $ [] x y
-                        if
-                          and
-                            <= distance $ &max touch-deviation mapped-radius
-                            noted |visible-at-front $ > r $ * -0.8 back-cone-scale
-                          swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-mousedown) :coord $ Option :some coord
+                    if-let
+                      on-mousedown $ get region :on-mousedown
+                      do
+                        when (fn? on-mousedown)
+                          let
+                              mapped-position $ transform-3d $ dynamic-number-list-field region :position ([] 0 0 0)
+                              screen-position $ map mapped-position $ fn (p) (&* p scale-radio)
+                              r $ .unwrap $ nth mapped-position 2
+                              mapped-radius $ * scale-radio (dynamic-number-field region :radius 0)
+                                &/ (inc back-cone-scale) (&+ r back-cone-scale)
+                              distance $ c-distance screen-position $ [] x y
+                            if
+                              and
+                                <= distance $ &max touch-deviation mapped-radius
+                                noted |visible-at-front $ > r $ * -0.8 back-cone-scale
+                              swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-mousedown) :coord $ Option :some coord
+                        , &unit
+                      , &unit
                   , &unit
               match (find-nearest @*hit-targets-buffer)
                 (:none) &unit
@@ -3367,9 +3396,13 @@
                             = :object $ dynamic-tag-field node :type :unknown
                             let
                                 region $ dynamic-map-field node :hit-region
-                                on-move $ .unwrap-or (get region :on-mousemove) nil
-                              when (fn? on-move)
-                                (event-handler on-move) event @*proxied-dispatch
+                              if-let
+                                on-move $ get region :on-mousemove
+                                do
+                                  when (fn? on-move)
+                                    (event-handler on-move) event @*proxied-dispatch
+                                  , &unit
+                                , &unit
                           , &unit
                     , &unit
             , &unit
@@ -3393,9 +3426,13 @@
                               = :object $ dynamic-tag-field node :type :unknown
                               let
                                   region $ dynamic-map-field node :hit-region
-                                  on-up $ .unwrap-or (get region :on-mouseup) nil
-                                when (fn? on-up)
-                                  (event-handler on-up) event @*proxied-dispatch
+                                if-let
+                                  on-up $ get region :on-mouseup
+                                  do
+                                    when (fn? on-up)
+                                      (event-handler on-up) event @*proxied-dispatch
+                                    , &unit
+                                  , &unit
                             , &unit
                       , &unit
                   reset! *mouse-holding-paths $ []
@@ -3453,9 +3490,9 @@
                 and (contains? b :buffer)
                   &= ([] w h)
                     decode-map-as
-                      .unwrap-or (get b :size) nil
+                      .unwrap $ get b :size
                       :: 'List 'Number
-                js-ffi.contract/expect-object |framebuffer.cache $ .unwrap-or (get b :buffer) nil
+                js-ffi.contract/expect-object |framebuffer.cache $ .unwrap $ get b :buffer
                 let
                     f $ js-ffi.contract/expect-object |twgl.createFramebufferInfo $ twgl/createFramebufferInfo gl
                   reset! *fb-ref $ Option :some $ {} (:buffer f)
@@ -3501,12 +3538,17 @@
         'object-uniforms $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn object-uniforms (object uniforms)
             let
-                get-u $ .unwrap-or (get object :get-uniforms) nil
-                u $ if (fn? get-u) (get-u) nil
-                el-uniforms $ if (nil? u) (&js-object)
-                  if (map? u)
-                    do (js/console.warn |get-js-object-for-better-performance u) (to-js-data u)
-                    js-ffi.contract/expect-object |object.uniforms u
+                el-uniforms $ match (get object :get-uniforms)
+                  (:some get-u)
+                    if (fn? get-u)
+                      let
+                          u $ get-u
+                        if (nil? u) (&js-object)
+                          if (map? u)
+                            do (js/console.warn |get-js-object-for-better-performance u) (to-js-data u)
+                            js-ffi.contract/expect-object |object.uniforms u
+                      &js-object
+                  (:none) (&js-object)
               js-ffi.contract/expect-object |uniforms.assign $ js/Object.assign el-uniforms uniforms
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'JsObject)
@@ -3730,23 +3772,24 @@
             :features $ #{} :js-ffi
         'traverse-tree $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn traverse-tree (tree coord cb)
-            match
-              .unwrap-or (get tree :type) nil
-              :object $ do
-                cb (dissoc tree :children) coord
-                , &unit
-              :group $ let
-                  children $ scene-children tree
-                map-indexed children $ fn (idx child)
-                  hint-fn $ {}
-                    :args $ [] 'Number $ :: 'Map 'Tag 'Dynamic
-                    :return 'Unit
-                    :features $ #{} :js-ffi
-                  traverse-tree child (conj coord idx) cb
-                , &unit
-              _ $ do
-                js/console.warn |Unknown-element-type: $ .unwrap-or (get tree :type) nil
-                , &unit
+            match (get tree :type)
+              (:some kind)
+                match kind
+                  :object $ do
+                    cb (dissoc tree :children) coord
+                    , &unit
+                  :group $ let
+                      children $ scene-children tree
+                    map-indexed children $ fn (idx child)
+                      hint-fn $ {}
+                        :args $ [] 'Number $ :: 'Map 'Tag 'Dynamic
+                        :return 'Unit
+                        :features $ #{} :js-ffi
+                      traverse-tree child (conj coord idx) cb
+                    , &unit
+                  _ $ do (js/console.warn |Unknown-element-type: kind) &unit
+              (:none)
+                do (js/console.warn |Unknown-element-type: "|missing :type") &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] (:: 'Map 'Tag 'Dynamic) (:: 'List 'Number)
