@@ -66,10 +66,19 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 
 https://github.com/Triadica/triadica-workflow
 
-### 0.30.1 迁移工作分支（尚未完成）
+### 0.0.44 发版候选：配套 Calcit 0.30.1
 
-CLI/procs 已配对到已发布的 `0.30.1-alpha.4`（预发布），正式模块依赖同步至
+使用者影响：0.0.44 是 Space 的正式 patch 发版候选，要求配套已发布的
+Calcit CLI/procs `0.30.1-alpha.5`（预发布）；不是已完成发布的正式 Calcit 0.30.1。
+Space #65 的 Option 迁移已合并；本次不另改场景、公开 API、默认 glow、帧调度或部署路径。
+合并本 PR 会按原工作流部署 Space Demo；tag 发布及正式 tag 消费者验收仍需另行确认，
+未发布前不能在下游引用 0.0.44，也不能用 main/hash 冒充正式依赖。
+
+正式模块依赖为
 Touch Control 0.0.31、Respo 0.16.122、Quaternion 0.2.14 和 JS-FFI 0.2.3。
+本次 alpha.5 配对已重新通过 254/254 全定义、完整 strict、原质量基线、6/6 回归、
+README 工厂与生产构建；没有放宽质量预算。浏览器默认场景与 Spin City 已实际挂载，
+不把此前 alpha.4 的全部场景交互记录当作本轮重测。源码 Snapshot 与已合并 #65 一致。
 已迁移 87 处低层 Map 读取与 55 处 List 索引，保留缺失、Some nil、false、0 和越界抛错，
 不新增业务默认值；另修正 Spin City 的两处未解包数值。全定义检查 254/254（含依赖）、
 公开 API 131 个定义、strict、6 个原有/直接回归、README 工厂、JS 生成及生产构建通过。
@@ -91,8 +100,9 @@ Touch Control 0.0.31、Respo 0.16.122、Quaternion 0.2.14 和 JS-FFI 0.2.3。
 | `load-objects!` | 场景对象到绘制缓存的 `:get-uniforms` 字段 | 1 |
 
 这些值没有改成 Option、删键或新增业务默认值；不是整库 nil/类型债务清零。1 处 unsafe 仍只在已说明的事件回调签名边界。
-下游 workflow 的候选源码图已通过 141/141 检查、strict、构建及真实浏览器波形挂载；已恢复正式依赖图。
-正式 tag 消费者验收仍待发版，本分支不能作为正式依赖；这些结果不等于全部场景或设备覆盖。
+此前 alpha.4 下游 workflow 候选源码图曾通过 141/141 检查、strict、构建及真实浏览器波形挂载；
+这不是 alpha.5 或 0.0.44 正式 tag 的新验收，不能沿用为本轮通过证据。
+正式 tag 消费者验收仍待发版，本候选不能作为正式依赖；这些结果不等于全部场景或设备覆盖。
 跟踪 [#64](https://github.com/Triadica/triadica-space/issues/64)。以下为 0.0.43 的历史验收记录，
 不表示本轮已经通过；默认 glow 和原帧调度语义保持不变。
 
