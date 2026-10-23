@@ -66,7 +66,22 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 
 https://github.com/Triadica/triadica-workflow
 
-### 0.0.44 发版候选：配套 Calcit 0.30.1
+### 0.0.45 补丁候选：修复真实 HUD 宿主转换
+
+使用者影响：CLI/procs仍配对正式0.30.1，仅改用JS-FFI正式0.2.6的通用DOM修复图；
+同图配对 Respo 0.16.125 与 Touch Control 0.0.33；Quaternion、场景、几何算法、默认glow、帧调度和页面hud!均不改。
+0.0.44的Fractal消费者在hud-display对div#debug执行js-cast时，因原DomElementHost
+混入placeholder/value而黑屏（JS-FFI #187）。静态strict和构建通过不代表该运行路径通过。
+
+本候选Snapshot不改，不加假字段、应用适配器或unsafe；通过正确共享宿主合同修复。
+需同步直接/传递JS-FFI版本并重新安装、刷新，不能只提升根依赖绕过Caps strict冲突。
+0.0.45尚未发布，实际Demo/HUD及正式tag消费者验收仍须完成；不自动合并部署Demo，
+也不改写已发布0.0.44。原可空合同和1处已审阅unsafe边界保留，不宣称类型债务清零。
+
+补丁通过 `maintenance/0.30.1` 兼容维护线验收和 Git 发版，不合并到 main 或部署 Demo。
+原 CI 门禁完整保留，维护线 push 仅跑检查和构建；原生产条件仍只允许当前 main push。
+
+### 已发布0.0.44：配套 Calcit 0.30.1（运行限制见上节）
 
 使用者影响：0.0.44 是 Space 的正式 patch 发版候选，要求配套已发布的
 Calcit CLI/procs 正式 `0.30.1`。剩余 12 处内部 `option:` 调用改为公开 `.unwrap` /
