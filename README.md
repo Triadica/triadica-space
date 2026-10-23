@@ -51,7 +51,7 @@ defn make-example-object ()
 - `*-shader` is a text of shader string
 - `:points`
 - `:indices`, optional, list of numbers
-- `:attributes`, a list of points or floats
+- `:attributes`, a Map from attribute tags to lists of numbers
 - `:hit-region`, enables click detection
 
 ### Inspirations
@@ -69,16 +69,19 @@ https://github.com/Triadica/triadica-workflow
 ### 0.0.44 发版候选：配套 Calcit 0.30.1
 
 使用者影响：0.0.44 是 Space 的正式 patch 发版候选，要求配套已发布的
-Calcit CLI/procs `0.30.1-alpha.5`（预发布）；不是已完成发布的正式 Calcit 0.30.1。
-Space #65 的 Option 迁移已合并；本次不另改场景、公开 API、默认 glow、帧调度或部署路径。
+Calcit CLI/procs 正式 `0.30.1`。剩余 12 处内部 `option:` 调用改为公开 `.unwrap` /
+`.unwrap-or`，参数、默认值与解包失败行为不变；`hud!` 页面成功/错误提示保留。
+本次不另改场景、公开 API、默认 glow、帧调度或部署路径。
 合并本 PR 会按原工作流部署 Space Demo；tag 发布及正式 tag 消费者验收仍需另行确认，
 未发布前不能在下游引用 0.0.44，也不能用 main/hash 冒充正式依赖。
 
 正式模块依赖为
-Touch Control 0.0.31、Respo 0.16.122、Quaternion 0.2.14 和 JS-FFI 0.2.3。
-本次 alpha.5 配对已重新通过 254/254 全定义、完整 strict、原质量基线、6/6 回归、
-README 工厂与生产构建；没有放宽质量预算。浏览器默认场景与 Spin City 已实际挂载，
-不把此前 alpha.4 的全部场景交互记录当作本轮重测。源码 Snapshot 与已合并 #65 一致。
+Touch Control 0.0.32、Respo 0.16.124、Quaternion 0.2.16 和 JS-FFI 0.2.5。
+CI 保留全定义、完整 strict、原质量基线、原测试及 README 工厂检查；不放宽质量预算。
+PR 只构建相对资源 URL 并保存原始 dist 供实际验收，不读取部署 secrets，
+不把历史 alpha 验收当作本轮通过证据。本轮精确提交的结果见迁移 PR。
+
+以下为既有 alpha.5/alpha.4 候选的历史记录，不表示正式 0.30.1 已完成重测：
 已迁移 87 处低层 Map 读取与 55 处 List 索引，保留缺失、Some nil、false、0 和越界抛错，
 不新增业务默认值；另修正 Spin City 的两处未解包数值。全定义检查 254/254（含依赖）、
 公开 API 131 个定义、strict、6 个原有/直接回归、README 工厂、JS 生成及生产构建通过。
@@ -110,7 +113,7 @@ README 工厂与生产构建；没有放宽质量预算。浏览器默认场景�
 
 使用者影响：候选 0.0.43 对齐 Respo 0.16.120、JS-FFI 0.2.3、Quaternion 0.2.13 和配套 Touch Control 0.0.30，CLI/procs 保持正式 0.29.3。场景源码、公共 API、帧合并、默认 glow 与原测试不变；strict Caps 消费者需配套对齐直接与传递依赖，不能混装旧 0.2.2 图。候选及其前置 Touch 版本正式发布后再更新下游，不引用 main/hash。
 
-当前源码使用 `calcit.cirru` 与 `deps.cirru`，Calcit / `@calcit/procs` 固定为正式版 `0.29.3`。先运行 `caps --strict --ci` 和 `yarn install --immutable`，再运行 `caps verify --toolchain`、`calcit --check-only --all-defs`、`calcit fix --workflow strict --verify`、`calcit test --require-match` 和 `calcit js`。本地开发使用 Node 24 和 `yarn vite`。
+0.0.43 当时使用 `calcit.cirru` 与 `deps.cirru`，Calcit / `@calcit/procs` 固定为正式版 `0.29.3`。当前候选配对见上节。开发先运行 `caps --strict --ci` 和 `yarn install --immutable`，再运行 `caps verify --toolchain`、`calcit --check-only --all-defs`、`calcit fix --workflow strict --verify`、`calcit test --require-match` 和 `calcit js`。本地开发使用 Node 24 和 `yarn vite`。
 
 迁移验收覆盖完整 strict、原有向量测试、公开模块检查和 README 工厂定义。
 浏览器回归保持原参数与默认 glow，验证控制点拖动、分支滑块、玫瑰、高密度烟花、管线和分段曲线；
