@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
     - uses: actions/checkout@v7.0.1
       with:
@@ -33,17 +34,23 @@ jobs:
         yarn --version
 
     - uses: calcit-lang/setup-calcit@v1.5.0
+      with:
+        tools: calcit,caps
+        caps-version: "0.1.1"
+        deps-file: deps.cirru
 
     - name: Install dependencies
       run: caps --strict --ci && yarn install --immutable && caps verify --toolchain
 
     - name: Validate snapshot, types and original tests
       run: |
+        set -euo pipefail
         test ! -e compact.cirru
         test ! -e package.cirru
         calcit calcit.cirru edit transaction --code '[["edit","format"]]' --dry-run --format json | jq -e '.changed == false'
-        calcit calcit.cirru --check-only --all-defs
-        calcit calcit.cirru fix --workflow strict --verify
+        calcit calcit.cirru --check-only --all-defs --format json
+        calcit calcit.cirru --check-only --ns triadica.alias --ns triadica.comp.axis --ns triadica.comp.bunch --ns triadica.comp.drag-point --ns triadica.comp.line --ns triadica.comp.segments --ns triadica.comp.stitch --ns triadica.comp.tabs --ns triadica.config --ns triadica.core --ns triadica.global --ns triadica.hud --ns triadica.math --ns triadica.perspective --ns triadica.vector --summary-only --format json
+        calcit calcit.cirru fix --workflow strict --verify --format json | jq -e '{workflow:.data.workflow,diagnostics:.diagnostics} | ., (.workflow.status == "passed" and .diagnostics == [])'
         calcit calcit.cirru analyze quality --baseline config/calcit-quality.json
         calcit calcit.cirru test --require-match --summary-only --format json
         calcit calcit.cirru docs format-md README.md --check
@@ -63,11 +70,20 @@ jobs:
 
     - name: Compile and build frontend
       env:
-        CDN_BASE_URL: ${{ steps.asset-path.outputs.base-url }}
+        CDN_BASE_URL: ${{ github.event_name == 'pull_request' && './' || steps.asset-path.outputs.base-url }}
       run: >
         calcit calcit.cirru js
         && cp assets/* js-out/
         && yarn vite build --base="$CDN_BASE_URL"
+
+    - name: Save PR frontend preview
+      if: github.event_name == 'pull_request'
+      uses: actions/upload-artifact@v7.0.2
+      with:
+        name: triadica-space-preview
+        path: dist
+        if-no-files-found: error
+        retention-days: 7
 
     - name: Check current production revision
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'

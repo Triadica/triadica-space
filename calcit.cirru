@@ -1230,14 +1230,14 @@
         '*store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *store
             {} (:v 0)
-              :tab $ turn-tag $ option:unwrap-or (get-env |tab) |bunch-fireworks
+              :tab $ turn-tag $ .unwrap-or (get-env |tab) |bunch-fireworks
               :p1 $ [] 0 0 0
               :states $ {}
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         'canvas $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def canvas
-            option:unwrap $ query-selector |canvas
+            .unwrap $ query-selector |canvas
           :examples $ []
           :schema $ :: 'js-ffi.browser/DomElementHost
         'dispatch! $ %{} 'CodeEntry (:doc |)
@@ -1848,7 +1848,7 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-axis (o)
             let
-                options $ option:unwrap-or o $ assert-type ({}) (:: 'Map 'Tag 'Dynamic)
+                options $ .unwrap-or o $ assert-type ({}) (:: 'Map 'Tag 'Dynamic)
                 radius $ dynamic-number-field options :radius 2
                 segments $ dynamic-number-field options :segments 10
                 length $ dynamic-number-field options :length 400
@@ -2881,7 +2881,7 @@
             :features $ #{} :js-ffi
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'dpr $ %{} 'CodeEntry (:doc |)
@@ -2915,7 +2915,7 @@
           :schema $ :: 'Number
         'hide-tabs? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def hide-tabs?
-            = |true $ option:unwrap-or (get-env |hide-tabs) |false
+            = |true $ .unwrap-or (get-env |hide-tabs) |false
           :examples $ []
           :schema $ :: 'Bool
         'inline-shader $ %{} 'CodeEntry (:doc |)
@@ -2938,7 +2938,7 @@
           :schema $ :: 'Bool
         'post-effect? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def post-effect?
-            = |on $ option:unwrap-or (get-env |effect) |on
+            = |on $ .unwrap-or (get-env |effect) |on
           :examples $ []
           :schema $ :: 'Bool
         'replace-fragment-shader $ %{} 'CodeEntry (:doc |)
@@ -3254,7 +3254,7 @@
           :code $ quote $ defn find-nearest (xs)
             if (empty? xs) (Option :none)
               let
-                  candidate $ option:unwrap $ assert-type (first xs) (:: 'Option 'HitTarget)
+                  candidate $ .unwrap $ assert-type (first xs) (:: 'Option 'HitTarget)
                   remaining $ find-nearest $ rest xs
                 match remaining
                   (:none) (Option :some candidate)
@@ -3374,7 +3374,7 @@
                   do
                       :handler nearest
                       , event @*proxied-dispatch
-                    swap! *mouse-holding-paths conj $ option:unwrap $ :coord nearest
+                    swap! *mouse-holding-paths conj $ .unwrap $ :coord nearest
                     , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
@@ -3458,7 +3458,7 @@
         'load-objects! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-objects! (tree dispatch!)
             let
-                gl $ option:unwrap @*gl-context
+                gl $ .unwrap @*gl-context
               reset! *objects-tree tree
               reset! *objects-buffer $ []
               reset! *proxied-dispatch dispatch!
@@ -3482,7 +3482,7 @@
         'load-sized-buffer! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-sized-buffer! (gl *fb-ref w h)
             let
-                b $ option:unwrap-or
+                b $ .unwrap-or
                   assert-type (deref *fb-ref)
                     :: 'Option $ :: 'Map 'Tag 'Dynamic
                   assert-type ({}) (:: 'Map 'Tag 'Dynamic)
@@ -3509,7 +3509,7 @@
             if (empty? path) (Option :some tree)
               let
                   children $ scene-children tree
-                  idx $ option:unwrap $ .first path
+                  idx $ .unwrap $ .first path
                 if
                   and (>= idx 0)
                     < idx $ count children
@@ -3611,7 +3611,7 @@
                   :features $ #{} :js-ffi
                 reset! *paint-pending? false
                 let
-                    gl $ option:unwrap @*gl-context
+                    gl $ .unwrap @*gl-context
                     gl-host $ js-cast gl 'triadica.core/WebGLDrawHost
                     scaled-width $ * dpr $ window-number js/window.innerWidth 0
                     scaled-height $ * dpr $ window-number js/window.innerHeight 0
