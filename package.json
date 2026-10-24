@@ -1,6 +1,6 @@
 {
   "name": "triadica-space",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "packageManager": "yarn@4.18.0",
   "repository": "git@github.com:Triadica/triadica-space.git",
   "author": "tiye <jiyinyiyong@gmail.com>",
