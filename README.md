@@ -66,7 +66,23 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 
 https://github.com/Triadica/triadica-workflow
 
-### 0.0.44 发版候选：配套 Calcit 0.30.1
+### 0.0.46 候选：配套 Calcit 0.31.0
+
+使用者影响：本候选要求 Calcit CLI 与 `@calcit/procs` 同时使用正式 `0.31.0`，
+并配对已发布 Touch Control 0.0.34、Respo 0.17.0-alpha.4、Quaternion 0.2.17、JS-FFI 0.2.7。
+候选尚未发版，下游不能提前引用 0.0.46；0.0.45 留给已有 0.30.1 维护分支。
+
+`comp-drag-point` 在 `:ignore-moving?` 为 true 时省略 `:on-mousemove` 键，原来该键为 nil；
+现有事件分发器两种情况下都不会调用移动回调。直接检查返回 Map 键是否存在的消费者需注意此差异。
+原按下/松开行为、公开参数、默认 glow、帧合并及 `hud!` 页面提示保留。
+
+两处局部 `atom` 改为 `ref`，17 处已确认 List/String 的 `count` 改用 `.len`。
+原测试中 `get-in` 的成功断言配合 0.31.0 改为 `Result :ok`；坐标、元数据、状态 payload
+及 false 值断言保留。原 CI、类型及质量基线不放宽，不新增校验脚本。
+PR 仅构建 artifact；合并后的原 main 流程仍部署 Demo 前端，COS 只处理 dist 并使用 action 内置校验。
+完整验收与尚未覆盖的范围以本轮迁移 PR 为准，以下历史结果不能视为本候选验收。
+
+### 0.0.44 历史说明：配套 Calcit 0.30.1
 
 使用者影响：0.0.44 是 Space 的正式 patch 发版候选，要求配套已发布的
 Calcit CLI/procs 正式 `0.30.1`。剩余 12 处内部 `option:` 调用改为公开 `.unwrap` /
