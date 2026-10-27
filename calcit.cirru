@@ -18,7 +18,7 @@
                 loop
                     idx 0
                   if
-                    < idx $ count items
+                    < idx $ .len items
                     do
                       build-packed-attrs
                         .unwrap $ nth items idx
@@ -94,7 +94,7 @@
                       &doseq (name names)
                         let
                             value $ .unwrap $ get g0 name
-                            width $ if (list? value) (count value) 1
+                            width $ if (list? value) (.len value) 1
                           aset ret (to-string name)
                             js-ffi.contract/expect-object |packed.attribute $ .!createAugmentedTypedArray twgl/primitives width size
                       build-packed-attrs raw $ fn (info)
@@ -106,9 +106,9 @@
                                 value $ .unwrap $ get info name
                                 target $ triadica.core/host-object-field |packed.attribute ret $ to-string name
                                 first-value $ .unwrap $ get g0 name
-                                width $ if (list? first-value) (count first-value) 1
+                                width $ if (list? first-value) (.len first-value) 1
                               when
-                                not= width $ if (list? value) (count value) 1
+                                not= width $ if (list? value) (.len value) 1
                                 raise |inconsistent-packed-attribute-width
                               if (number? value) (aset target idx value)
                                 if (list? value)
@@ -621,7 +621,7 @@
                     ring-size 8
                     d 5
                   ->
-                    range $ dec $ count nodes
+                    range $ dec $ .len nodes
                     map $ fn (idx)
                       -> (range ring-size)
                         map $ fn (ring-idx)
@@ -2069,47 +2069,49 @@
                   (:some field-value)
                     either field-value $ inline-shader |drag-point.frag
                   (:none) (inline-shader |drag-point.frag)
-                :hit-region $ {} (:position position) (:radius size)
-                  :on-mousedown $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
-                        {}
-                          :args $ [] 'Dynamic 'Dynamic
-                          :return 'Unit
-                      :return 'Unit
-                      :features $ #{} :js-ffi
-                    let
-                        x $ drag-number (.-clientX e) 0
-                        y $ drag-number (.-clientY e) 0
-                      reset! *drag-cache $ {} (:x x) (:y y)
-                    , &unit
-                  :on-mousemove $ if-not ignore-moving? $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
-                        {}
-                          :args $ [] 'Dynamic 'Dynamic
-                          :return 'Unit
-                      :return 'Unit
-                      :features $ #{} :js-ffi
-                    let
-                        x $ drag-number (.-clientX e) 0
-                        y $ drag-number (.-clientY e) 0
-                      handle-drag! x y d!
-                      reset! *drag-cache $ {} (:x x) (:y y)
-                    , &unit
-                  :on-mouseup $ fn (e d!)
-                    hint-fn $ {}
-                      :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
-                        {}
-                          :args $ [] 'Dynamic 'Dynamic
-                          :return 'Unit
-                      :return 'Unit
-                      :features $ #{} :js-ffi
-                    let
-                        x $ drag-number (.-clientX e) 0
-                        y $ drag-number (.-clientY e) 0
-                      handle-drag! x y d!
-                    , &unit
+                :hit-region $ merge
+                  {} (:position position) (:radius size)
+                    :on-mousedown $ fn (e d!)
+                      hint-fn $ {}
+                        :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                          {}
+                            :args $ [] 'Dynamic 'Dynamic
+                            :return 'Unit
+                        :return 'Unit
+                        :features $ #{} :js-ffi
+                      let
+                          x $ drag-number (.-clientX e) 0
+                          y $ drag-number (.-clientY e) 0
+                        reset! *drag-cache $ {} (:x x) (:y y)
+                      , &unit
+                    :on-mouseup $ fn (e d!)
+                      hint-fn $ {}
+                        :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                          {}
+                            :args $ [] 'Dynamic 'Dynamic
+                            :return 'Unit
+                        :return 'Unit
+                        :features $ #{} :js-ffi
+                      let
+                          x $ drag-number (.-clientX e) 0
+                          y $ drag-number (.-clientY e) 0
+                        handle-drag! x y d!
+                      , &unit
+                  if ignore-moving? ({})
+                    {} $ :on-mousemove $ fn (e d!)
+                      hint-fn $ {}
+                        :args $ [] 'js-ffi.browser/MouseEventHost $ :: 'Fn
+                          {}
+                            :args $ [] 'Dynamic 'Dynamic
+                            :return 'Unit
+                        :return 'Unit
+                        :features $ #{} :js-ffi
+                      let
+                          x $ drag-number (.-clientX e) 0
+                          y $ drag-number (.-clientY e) 0
+                        handle-drag! x y d!
+                        reset! *drag-cache $ {} (:x x) (:y y)
+                      , &unit
                 :packed-attrs $ -> indices $ map
                   fn (i)
                     {}
@@ -2237,7 +2239,7 @@
         'build-brush-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-brush-points (points brush brush1 brush2)
             ->
-              range $ dec $ count points
+              range $ dec $ .len points
               map $ fn (idx)
                 let
                     p-raw $ .unwrap $ nth points idx
@@ -2263,12 +2265,12 @@
             let
                 d-angle $ / (* 2 &PI) circle-step
               ->
-                range $ dec $ count points
+                range $ dec $ .len points
                 map $ fn (idx)
                   let
                       p-raw $ .unwrap $ nth points idx
                       q-raw $ .unwrap $ nth points (inc idx)
-                      at-end? $ < (&+ idx 2) (count points)
+                      at-end? $ < (&+ idx 2) (.len points)
                       p $ triadica.vector/expect-number-list $ .unwrap (get p-raw :position)
                       q $ triadica.vector/expect-number-list $ .unwrap (get q-raw :position)
                       q2 $ if at-end?
@@ -2325,11 +2327,11 @@
                     :position $ [] 20 0 0
                     :label :last
                 packed $ build-tube-points points 1 ([] 0 0 1) 4
-              assert= 2 $ count packed
+              assert= 2 $ .len packed
               assert=
-                Option :some $ [] 0 -1 0
+                Result :ok $ [] 0 -1 0
                 get-in packed $ [] 0 0 0 :position
-              assert= (Option :some :first)
+              assert= (Result :ok :first)
                 get-in packed $ [] 0 0 0 :label
         'comp-brush $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-brush (options)
@@ -2441,7 +2443,7 @@
         'build-curve-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-curve-points (points curve-ratio)
             let
-                size $ count points
+                size $ .len points
               ->
                 range $ dec size
                 map $ fn (idx)
@@ -2549,7 +2551,7 @@
                     either field-value $ inline-shader |segments-curves.frag
                   (:none) (inline-shader |segments-curves.frag)
                 :packed-attrs $ let
-                    size $ count curves
+                    size $ .len curves
                   map-indexed curves $ fn (idx c)
                     hint-fn $ {}
                       :args $ [] 'Number $ :: 'List (:: 'Map 'Tag 'Dynamic)
@@ -2619,7 +2621,7 @@
                     let
                         pattern $ assert-type
                           &str:pad-left
-                            &str:slice (&number:display-by c 2) 2 $ count $ &number:display-by c 2
+                            &str:slice (&number:display-by c 2) 2 $ .len $ &number:display-by c 2
                             , 32 |0
                           , 'String
                       -> stitch-strokes $ map $ fn (info)
@@ -2799,7 +2801,7 @@
                                 (:some selected-key) (= selected-key key)
                                 (:none) false
                               , 1 0
-                            count indices
+                            .len indices
                       let
                           v $ + 11 $ * 13607 idx
                         comp-stitch $ {}
@@ -3113,7 +3115,7 @@
                     idx 0
                     total 0
                   if
-                    < idx $ count items
+                    < idx $ .len items
                     recur (inc idx)
                       + total $ count-recursive $ .unwrap (nth items idx)
                     , total
@@ -3127,8 +3129,8 @@
             let
                 p0 $ .unwrap-or (.first points) ([])
                 pps $ decode-map-as (&list:flatten points) (:: 'List 'Number)
-                num $ count p0
-                position-array $ expect-object |twgl.createAugmentedTypedArray $ .!createAugmentedTypedArray twgl/primitives num (count points)
+                num $ .len p0
+                position-array $ expect-object |twgl.createAugmentedTypedArray $ .!createAugmentedTypedArray twgl/primitives num (.len points)
               map-indexed pps $ fn (idx x)
                 hint-fn $ {}
                   :args $ [] 'Number 'Number
@@ -3143,7 +3145,7 @@
         'create-scalar-attribute-array $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn create-scalar-attribute-array (points)
             let
-                position-array $ js-ffi.contract/expect-object |twgl.createAugmentedTypedArray $ .!createAugmentedTypedArray twgl/primitives 1 (count points)
+                position-array $ js-ffi.contract/expect-object |twgl.createAugmentedTypedArray $ .!createAugmentedTypedArray twgl/primitives 1 (.len points)
               map-indexed points $ fn (idx x)
                 hint-fn $ {}
                   :args $ [] 'Number 'Number
@@ -3297,7 +3299,7 @@
                 scale-radio $ noted |webgl-canvas-maps-to-range $ * 0.002 0.5 (window-number js/window.innerWidth 0)
                 touch-deviation $ noted |finger-not-very-accurate-on-pad-screen $ if mobile? 16 4
                 *hit-targets-buffer $ assert-type
-                  atom $ []
+                  ref $ []
                   :: 'Ref $ :: 'List 'HitTarget
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
@@ -3343,7 +3345,7 @@
                 scale-radio $ noted |webgl-canvas-maps-to-range $ * 0.002 0.5 (window-number js/window.innerWidth 0)
                 touch-deviation $ noted |finger-not-very-accurate-on-pad-screen $ if mobile? 16 4
                 *hit-targets-buffer $ assert-type
-                  atom $ []
+                  ref $ []
                   :: 'Ref $ :: 'List 'HitTarget
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
@@ -3512,7 +3514,7 @@
                   idx $ .unwrap $ .first path
                 if
                   and (>= idx 0)
-                    < idx $ count children
+                    < idx $ .len children
                   load-tree-node
                     .unwrap $ nth children idx
                     rest path
@@ -3819,7 +3821,7 @@
                 next $ update-states
                   {} $ :untouched false
                   [] ([] :point) payload
-              assert= (Option :some payload)
+              assert= (Result :ok payload)
                 get-in next $ [] :states :point :data
               assert= (Option :some false) (get next :untouched)
         'window-number $ %{} 'CodeEntry (:doc |)

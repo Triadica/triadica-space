@@ -1,6 +1,6 @@
 {
   "name": "triadica-space",
-  "version": "0.0.44",
+  "version": "0.0.46",
   "packageManager": "yarn@4.18.0",
   "repository": "git@github.com:Triadica/triadica-space.git",
   "author": "tiye <jiyinyiyong@gmail.com>",
@@ -10,7 +10,7 @@
     "vite": "8.3.4"
   },
   "dependencies": {
-    "@calcit/procs": "0.30.1",
+    "@calcit/procs": "0.31.0",
     "@calcit/std": "^0.0.2",
     "@triadica/touch-control": "^0.0.3",
     "mobile-detect": "^1.4.5",
