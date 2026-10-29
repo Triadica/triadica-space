@@ -29,7 +29,7 @@ ns example.scene $ :require
 defn make-example-object ()
   hint-fn $ {}
     :args $ []
-    :return $ :: 'Map 'Tag 'Dynamic
+    :return $ quote $ Map Tag Dynamic
     :features $ #{} :js-ffi
   let
       geo $ [] ([] 0 0 0) ([] 1 0 0) ([] 1 1 0)
@@ -39,8 +39,8 @@ defn make-example-object ()
       :fragment-shader $ inline-shader |lines.frag
       :points $ map geo $ fn (p)
         hint-fn $ {}
-          :args $ [] $ :: 'List 'Number
-          :return $ :: 'List 'Number
+          :args $ [] $ quote (List Number)
+          :return $ quote $ List Number
         -> p
           map $ fn (i) (* i 40)
           &v+ $ [] 400 300 -1200
@@ -65,6 +65,28 @@ Core logics is based on twgl.js https://gist.github.com/tiye/d722a824d981a968da2
 ### Workflow
 
 https://github.com/Triadica/triadica-workflow
+
+### 0.0.47 候选：配套正式 Calcit 0.32.1
+
+使用者需同时升级 CLI / `@calcit/procs` 到正式 0.32.1，重新安装并编译。
+依赖真实发布的 Respo 0.17.1、Touch Control 0.0.35、JS FFI 0.2.9、Quaternion 0.2.18；
+本轮 Caps strict / 工具链配对已验证四个正式模块，没有本地候选替代。
+0.0.47 尚未发布前，下游不能提前引用，也不能用 main/hash 替代正式 tag。
+
+官方 CLI 转换 76 处旧类型表达式，185 个定义的 schema、原测试与示例保持一致。
+几何和 shader 公式、公开参数、默认 glow、帧合并、控制点与 `hud!` 页面提示不变。
+原质量基线文件未修改：unsafe 仍为 1，codeNil=11、schemaDynamic=51、unresolved=62；
+typeNotFull 从基线上限 83 收敛到 82，不放宽其他预算，不增加强转、测试框架或验证脚本。
+Yarn 统一 60 分钟依赖年龄门禁，无包级例外；Vite 保留 main 的 8.3.4。
+
+本轮通过 255 个全定义、131 个公开 API、完整 strict（diagnostics=[]）、原六项测试、
+原质量门禁、文档工厂检查、canonical、不可变安装和 JS/Vite 构建。
+实际 IAB 覆盖默认烟花、Axis、控制点拖动与按钮 clicked 回调、管线、玫瑰、分段曲线及其刷新，
+默认 glow 始终开启，warn/error 为空。首次工具导航观察超时后，在同一页面确认加载完成。
+没有重验所有场景、ignore-moving?=true、分支滑块、HMR、移动端或 VR/gamepad，也不声称完成硬件兼容矩阵。
+PR 仍仅检查、构建和保存相对 URL 的原始 dist；原 main COS 内置校验、rsync、权限与部署路径不改。
+
+以下各版本段落为历史迁移快照，“候选/待发布”描述当时状态；不作为 0.0.47 的验收证据，当前发布状态以 Git tag 为准。
 
 ### 0.0.46 候选：配套 Calcit 0.31.0
 
