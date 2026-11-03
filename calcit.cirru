@@ -104,10 +104,14 @@
                         names $ keys g0
                         size $ count-recursive raw
                         counter $ ref 0
+                        widths $ foldl names ({})
+                          fn (acc name)
+                            hint-fn $ Fn (Map Tag Number) Tag $ -> (Map Tag Number)
+                            assoc acc name $ packed-width $ decode-packed-value name
+                              .unwrap $ get g0 name
                       &doseq (name names)
                         let
-                            width $ packed-width $ decode-packed-value name
-                              .unwrap $ get g0 name
+                            width $ .unwrap $ get widths name
                           aset ret (to-string name)
                             js-ffi.contract/expect-object |packed.attribute $ .!createAugmentedTypedArray twgl/primitives width size
                       build-packed-attrs raw $ fn (info)
@@ -118,8 +122,7 @@
                             let
                                 value $ decode-packed-value name $ .unwrap (get info name)
                                 target $ triadica.core/host-object-field |packed.attribute ret $ to-string name
-                                width $ packed-width $ decode-packed-value name
-                                  .unwrap $ get g0 name
+                                width $ .unwrap $ get widths name
                               when
                                 not= width $ packed-width value
                                 raise |inconsistent-packed-attribute-width
