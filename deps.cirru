@@ -1,7 +1,7 @@
 
-{} (:calcit-version |0.32.1)
+{} (:calcit-version |0.34.2)
   :version |0.0.47
-  :dependencies $ {} (|Respo/respo.calcit |0.17.1)
+  :dependencies $ {} (|Respo/respo.calcit |0.18.0)
     |Triadica/touch-control |0.0.35
     |calcit-lang/js-ffi |0.2.9
-    |calcit-lang/quaternion |0.2.18
+    |calcit-lang/quaternion |0.2.20
