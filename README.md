@@ -14,6 +14,12 @@
 
 [![Rose shape](./assets/rose.jpeg)](https://www.ixigua.com/iframe/7128061977837961741?autoplay=0&startTime=25)
 
+### 0.35.1 使用者需要注意
+
+CLI / `@calcit/procs` 配对 0.35.1，正式依赖为 Respo 0.19.4、Touch Control 0.0.38、JS-FFI 0.2.13、Quaternion 0.2.22。升级后重新安装依赖并生成 JS。
+
+条带生成器用递归 `StripMesh` union 标注嵌套列表及属性 Map，属性值沿用 `PackedValue`。选项 Map 入口、顶点数据、着色器及现有交互沿用。
+
 ### Object definition
 
 For example, define the following factory and call it after browser/WebGL
