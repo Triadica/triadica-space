@@ -12,15 +12,14 @@
       :defs $ {}
         'PackedValue $ %{} 'CodeEntry
           :doc "|One attribute value in `:packed-attrs`: a scalar, or a vector of 1 to 3 numbers."
-          :code $ quote $ defunion PackedValue Number
-            quote $ List Number
+          :code $ quote $ defunion PackedValue Number (List Number)
           :examples $ []
           :schema $ quote UnionDef
         'build-packed-attrs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-packed-attrs (data collect!)
             if (list? data)
               let
-                  items $ decode-map-as data $ quote (List Dynamic)
+                  items $ decode-map-as data $ List Dynamic
                 loop
                     idx 0
                   if
@@ -31,7 +30,7 @@
                         , collect!
                       recur $ inc idx
                     , &unit
-              collect! $ decode-map-as data $ quote (Map Tag Dynamic)
+              collect! $ decode-map-as data $ Map Tag Dynamic
             , &unit
           :examples $ []
           :schema $ quote $ Fn Dynamic
@@ -64,8 +63,7 @@
                         do
                           when (list? raw-points)
                             let
-                                points $ decode-map-as raw-points $ quote
-                                  List $ List Number
+                                points $ decode-map-as raw-points $ List (List Number)
                                 position-key |position
                               aset ret position-key $ create-attribute-array points
                           , &unit
@@ -75,7 +73,7 @@
                         do
                           when (list? raw-indices)
                             let
-                                ys $ decode-map-as raw-indices $ quote (List Number)
+                                ys $ decode-map-as raw-indices $ List Number
                                 indices-key |indices
                               aset ret indices-key $ to-js-data ys $ {} (:js-array true)
                           , &unit
@@ -86,7 +84,7 @@
                         (:some raw)
                           if (map? raw) raw $ {}
                         (:none) ({})
-                      quote $ Map Tag $ List Number
+                      Map Tag $ List Number
                   if-not (empty? attrs)
                     &doseq
                       key $ keys attrs
@@ -158,10 +156,10 @@
             cond
                 list? packed-attrs
                 recur $ .unwrap $ nth
-                  decode-map-as packed-attrs $ quote $ List Dynamic
+                  decode-map-as packed-attrs $ List Dynamic
                   , 0
               (map? packed-attrs)
-                decode-map-as packed-attrs $ quote $ Map Tag Dynamic
+                decode-map-as packed-attrs $ Map Tag Dynamic
               true $ do (js/console.warn |unknown-attribute-group packed-attrs) ({})
           :examples $ []
           :schema $ quote $ Fn Dynamic
@@ -175,10 +173,10 @@
       :defs $ {}
         'BranchInfo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct BranchInfo
-            :position $ quote $ List Number
+            :position $ List Number
             :length Number
-            :forward $ quote $ List Number
-            :upward $ quote $ List Number
+            :forward $ List Number
+            :upward $ List Number
           :examples $ []
           :schema $ quote StructDef
         'build-multiple-path $ %{} 'CodeEntry (:doc |)
@@ -879,7 +877,7 @@
           :code $ quote $ defn gen-lorenz-seq (steps dt a b c scale)
             loop
                 acc $ assert-type ([])
-                  quote $ List $ Map Tag Dynamic
+                  List $ Map Tag Dynamic
                 x 2
                 y 3
                 z 4
@@ -1025,7 +1023,7 @@
                       p2 $ [] -60 280 40
                     loop
                         acc $ assert-type ([])
-                          quote $ List $ List (Map Tag Dynamic)
+                          List $ List $ Map Tag Dynamic
                         a p0
                         b p1
                         c p2
@@ -1221,7 +1219,7 @@
                 hint-fn $ Fn Number $ -> Number
                 + x $ * 0.01 $ if (number? data) (decode-map-as data 'Number) 0
               let
-                  store $ assert-type @*store $ quote (Map Tag Dynamic)
+                  store $ assert-type @*store $ Map Tag Dynamic
                   next $ if (list? op)
                     Option :some $ update-states store $ [] op data
                     match (decode-map-as op 'Tag)
@@ -1233,7 +1231,7 @@
                       _ $ do (js/console.warn "|unknown op" op) (Option :none)
                 match next
                   (:some next-store)
-                    reset! *store $ decode-map-as next-store $ quote (Map Tag Dynamic)
+                    reset! *store $ decode-map-as next-store $ Map Tag Dynamic
                   (:none) &unit
             , &unit
           :examples $ []
@@ -1784,8 +1782,7 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-axis (o)
             let
-                options $ .unwrap-or o $ assert-type ({})
-                  quote $ Map Tag Dynamic
+                options $ .unwrap-or o $ assert-type ({}) (Map Tag Dynamic)
                 radius $ dynamic-number-field options :radius 2
                 segments $ dynamic-number-field options :segments 10
                 length $ dynamic-number-field options :length 400
@@ -1813,6 +1810,10 @@
             triadica.core :refer $ dynamic-number-field
     'triadica.comp.bunch $ %{} 'FileEntry
       :defs $ {}
+        'StripMesh $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion StripMesh (Map Tag triadica.alias/PackedValue) (List StripMesh)
+          :examples $ []
+          :schema $ quote UnionDef
         'assemble-strip-lines $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn assemble-strip-lines (xs hexagon-shape step gravity)
             if (map? xs)
@@ -1821,14 +1822,20 @@
                   q $ triadica.vector/expect-number-list $ .unwrap (get xs :to)
                   points $ build-strip-points p q step gravity
                 -> points $ map $ fn (position)
+                  hint-fn $ Fn (List Number) (-> triadica.comp.bunch/StripMesh)
                   -> hexagon-shape $ map $ fn (idx)
-                    {} (:position position) (:direction idx)
+                    hint-fn $ Fn Number $ -> triadica.comp.bunch/StripMesh
+                    assert-type
+                      {} (:position position) (:direction idx)
+                      Map Tag triadica.alias/PackedValue
               if (list? xs)
-                .map xs $ fn (x) (assemble-strip-lines x hexagon-shape step gravity)
+                .map xs $ fn (x)
+                  hint-fn $ Fn Dynamic $ -> triadica.comp.bunch/StripMesh
+                  assemble-strip-lines x hexagon-shape step gravity
                 raise |Expected-strip-map-or-nested-list
           :examples $ []
           :schema $ quote $ Fn Dynamic (List Number) Number (List Number)
-            -> $ List Dynamic
+            -> $ List triadica.comp.bunch/StripMesh
         'build-strip-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-strip-points (p q step gravity)
             let
@@ -2235,13 +2242,13 @@
             let
                 points $ decode-map-as
                   .unwrap $ get options :curve
-                  quote $ List Dynamic
+                  List Dynamic
                 brush $ decode-map-as
                   match (get options :brush)
                     (:some field-value)
                       either field-value $ [] 8 0
                     (:none) ([] 8 0)
-                  quote $ List Number
+                  List Number
                 brush1 $ .unwrap-or (get options :brush1) nil
                 brush2 $ .unwrap-or (get options :brush2) nil
               object $ {}
@@ -2261,11 +2268,10 @@
                     not $ empty? points
                     list? $ .unwrap $ nth points 0
                   map
-                    decode-map-as points $ quote $ List
-                      List $ Map Tag Dynamic
+                    decode-map-as points $ List $ List (Map Tag Dynamic)
                     fn (child) (build-brush-points child brush brush1 brush2)
                   build-brush-points
-                    decode-map-as points $ quote $ List (Map Tag Dynamic)
+                    decode-map-as points $ List $ Map Tag Dynamic
                     , brush brush1 brush2
                 :get-uniforms $ .unwrap-or (get options :get-uniforms) nil
           :examples $ []
@@ -2276,7 +2282,7 @@
           :code $ quote $ defn comp-tube (options)
             let
                 points-raw $ .unwrap $ get options :curve
-                points $ decode-map-as points-raw $ quote (List Dynamic)
+                points $ decode-map-as points-raw $ List Dynamic
                 radius $ triadica.core/dynamic-number-field options :radius 10
                 normal0 $ triadica.core/dynamic-number-list-field options :normal0 $ [] 0 0 1
                 circle-step $ triadica.core/dynamic-number-field options :circle-step 8
@@ -2285,11 +2291,11 @@
                       first-point $ .unwrap $ nth points 0
                     if (list? first-point)
                       let
-                          curves $ decode-map-as points $ quote
-                            List $ List $ Map Tag Dynamic
+                          curves $ decode-map-as points $ List
+                            List $ Map Tag Dynamic
                         map curves $ fn (child) (build-tube-points child radius normal0 circle-step)
                       build-tube-points
-                        decode-map-as points $ quote $ List (Map Tag Dynamic)
+                        decode-map-as points $ List $ Map Tag Dynamic
                         , radius normal0 circle-step
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
@@ -2395,13 +2401,13 @@
                 :packed-attrs $ traverse-lines segments $ fn (item)
                   hint-fn $ Fn Dynamic $ -> Dynamic
                   let
-                      segment $ decode-map-as item $ quote (Map Tag Dynamic)
+                      segment $ decode-map-as item $ Map Tag Dynamic
                       from $ decode-map-as
                         .unwrap $ get segment :from
-                        quote $ List Number
+                        List Number
                       to $ decode-map-as
                         .unwrap $ get segment :to
-                        quote $ List Number
+                        List Number
                       direction $ &v- to from
                       color-idx $ match (get segment :color-index)
                         (:some field-value) (either field-value 0)
@@ -2428,7 +2434,7 @@
                     (:some field-value)
                       either field-value $ []
                     (:none) ([])
-                  quote $ List $ List (Map Tag Dynamic)
+                  List $ List $ Map Tag Dynamic
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
                   (:some field-value) (either field-value :triangles)
@@ -2457,7 +2463,7 @@
           :code $ quote $ defn traverse-lines (segments f)
             if (list? segments)
               map
-                decode-map-as segments $ quote $ List Dynamic
+                decode-map-as segments $ List Dynamic
                 fn (x) (traverse-lines x f)
               f segments
           :examples $ []
@@ -2644,7 +2650,7 @@
                     (:some selected-value)
                       if (tag? selected-value) (Option :some selected-value) (Option :none)
                     (:none) (Option :none)
-                  quote $ Option Tag
+                  Option Tag
               group ({}) & $ -> entries $ map-indexed
                 fn (idx entry)
                   hint-fn $ Fn Number (Map Tag Dynamic)
@@ -2655,7 +2661,7 @@
                         , 'Tag
                       position $ &v+ base-position $ decode-map-as
                         .unwrap $ get entry :position
-                        quote $ List Number
+                        List Number
                       geo dice-shape-points
                       indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                     group ({})
@@ -2862,7 +2868,7 @@
                 parent-cursor $ match (get states :cursor)
                   (:some value)
                     if (list? value)
-                      decode-map-as value $ quote $ List Tag
+                      decode-map-as value $ List Tag
                       []
                   (:none) ([])
                 branch $ dynamic-map-field states k
@@ -2887,10 +2893,10 @@
           :tags $ #{} :ffi :js-host
         'HitTarget $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct HitTarget (:distance Number)
-            :handler $ quote $ Fn js-ffi.browser/MouseEventHost
+            :handler $ Fn js-ffi.browser/MouseEventHost
               Fn Dynamic Dynamic $ -> Unit
               -> Unit
-            :coord $ quote $ Option (List Number)
+            :coord $ Option $ List Number
           :examples $ []
           :schema $ quote StructDef
         'ProgramInfoHost $ %{} 'CodeEntry (:doc |)
@@ -2902,21 +2908,21 @@
           :tags $ #{} :ffi :js-host
         'WebGLClearHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait WebGLClearHost (:color-buffer-bit 'Number) (:depth-buffer-bit 'Number)
-            .clear-color! $ quote $ Fn WebGLClearHost Number Number Number Number (-> Unit)
-            .clear! $ quote $ Fn WebGLClearHost Number (-> Unit)
+            .clear-color! $ Fn WebGLClearHost Number Number Number Number $ -> Unit
+            .clear! $ Fn WebGLClearHost Number $ -> Unit
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} (:clear! |clear) (:clear-color! |clearColor) (:color-buffer-bit |COLOR_BUFFER_BIT) (:depth-buffer-bit |DEPTH_BUFFER_BIT)
           :schema $ quote Trait
         'WebGLDrawHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait WebGLDrawHost (:canvas 'JsObject) (:triangles 'Number) (:depth-test 'Number)
-            .use-program! $ quote $ Fn WebGLDrawHost JsObject (-> Unit)
-            .disable! $ quote $ Fn WebGLDrawHost Number (-> Unit)
-            .viewport! $ quote $ Fn WebGLDrawHost Number Number Number Number (-> Unit)
-            .enable! $ quote $ Fn WebGLDrawHost Number (-> Unit)
-            .depth-func! $ quote $ Fn WebGLDrawHost Number (-> Unit)
-            .depth-mask! $ quote $ Fn WebGLDrawHost Bool (-> Unit)
-            .blend-func! $ quote $ Fn WebGLDrawHost Number Number (-> Unit)
+            .use-program! $ Fn WebGLDrawHost JsObject $ -> Unit
+            .disable! $ Fn WebGLDrawHost Number $ -> Unit
+            .viewport! $ Fn WebGLDrawHost Number Number Number Number $ -> Unit
+            .enable! $ Fn WebGLDrawHost Number $ -> Unit
+            .depth-func! $ Fn WebGLDrawHost Number $ -> Unit
+            .depth-mask! $ Fn WebGLDrawHost Bool $ -> Unit
+            .blend-func! $ Fn WebGLDrawHost Number Number $ -> Unit
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
             :names $ {} (:blend-func! |blendFunc) (:canvas |canvas) (:depth-func! |depthFunc) (:depth-mask! |depthMask) (:depth-test |DEPTH_TEST) (:disable! |disable) (:enable! |enable) (:triangles |TRIANGLES) (:use-program! |useProgram) (:viewport! |viewport)
@@ -2953,7 +2959,7 @@
           :code $ quote $ defn count-recursive (xs)
             if (list? xs)
               let
-                  items $ decode-map-as xs $ quote (List Dynamic)
+                  items $ decode-map-as xs $ List Dynamic
                 loop
                     idx 0
                     total 0
@@ -2969,8 +2975,7 @@
           :code $ quote $ defn create-attribute-array (points)
             let
                 p0 $ .unwrap-or (.first points) ([])
-                pps $ decode-map-as (&list:flatten points)
-                  quote $ List Number
+                pps $ decode-map-as (&list:flatten points) (List Number)
                 num $ .len p0
                 position-array $ expect-object |twgl.createAugmentedTypedArray $ .!createAugmentedTypedArray twgl/primitives num (.len points)
               map-indexed pps $ fn (idx x)
@@ -3005,7 +3010,7 @@
             match (get source key)
               (:some value)
                 if (list? value)
-                  decode-map-as value $ quote $ List Dynamic
+                  decode-map-as value $ List Dynamic
                   []
               (:none) ([])
           :examples $ []
@@ -3017,7 +3022,7 @@
             match (get source key)
               (:some value)
                 if (map? value)
-                  decode-map-as value $ quote $ Map Tag Dynamic
+                  decode-map-as value $ Map Tag Dynamic
                   {}
               (:none) ({})
           :examples $ []
@@ -3065,7 +3070,7 @@
         'event-handler $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn event-handler (value)
             if (fn? value)
-              unsafe-coerce value $ quote $ Fn js-ffi.browser/MouseEventHost
+              unsafe-coerce value $ Fn js-ffi.browser/MouseEventHost
                 Fn Dynamic Dynamic $ -> Unit
                 -> Unit
               raise |Expected-callable-hit-handler
@@ -3079,8 +3084,7 @@
           :code $ quote $ defn find-nearest (xs)
             if (empty? xs) (Option :none)
               let
-                  candidate $ .unwrap $ assert-type (first xs)
-                    quote $ Option HitTarget
+                  candidate $ .unwrap $ assert-type (first xs) (Option HitTarget)
                   remaining $ find-nearest $ rest xs
                 match remaining
                   (:none) (Option :some candidate)
@@ -3120,7 +3124,7 @@
                 touch-deviation $ noted |finger-not-very-accurate-on-pad-screen $ if mobile? 16 4
                 *hit-targets-buffer $ assert-type
                   ref $ []
-                  quote $ Ref $ List HitTarget
+                  Ref $ List HitTarget
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   let
@@ -3164,7 +3168,7 @@
                 touch-deviation $ noted |finger-not-very-accurate-on-pad-screen $ if mobile? 16 4
                 *hit-targets-buffer $ assert-type
                   ref $ []
-                  quote $ Ref $ List HitTarget
+                  Ref $ List HitTarget
               traverse-tree @*objects-tree ([])
                 fn (obj coord)
                   let
@@ -3293,15 +3297,14 @@
             let
                 b $ .unwrap-or
                   assert-type (deref *fb-ref)
-                    quote $ Option $ Map Tag Dynamic
-                  assert-type ({})
-                    quote $ Map Tag Dynamic
+                    Option $ Map Tag Dynamic
+                  assert-type ({}) (Map Tag Dynamic)
               if
                 and (contains? b :buffer)
                   &= ([] w h)
                     decode-map-as
                       .unwrap $ get b :size
-                      quote $ List Number
+                      List Number
                 js-ffi.contract/expect-object |framebuffer.cache $ .unwrap $ get b :buffer
                 let
                     f $ js-ffi.contract/expect-object |twgl.createFramebufferInfo $ twgl/createFramebufferInfo gl
@@ -3525,7 +3528,7 @@
             match (get tree :children)
               (:some children)
                 if (list? children)
-                  decode-map-as children $ quote $ List (Map Tag Dynamic)
+                  decode-map-as children $ List $ Map Tag Dynamic
                   []
               (:none) ([])
           :examples $ []
@@ -3586,13 +3589,13 @@
             let
                 cursor $ decode-map-as
                   .unwrap $ nth pair 0
-                  quote $ List Tag
+                  List Tag
                 new-state $ .unwrap $ nth pair 1
               decode-map-as
                 assoc-in store
                   concat ([] :states) cursor $ [] :data
                   , new-state
-                quote $ Map Tag Dynamic
+                Map Tag Dynamic
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (List Dynamic)
             -> $ Map Tag Dynamic
