@@ -2155,11 +2155,15 @@
                     [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
                     match brush1
                       (:some b)
-                        [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
+                        if (non-nil? b)
+                          [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
+                          []
                       (:none) ([])
                     match brush2
                       (:some b)
-                        [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
+                        if (non-nil? b)
+                          [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
+                          []
                       (:none) ([])
           :examples $ []
           :schema $ quote $ Fn
