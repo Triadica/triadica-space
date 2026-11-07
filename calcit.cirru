@@ -50,7 +50,8 @@
           :code $ quote $ defn group (options & children)
             {} (:type :group) (:children children)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) & (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag Dynamic)
+            & $ Map Tag Dynamic
             -> $ Map Tag Dynamic
         'object $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn object (options)
@@ -2152,19 +2153,22 @@
                     q-raw $ .unwrap $ nth points (inc idx)
                   []
                     [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
-                    if (non-nil? brush1)
-                      [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush1) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush1)
-                      []
-                    if (non-nil? brush2)
-                      [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush2) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush2)
-                      []
+                    match brush1
+                      (:some b)
+                        [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
+                      (:none) ([])
+                    match brush2
+                      (:some b)
+                        [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
+                      (:none) ([])
           :examples $ []
           :schema $ quote $ Fn
             List $ Map Tag Dynamic
             List Number
-            , Dynamic Dynamic
-              -> $ List $ List
-                List $ Map Tag Dynamic
+            Option Dynamic
+            Option Dynamic
+            -> $ List $ List
+              List $ Map Tag Dynamic
         'build-tube-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-tube-points (points radius normal0 circle-step)
             let
@@ -2249,8 +2253,8 @@
                       either field-value $ [] 8 0
                     (:none) ([] 8 0)
                   List Number
-                brush1 $ .unwrap-or (get options :brush1) nil
-                brush2 $ .unwrap-or (get options :brush2) nil
+                brush1 $ get options :brush1
+                brush2 $ get options :brush2
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
                   (:some field-value) (either field-value :triangles)
@@ -2273,7 +2277,8 @@
                   build-brush-points
                     decode-map-as points $ List $ Map Tag Dynamic
                     , brush brush1 brush2
-                :get-uniforms $ .unwrap-or (get options :get-uniforms) nil
+                :get-uniforms $ .unwrap-or (get options :get-uniforms)
+                  fn () $ &js-object
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
@@ -2310,7 +2315,8 @@
                     either field-value $ inline-shader |lines.frag
                   (:none) (inline-shader |lines.frag)
                 :packed-attrs packed-attrs
-                :get-uniforms $ .unwrap-or (get options :get-uniforms) nil
+                :get-uniforms $ .unwrap-or (get options :get-uniforms)
+                  fn () $ &js-object
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
@@ -2422,10 +2428,12 @@
                       {} (:position to) (:brush 0) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
                       {} (:position from) (:brush 1) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
                       {} (:position to) (:brush 1) (:ratio 1) (:direction direction) (:width width) (:color_index color-idx)
-                :get-uniforms $ .unwrap-or (get options :get-uniforms) nil
+                :get-uniforms $ .unwrap-or (get options :get-uniforms)
+                  fn () $ &js-object
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
+            :features :js-ffi
         'comp-segments-curves $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-segments-curves (options)
             let
@@ -2454,7 +2462,8 @@
                       List $ Map Tag Dynamic
                       -> $ List $ List (Map Tag Dynamic)
                     build-curve-points c $ &/ idx size
-                :get-uniforms $ .unwrap-or (get options :get-uniforms) nil
+                :get-uniforms $ .unwrap-or (get options :get-uniforms)
+                  fn () $ &js-object
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
@@ -2504,7 +2513,7 @@
                             v-scale
                               [] (+ size gap) 0 0
                               , idx
-                  :hit-region $ .unwrap-or (get props :hit-region) nil
+                  :hit-region $ .unwrap-or (get props :hit-region) ({})
                 object $ {} (:draw-mode :triangles)
                   :vertex-shader $ inline-shader |stitch-line.vert
                   :fragment-shader $ inline-shader |stitch-line.frag
@@ -3285,7 +3294,8 @@
                       buffer $ twgl/createBufferInfoFromArrays gl $ scene-arrays obj
                     swap! *objects-buffer conj $ {} (:program program) (:buffer buffer)
                       :draw-mode $ scene-draw-mode obj
-                      :get-uniforms $ .unwrap-or (get obj :get-uniforms) nil
+                      :get-uniforms $ .unwrap-or (get obj :get-uniforms)
+                        fn () $ &js-object
                   , &unit
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
@@ -3943,13 +3953,15 @@
             foldl xs ([] 0 0 0)
               fn (acc x) (&v+ acc x)
           :examples $ []
-          :schema $ quote $ Fn & (List Number)
+          :schema $ quote $ Fn
+            & $ List Number
             -> $ List Number
         'v- $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn v- (x & xs)
             foldl xs x $ fn (acc item) (&v- acc item)
           :examples $ []
-          :schema $ quote $ Fn (List Number) & (List Number)
+          :schema $ quote $ Fn (List Number)
+            & $ List Number
             -> $ List Number
         'v-cross $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn v-cross (a b)
