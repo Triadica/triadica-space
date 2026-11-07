@@ -14,7 +14,11 @@
 
 [![Rose shape](./assets/rose.jpeg)](https://www.ixigua.com/iframe/7128061977837961741?autoplay=0&startTime=25)
 
-### 0.35.1 使用者需要注意
+### 0.37.0 使用者需要注意（0.0.49）
+
+CLI / `@calcit/procs` 配对正式 0.37.0，依赖为 Respo 0.19.5、Touch Control 0.0.39、JS-FFI 0.2.13、Quaternion 0.2.23。0.37 禁止 `.unwrap-or … nil`：画笔的 `:brush1` / `:brush2` 现在以 Option 传给 `build-brush-points` 并用 `match` 处理；缺省的 `:get-uniforms` 改为返回空 JS 对象的函数，缺省的 `:hit-region` 改为空 Map，渲染和命中结果与原来相同。
+
+### 历史：0.35.1 使用者需要注意
 
 CLI / `@calcit/procs` 配对 0.35.1，正式依赖为 Respo 0.19.4、Touch Control 0.0.38、JS-FFI 0.2.13、Quaternion 0.2.22。升级后重新安装依赖并生成 JS。
 
