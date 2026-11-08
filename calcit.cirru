@@ -2408,10 +2408,9 @@
                   (:some field-value)
                     either field-value $ inline-shader |segments.frag
                   (:none) (inline-shader |segments.frag)
-                :packed-attrs $ traverse-lines segments $ fn (item)
-                  hint-fn $ Fn Dynamic $ -> Dynamic
+                :packed-attrs $ traverse-lines segments $ fn (segment)
+                  hint-fn $ Fn (Map Tag Dynamic) (-> triadica.comp.bunch/StripMesh)
                   let
-                      segment $ decode-map-as item $ Map Tag Dynamic
                       from $ decode-map-as
                         .unwrap $ get segment :from
                         List Number
@@ -2419,10 +2418,10 @@
                         .unwrap $ get segment :to
                         List Number
                       direction $ &v- to from
-                      color-idx $ match (get segment :color-index)
+                      color-idx $ triadica.alias/decode-packed-value :color_index $ match (get segment :color-index)
                         (:some field-value) (either field-value 0)
                         (:none) 0
-                      width $ match (get segment :width)
+                      width $ triadica.alias/decode-packed-value :width $ match (get segment :width)
                         (:some field-value) (either field-value w0)
                         (:none) w0
                     []
@@ -2478,11 +2477,11 @@
               map
                 decode-map-as segments $ List Dynamic
                 fn (x) (traverse-lines x f)
-              f segments
+              f $ decode-map-as segments $ Map Tag Dynamic
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            Fn Dynamic $ -> Dynamic
-            -> Dynamic
+            Fn (Map Tag Dynamic) (-> triadica.comp.bunch/StripMesh)
+            -> triadica.comp.bunch/StripMesh
             :features :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.comp.segments
