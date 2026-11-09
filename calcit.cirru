@@ -878,16 +878,16 @@
           :code $ quote $ defn gen-lorenz-seq (steps dt a b c scale)
             loop
                 acc $ assert-type ([])
-                  List $ Map Tag Dynamic
+                  List $ Map Tag triadica.alias/PackedValue
                 x 2
                 y 3
                 z 4
                 n steps
               ; println |trace x y z n
               hint-fn $ Fn
-                List $ Map Tag Dynamic
+                List $ Map Tag triadica.alias/PackedValue
                 , Number Number Number Number $ ->
-                  List $ Map Tag Dynamic
+                  List $ Map Tag triadica.alias/PackedValue
               if (&<= n 0) acc $ let
                   dx $ &* dt $ &* a (&- y x)
                   dy $ &* dt $ &-
@@ -895,16 +895,18 @@
                     , y
                   dz $ &* dt $ &- (&* x y) (&* c z)
                 recur
-                  conj acc $ {}
-                    :position $ v-scale ([] x y z) scale
-                    :color_index $ - 1 $ / n steps
+                  conj acc $ assert-type
+                    {}
+                      :position $ v-scale ([] x y z) scale
+                      :color_index $ - 1 $ / n steps
+                    Map Tag triadica.alias/PackedValue
                   &+ x dx
                   &+ y dy
                   &+ z dz
                   dec n
           :examples $ []
           :schema $ quote $ Fn Number Number Number Number Number Number
-            -> $ List $ Map Tag Dynamic
+            -> $ List $ Map Tag triadica.alias/PackedValue
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.app.comp.line-wave
           :require
@@ -1305,6 +1307,10 @@
           :code $ quote $ defref *prev-mouse-x 0
           :examples $ []
           :schema $ quote $ Ref Number
+        'SpinCityVertex $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct SpinCityVertex (:radius Number) (:depth Number) (:angle Number) (:index Number)
+          :examples $ []
+          :schema $ quote StructDef
         'bg-object $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn bg-object ()
             let
@@ -1683,34 +1689,28 @@
             let
                 seed $ [] ([] 4 1) ([] 5 1) ([] 6 2) ([] 8 1) ([] 9 3) ([] 12 1) ([] 13 1) ([] 14 2) ([] 16 2)
                 units 20
-                data $ -> seed $ mapcat
-                  fn (pair)
-                    hint-fn $ Fn (List Number)
-                      -> $ List $ Map Tag Dynamic
-                    -> (range units)
-                      map $ fn (idx)
-                        {}
-                          :radius $ .unwrap $ nth pair 0
-                          :depth $ .unwrap $ nth pair 1
-                          :angle $ * 2 &PI $ / idx units
-                      mapcat $ fn (info)
-                        hint-fn $ Fn (Map Tag Dynamic)
-                          -> $ List $ Map Tag Dynamic
-                        -> (range 36)
-                          map $ fn (idx) (assoc info :index idx)
+                data $ mapcat seed $ fn (pair)
+                  hint-fn $ Fn (List Number)
+                    -> $ List triadica.app.shapes/SpinCityVertex
+                  let
+                      radius $ .unwrap $ nth pair 0
+                      depth $ .unwrap $ nth pair 1
+                    mapcat (range units)
+                      fn (idx)
+                        let
+                            angle $ * 2 &PI $ / idx units
+                          map (range 36)
+                            fn (index)
+                              SpinCityVertex :radius radius :depth depth :angle angle :index index
               ; js/console.log |data data
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ inline-shader |spin-city.vert
                 :fragment-shader $ inline-shader |spin-city.frag
                 :attributes $ {}
-                  :radius $ map data $ fn (info)
-                    .unwrap $ get info :radius
-                  :depth $ map data $ fn (info)
-                    .unwrap $ get info :depth
-                  :angle $ map data $ fn (info)
-                    .unwrap $ get info :angle
-                  :index $ map data $ fn (info)
-                    .unwrap $ get info :index
+                  :radius $ map data $ fn (vertex) (:radius vertex)
+                  :depth $ map data $ fn (vertex) (:depth vertex)
+                  :angle $ map data $ fn (vertex) (:angle vertex)
+                  :index $ map data $ fn (vertex) (:index vertex)
                 :get-uniforms $ fn () $ &js-object :citySpin (dynamic-number-field @*dirty-uniforms :spin-city 0)
           :examples $ []
           :schema $ quote $ Fn
