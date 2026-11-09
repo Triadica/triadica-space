@@ -2507,7 +2507,7 @@
                   :fragment-shader $ inline-shader |stitch-bg.frag
                   :packed-attrs $ map-indexed chars $ fn (idx c)
                     hint-fn $ Fn Number Number $ ->
-                      List $ Map Tag Dynamic
+                      List $ Map Tag triadica.alias/PackedValue
                     ->
                       [] ([] 0 0 0) ([] 1 0 0) ([] 1 -1 0) ([] 0 0 0) ([] 1 -1 0) ([] 0 -1 0)
                       map $ fn (x)
@@ -2522,7 +2522,7 @@
                   :fragment-shader $ inline-shader |stitch-line.frag
                   :packed-attrs $ map-indexed chars $ fn (idx c)
                     hint-fn $ Fn Number Number $ ->
-                      List $ Map Tag Dynamic
+                      List $ Map Tag triadica.alias/PackedValue
                     let
                         pattern $ assert-type
                           &str:pad-left
@@ -2533,14 +2533,16 @@
                         let
                             x $ dynamic-number-list-field info :position $ [] 0 0 0
                             data-idx $ dynamic-number-field info :data 0
-                          {} (:base position)
-                            :position $ &v+ (v-scale x s0)
-                              v-scale
-                                [] (+ size gap) 0 0
-                                , idx
-                            :value $ if
-                              = |1 $ &str:slice pattern data-idx $ inc data-idx
-                              , 1 0
+                          assert-type
+                            {} (:base position)
+                              :position $ &v+ (v-scale x s0)
+                                v-scale
+                                  [] (+ size gap) 0 0
+                                  , idx
+                              :value $ if
+                                = |1 $ &str:slice pattern data-idx $ inc data-idx
+                                , 1 0
+                            Map Tag triadica.alias/PackedValue
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
@@ -2552,11 +2554,11 @@
               -> (range 4)
                 mapcat $ fn (i)
                   hint-fn $ Fn Number $ ->
-                    List $ Map Tag Dynamic
+                    List $ Map Tag triadica.alias/PackedValue
                   -> (range 4)
                     mapcat $ fn (j)
                       hint-fn $ Fn Number $ ->
-                        List $ Map Tag Dynamic
+                        List $ Map Tag triadica.alias/PackedValue
                       let
                           base $ []
                             + 1 $ * j 2
@@ -2642,7 +2644,7 @@
                             :position $ &v+ base-bottom-left $ [] -0.2 -0.2 0
                             :data base-idx-next
           :examples $ []
-          :schema $ quote $ List (Map Tag Dynamic)
+          :schema $ quote $ List (Map Tag triadica.alias/PackedValue)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.comp.stitch
           :require
@@ -3016,7 +3018,7 @@
                 if (bool? value) value fallback
               (:none) fallback
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag Bool (-> Bool)
+          :schema $ quote $ Fn (Map Tag V) Tag Bool (-> Bool) (:generics V)
         'dynamic-list-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-list-field (source key)
             match (get source key)
@@ -3068,8 +3070,9 @@
                 if (list? value) (triadica.vector/expect-number-list value) fallback
               (:none) fallback
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag (List Number)
+          :schema $ quote $ Fn (Map Tag V) Tag (List Number)
             -> $ List Number
+            :generics V
             :features :js-ffi
         'dynamic-tag-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-tag-field (source key fallback)
@@ -3078,7 +3081,7 @@
                 if (tag? value) value fallback
               (:none) fallback
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag Tag (-> Tag)
+          :schema $ quote $ Fn (Map Tag V) Tag Tag (-> Tag) (:generics V)
         'event-handler $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn event-handler (value)
             if (fn? value)
@@ -3555,7 +3558,7 @@
                 if (tag? value) value :triangles
               (:none) :triangles
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (-> Tag)
+          :schema $ quote $ Fn (Map Tag V) (-> Tag) (:generics V)
         'scene-string-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-string-field (object key)
             match (get object key)
@@ -3564,7 +3567,7 @@
               (:none)
                 raise $ str-spaced |Expected-string-scene-field: key
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag (-> String)
+          :schema $ quote $ Fn (Map Tag V) Tag (-> String) (:generics V)
         'setup-mouse-events! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn setup-mouse-events! (canvas)
             set! (.-onclick canvas) handle-screen-click!
