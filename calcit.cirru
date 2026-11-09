@@ -2377,18 +2377,20 @@
                       q-width $ dynamic-number-field q-raw :width 1
                       ratio $ &/ idx size
                       ratio+1 $ &/ idx+1 size
-                    []
-                      {} (:position p) (:brush 0) (:direction direction) (:curve_ratio curve-ratio) (:color_index idx) (:width p-width)
-                      {} (:position q) (:brush 0) (:direction direction2) (:curve_ratio curve-ratio) (:color_index idx+1) (:width q-width)
-                      {} (:position p) (:brush 1) (:direction direction) (:curve_ratio curve-ratio) (:color_index idx) (:width p-width)
-                      {} (:position q) (:brush 0) (:direction direction2) (:curve_ratio curve-ratio) (:color_index idx+1) (:width q-width)
-                      {} (:position q) (:brush 1) (:direction direction2) (:curve_ratio curve-ratio) (:color_index idx+1) (:width q-width)
-                      {} (:position p) (:brush 1) (:direction direction) (:curve_ratio curve-ratio) (:color_index idx) (:width p-width)
+                    assert-type
+                      []
+                        {} (:position p) (:brush 0) (:direction direction) (:curve_ratio curve-ratio) (:color_index idx) (:width p-width)
+                        {} (:position q) (:brush 0) (:direction direction2) (:curve_ratio curve-ratio) (:color_index idx+1) (:width q-width)
+                        {} (:position p) (:brush 1) (:direction direction) (:curve_ratio curve-ratio) (:color_index idx) (:width p-width)
+                        {} (:position q) (:brush 0) (:direction direction2) (:curve_ratio curve-ratio) (:color_index idx+1) (:width q-width)
+                        {} (:position q) (:brush 1) (:direction direction2) (:curve_ratio curve-ratio) (:color_index idx+1) (:width q-width)
+                        {} (:position p) (:brush 1) (:direction direction) (:curve_ratio curve-ratio) (:color_index idx) (:width p-width)
+                      List $ Map Tag triadica.alias/PackedValue
           :examples $ []
           :schema $ quote $ Fn
             List $ Map Tag Dynamic
             , Number
-              -> $ List $ List (Map Tag Dynamic)
+              -> $ List $ List (Map Tag triadica.alias/PackedValue)
         'comp-segments $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-segments (options)
             let
@@ -2463,7 +2465,7 @@
                   map-indexed curves $ fn (idx c)
                     hint-fn $ Fn Number
                       List $ Map Tag Dynamic
-                      -> $ List $ List (Map Tag Dynamic)
+                      -> $ List $ List (Map Tag triadica.alias/PackedValue)
                     build-curve-points c $ &/ idx size
                 :get-uniforms $ .unwrap-or (get options :get-uniforms)
                   fn () $ &js-object
