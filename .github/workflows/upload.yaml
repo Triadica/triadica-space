@@ -48,10 +48,19 @@ jobs:
         test ! -e compact.cirru
         test ! -e package.cirru
         calcit calcit.cirru edit transaction --code '[["edit","format"]]' --dry-run --format json | jq -e '.changed == false'
-        calcit calcit.cirru --check-only --all-defs --format json
+        calcit calcit.cirru --check-only --all-defs --keep-going --format json
         calcit calcit.cirru --check-only --ns triadica.alias --ns triadica.comp.axis --ns triadica.comp.bunch --ns triadica.comp.drag-point --ns triadica.comp.line --ns triadica.comp.segments --ns triadica.comp.stitch --ns triadica.comp.tabs --ns triadica.config --ns triadica.core --ns triadica.global --ns triadica.hud --ns triadica.math --ns triadica.perspective --ns triadica.vector --summary-only --format json
-        calcit calcit.cirru fix --workflow strict --verify --format json | jq -e '{workflow:.data.workflow,diagnostics:.diagnostics} | ., (.workflow.status == "passed" and .diagnostics == [])'
-        calcit calcit.cirru analyze quality --baseline config/calcit-quality.json
+        calcit calcit.cirru fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
+        calcit analyze weak-types --format json | jq -e --slurpfile baseline config/calcit-quality.json '
+          (.data.definitions | type == "array") and
+          all(.data.definitions[];
+            .id as $id | all(.occurrences | group_by([.kind, .intent])[];
+              (.[0] | .kind + "/" + .intent) as $key
+              | length <= ($baseline[0].weak[$id][$key] // 0)))'
+        calcit analyze weak-types --only coverage --coverage-level none,partial --format json | jq -e --slurpfile baseline config/calcit-quality.json '
+          (.data.definitions | type == "array") and
+          all(.data.definitions[]; .coverage == $baseline[0].coverage[.id])'
+        calcit analyze weak-types --only deprecated-call --summary-only --format json | jq -e '.data.summary.calls == 0'
         calcit calcit.cirru test --require-match --summary-only --format json
         calcit calcit.cirru docs format-md README.md --check
         calcit calcit.cirru docs check-md README.md --dep ./ --failures-only

@@ -45,7 +45,7 @@
               (:err message)
                 raise $ str "|unknown packed attribute value for " name "|: " message
           :examples $ []
-          :schema $ quote $ Fn Tag T (-> triadica.alias/PackedValue) (:generics T)
+          :schema $ quote $ Fn Tag T (-> PackedValue) (:generics T)
         'group $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn group (options & children)
             {} (:type :group) (:children children)
@@ -151,7 +151,7 @@
               (Number _n) 1
               (List xs) (.len xs)
           :examples $ []
-          :schema $ quote $ Fn triadica.alias/PackedValue (-> Number)
+          :schema $ quote $ Fn PackedValue (-> Number)
         'peek-packed-attrs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn peek-packed-attrs (packed-attrs)
             cond
@@ -180,6 +180,10 @@
             :upward $ List Number
           :examples $ []
           :schema $ quote StructDef
+        'BranchMesh $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion BranchMesh (Map Tag triadica.alias/PackedValue) (List BranchMesh)
+          :examples $ []
+          :schema $ quote UnionDef
         'build-multiple-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-multiple-path (max-level parts info)
             let
@@ -192,10 +196,12 @@
                 delta-angle $ / (* 2 &PI) parts
                 branch-angle 1.57
                 color-index max-level
-                main-branch $ []
-                  {} (:color_index color-index) (:position position)
-                  {} (:color_index color-index)
-                    :position $ &v+ position $ v-scale forward length
+                main-branch $ assert-type
+                  []
+                    {} (:color_index color-index) (:position position)
+                    {} (:color_index color-index)
+                      :position $ &v+ position $ v-scale forward length
+                  List triadica.app.comp.branches/BranchMesh
                 side-branches $ ->
                   range 1 $ inc parts
                   map $ fn (n)
@@ -210,13 +216,15 @@
                           v-scale forward $ cos branch-angle
                           v-scale side-base $ sin branch-angle
                         branch $ -> side-forward $ v-scale side-length
-                      [] $ if (<= max-level 0) ([])
-                        build-multiple-path (dec max-level) parts $ BranchInfo :position base :length side-length :forward side-forward :upward $ v-normalize
-                          &v- side-forward $ v-scale forward $ &/ 1 (cos branch-angle)
-              [] main-branch side-branches
+                      assert-type
+                        [] $ if (<= max-level 0) ([])
+                          build-multiple-path (dec max-level) parts $ BranchInfo :position base :length side-length :forward side-forward :upward $ v-normalize
+                            &v- side-forward $ v-scale forward $ &/ 1 (cos branch-angle)
+                        List triadica.app.comp.branches/BranchMesh
+              assert-type ([] main-branch side-branches) (List triadica.app.comp.branches/BranchMesh)
           :examples $ []
-          :schema $ quote $ Fn Number Number triadica.app.comp.branches/BranchInfo
-            -> $ List Dynamic
+          :schema $ quote $ Fn Number Number BranchInfo
+            -> $ List BranchMesh
             :features :js-ffi
         'build-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-path (max-level branch-angle info)
@@ -229,9 +237,11 @@
                 delta-angle 2.09
                 regress 0.74
                 segments 4
-                main-branch $ []
-                  {} $ :position position
-                  {} $ :position $ &v+ position (v-scale forward length)
+                main-branch $ assert-type
+                  []
+                    {} $ :position position
+                    {} $ :position $ &v+ position (v-scale forward length)
+                  List triadica.app.comp.branches/BranchMesh
                 side-branches $ ->
                   range 1 $ inc segments
                   map $ fn (n)
@@ -248,16 +258,18 @@
                           v-scale forward $ cos branch-angle
                           v-scale side-base $ sin branch-angle
                         branch $ -> side-forward $ v-scale side-length
-                      []
-                        {} $ :position base
-                        {} $ :position $ &v+ base branch
-                        if (<= max-level 0) ([])
-                          build-path (dec max-level) branch-angle $ BranchInfo :position base :length side-length :forward side-forward :upward $ v-normalize
-                            &v- side-forward $ v-scale forward $ &/ 1 (cos branch-angle)
-              [] main-branch side-branches
+                      assert-type
+                        []
+                          {} $ :position base
+                          {} $ :position $ &v+ base branch
+                          if (<= max-level 0) ([])
+                            build-path (dec max-level) branch-angle $ BranchInfo :position base :length side-length :forward side-forward :upward $ v-normalize
+                              &v- side-forward $ v-scale forward $ &/ 1 (cos branch-angle)
+                        List triadica.app.comp.branches/BranchMesh
+              assert-type ([] main-branch side-branches) (List triadica.app.comp.branches/BranchMesh)
           :examples $ []
-          :schema $ quote $ Fn Number Number triadica.app.comp.branches/BranchInfo
-            -> $ List Dynamic
+          :schema $ quote $ Fn Number Number BranchInfo
+            -> $ List BranchMesh
             :features :js-ffi
         'comp-branches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-branches (states)
@@ -1211,7 +1223,7 @@
           :code $ quote $ def canvas
             .unwrap $ query-selector |canvas
           :examples $ []
-          :schema $ quote js-ffi.browser/DomElementHost
+          :schema $ quote DomElementHost
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op data)
             when dev? $ js/console.log |Dispatch: op data
@@ -1224,14 +1236,14 @@
               let
                   store $ assert-type @*store $ Map Tag Dynamic
                   next $ if (list? op)
-                    Option :some $ update-states store $ [] op data
+                    Some $ update-states store $ [] op data
                     match (decode-map-as op 'Tag)
-                      :cube-right $ Option :some $ update store :v
+                      :cube-right $ Some $ update store :v
                         fn (x)
                           inc $ decode-map-as x 'Number
-                      :tab-focus $ Option :some $ assoc store :tab data
-                      :move-p1 $ Option :some $ assoc store :p1 data
-                      _ $ do (js/console.warn "|unknown op" op) (Option :none)
+                      :tab-focus $ Some $ assoc store :tab data
+                      :move-p1 $ Some $ assoc store :p1 data
+                      _ $ do (js/console.warn "|unknown op" op) None
                 match next
                   (:some next-store)
                     reset! *store $ decode-map-as next-store $ Map Tag Dynamic
@@ -1248,7 +1260,7 @@
             let
                 context $ .?!getContext canvas |webgl $ &js-object :antialias true
               when (js-present? context)
-                reset! *gl-context $ Option :some context
+                reset! *gl-context $ Some context
             render-app!
             render-control!
             start-control-loop! 10 on-control-event
@@ -1845,8 +1857,8 @@
                   hint-fn $ Fn triadica.comp.bunch/StripSource $ -> triadica.comp.bunch/StripMesh
                   assemble-strip-lines segment hexagon-shape step gravity
           :examples $ []
-          :schema $ quote $ Fn triadica.comp.bunch/StripSource (List Number) Number (List Number)
-            -> $ List triadica.comp.bunch/StripMesh
+          :schema $ quote $ Fn StripSource (List Number) Number (List Number)
+            -> $ List StripMesh
         'build-strip-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-strip-points (p q step gravity)
             let
@@ -1930,7 +1942,7 @@
                   , decode-strip-source
               true $ raise |Expected-strip-map-or-nested-list
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> triadica.comp.bunch/StripSource) (:open :decode)
+          :schema $ quote $ Fn Dynamic (-> StripSource) (:open :decode)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.comp.bunch
           :require
@@ -2556,7 +2568,7 @@
                           &str:pad-left
                             &str:slice (&number:display-by c 2) 2 $ .len $ &number:display-by c 2
                             , 32 |0
-                          , 'String
+                          , String
                       -> stitch-strokes $ map $ fn (info)
                         let
                             x $ dynamic-number-list-field info :position $ [] 0 0 0
@@ -2690,8 +2702,8 @@
                 selected $ assert-type
                   match (get props :selected)
                     (:some selected-value)
-                      if (tag? selected-value) (Option :some selected-value) (Option :none)
-                    (:none) (Option :none)
+                      if (tag? selected-value) (Some selected-value) None
+                    (:none) None
                   Option Tag
               group ({}) & $ -> entries $ map-indexed
                 fn (idx entry)
@@ -2886,17 +2898,17 @@
     'triadica.core $ %{} 'FileEntry
       :defs $ {}
         '*draw-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *draw-fb (Option :none)
+          :code $ quote $ defref *draw-fb None
           :examples $ []
           :schema $ quote $ Ref
             Option $ Map Tag Dynamic
         '*effect-x-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *effect-x-fb (Option :none)
+          :code $ quote $ defref *effect-x-fb None
           :examples $ []
           :schema $ quote $ Ref
             Option $ Map Tag Dynamic
         '*effect-y-fb $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *effect-y-fb (Option :none)
+          :code $ quote $ defref *effect-y-fb None
           :examples $ []
           :schema $ quote $ Ref
             Option $ Map Tag Dynamic
@@ -3119,26 +3131,25 @@
               raise |Expected-callable-hit-handler
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            -> $ Fn js-ffi.browser/MouseEventHost
+            -> $ Fn MouseEventHost
               Fn Dynamic Dynamic $ -> Unit
               -> Unit
             :features :js-ffi
         'find-nearest $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn find-nearest (xs)
-            if (empty? xs) (Option :none)
-              let
-                  candidate $ .unwrap $ assert-type (first xs) (Option HitTarget)
-                  remaining $ find-nearest $ rest xs
-                match remaining
-                  (:none) (Option :some candidate)
-                  (:some nearest)
-                    if
-                      < (:distance candidate) (:distance nearest)
-                      Option :some candidate
-                      , remaining
+            if (empty? xs) None $ let
+                candidate $ .unwrap $ assert-type (first xs) (Option HitTarget)
+                remaining $ find-nearest $ rest xs
+              match remaining
+                (:none) (Some candidate)
+                (:some nearest)
+                  if
+                    < (:distance candidate) (:distance nearest)
+                    Some candidate
+                    , remaining
           :examples $ []
-          :schema $ quote $ Fn (List triadica.core/HitTarget)
-            -> $ Option triadica.core/HitTarget
+          :schema $ quote $ Fn (List HitTarget)
+            -> $ Option HitTarget
         'flatten-objects $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn flatten-objects (tree)
             match (scene-draw-mode tree)
@@ -3187,7 +3198,7 @@
                               and
                                 <= distance $ &max touch-deviation mapped-radius
                                 noted |visible-at-front $ > r $ * -0.8 back-cone-scale
-                              swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-hit) :coord $ Option :none
+                              swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-hit) :coord None
                         , &unit
                       , &unit
                   , &unit
@@ -3199,7 +3210,7 @@
                       , event @*proxied-dispatch
                     , &unit
           :examples $ []
-          :schema $ quote $ Fn js-ffi.browser/MouseEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi)
         'handle-screen-mousedown! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mousedown! (event)
             let
@@ -3231,7 +3242,7 @@
                               and
                                 <= distance $ &max touch-deviation mapped-radius
                                 noted |visible-at-front $ > r $ * -0.8 back-cone-scale
-                              swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-mousedown) :coord $ Option :some coord
+                              swap! *hit-targets-buffer conj $ HitTarget :distance r :handler (event-handler on-mousedown) :coord $ Some coord
                         , &unit
                       , &unit
                   , &unit
@@ -3244,7 +3255,7 @@
                     swap! *mouse-holding-paths conj $ .unwrap $ :coord nearest
                     , &unit
           :examples $ []
-          :schema $ quote $ Fn js-ffi.browser/MouseEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi)
         'handle-screen-mousemove! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mousemove! (event)
             let
@@ -3272,7 +3283,7 @@
                     , &unit
             , &unit
           :examples $ []
-          :schema $ quote $ Fn js-ffi.browser/MouseEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi)
         'handle-screen-mouseup! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mouseup! (event)
             let
@@ -3301,7 +3312,7 @@
                   reset! *mouse-holding-paths $ []
             , &unit
           :examples $ []
-          :schema $ quote $ Fn js-ffi.browser/MouseEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi)
         'host-number-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn host-number-field (label object key)
             expect-number label $ object-field label object key
@@ -3352,7 +3363,7 @@
                 js-ffi.contract/expect-object |framebuffer.cache $ .unwrap $ get b :buffer
                 let
                     f $ js-ffi.contract/expect-object |twgl.createFramebufferInfo $ twgl/createFramebufferInfo gl
-                  reset! *fb-ref $ Option :some $ {} (:buffer f)
+                  reset! *fb-ref $ Some $ {} (:buffer f)
                     :size $ [] w h
                   , f
           :examples $ []
@@ -3361,7 +3372,7 @@
             , Number Number (-> JsObject) (:features :js-ffi)
         'load-tree-node $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-tree-node (tree path)
-            if (empty? path) (Option :some tree)
+            if (empty? path) (Some tree)
               let
                   children $ scene-children tree
                   idx $ .unwrap $ .first path
@@ -3371,7 +3382,7 @@
                   load-tree-node
                     .unwrap $ nth children idx
                     rest path
-                  Option :none
+                  , None
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic) (List Number)
             -> $ Option $ Map Tag Dynamic
@@ -3450,7 +3461,7 @@
                 paint-canvas!
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Number touch-control.core/ControlState touch-control.core/ControlDelta (-> Unit)
+          :schema $ quote $ Fn Number ControlState ControlDelta (-> Unit)
         'paint-canvas! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn paint-canvas! ()
             when (not @*paint-pending?) (reset! *paint-pending? true)
@@ -3561,7 +3572,7 @@
               element-set-attribute! canvas |style $ str |width: (:width viewport-data) |px;height: (:height viewport-data) |px
               , &unit
           :examples $ []
-          :schema $ quote $ Fn js-ffi.browser/DomElementHost (-> Unit)
+          :schema $ quote $ Fn DomElementHost (-> Unit)
         'scene-arrays $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-arrays (object)
             expect-object |scene.arrays $ .unwrap $ get object :arrays
@@ -3605,7 +3616,7 @@
             set! (.-onpointerleave canvas) handle-screen-mouseup!
             , &unit
           :examples $ []
-          :schema $ quote $ Fn js-ffi.browser/DomElementHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn DomElementHost (-> Unit) (:features :js-ffi)
         'traverse-tree $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn traverse-tree (tree coord cb)
             match (get tree :type)
@@ -3652,7 +3663,7 @@
                   [] ([] :point) payload
               assert= (Result :ok payload)
                 get-in next $ [] :states :point :data
-              assert= (Option :some false) (get next :untouched)
+              assert= (Some false) (get next :untouched)
         'window-number $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn window-number (value fallback)
             hint-fn $ Fn (JsNullish JsObject) Number (-> Number) (:features :js-ffi)
@@ -3675,7 +3686,7 @@
     'triadica.global $ %{} 'FileEntry
       :defs $ {}
         '*gl-context $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defref *gl-context (Option :none)
+          :code $ quote $ defref *gl-context None
           :examples $ []
           :schema $ quote $ Ref (Option JsObject)
         '*mouse-holding-paths $ %{} 'CodeEntry (:doc |)
@@ -3970,13 +3981,13 @@
               :v3 x y z
               [] x y z
           :examples $ []
-          :schema $ quote $ Fn quaternion.vector/V3
+          :schema $ quote $ Fn qv/V3
             -> $ List Number
         'to-v3 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn to-v3 (xs)
             let[] (x y z) xs $ qv/v3 x y z
           :examples $ []
-          :schema $ quote $ Fn (List Number) (-> quaternion.vector/V3)
+          :schema $ quote $ Fn (List Number) (-> qv/V3)
           :tests $ [] $ %{} 'TestEntry (:name |round-trips-list-vectors)
             :code $ quote $ is
               = ([] 1 2 3)
