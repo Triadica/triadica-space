@@ -1811,31 +1811,41 @@
             triadica.core :refer $ dynamic-number-field
     'triadica.comp.bunch $ %{} 'FileEntry
       :defs $ {}
+        'StripEndpoints $ %{} 'CodeEntry
+          :doc "|The numeric endpoints of a single strip segment."
+          :code $ quote $ defstruct StripEndpoints
+            :from $ List Number
+            :to $ List Number
+          :examples $ []
+          :schema $ quote StructDef
         'StripMesh $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defunion StripMesh (Map Tag triadica.alias/PackedValue) (List StripMesh)
           :examples $ []
           :schema $ quote UnionDef
+        'StripSource $ %{} 'CodeEntry
+          :doc "|One strip segment or a nested group of segments."
+          :code $ quote $ defunion StripSource triadica.comp.bunch/StripEndpoints (List StripSource)
+          :examples $ []
+          :schema $ quote UnionDef
         'assemble-strip-lines $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn assemble-strip-lines (xs hexagon-shape step gravity)
-            if (map? xs)
-              let
-                  p $ triadica.vector/expect-number-list $ .unwrap (get xs :from)
-                  q $ triadica.vector/expect-number-list $ .unwrap (get xs :to)
-                  points $ build-strip-points p q step gravity
-                -> points $ map $ fn (position)
-                  hint-fn $ Fn (List Number) (-> triadica.comp.bunch/StripMesh)
-                  -> hexagon-shape $ map $ fn (idx)
-                    hint-fn $ Fn Number $ -> triadica.comp.bunch/StripMesh
-                    assert-type
-                      {} (:position position) (:direction idx)
-                      Map Tag triadica.alias/PackedValue
-              if (list? xs)
-                .map xs $ fn (x)
-                  hint-fn $ Fn Dynamic $ -> triadica.comp.bunch/StripMesh
-                  assemble-strip-lines x hexagon-shape step gravity
-                raise |Expected-strip-map-or-nested-list
+            match xs
+              (triadica.comp.bunch/StripEndpoints segment)
+                let
+                    points $ build-strip-points (:from segment) (:to segment) step gravity
+                  -> points $ map $ fn (position)
+                    hint-fn $ Fn (List Number) (-> triadica.comp.bunch/StripMesh)
+                    -> hexagon-shape $ map $ fn (idx)
+                      hint-fn $ Fn Number $ -> triadica.comp.bunch/StripMesh
+                      assert-type
+                        {} (:position position) (:direction idx)
+                        Map Tag triadica.alias/PackedValue
+              (List segments)
+                .map segments $ fn (segment)
+                  hint-fn $ Fn triadica.comp.bunch/StripSource $ -> triadica.comp.bunch/StripMesh
+                  assemble-strip-lines segment hexagon-shape step gravity
           :examples $ []
-          :schema $ quote $ Fn Dynamic (List Number) Number (List Number)
+          :schema $ quote $ Fn triadica.comp.bunch/StripSource (List Number) Number (List Number)
             -> $ List triadica.comp.bunch/StripMesh
         'build-strip-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-strip-points (p q step gravity)
@@ -1897,7 +1907,7 @@
                   (:some field-value)
                     either field-value $ inline-shader |strip-light.frag
                   (:none) (inline-shader |strip-light.frag)
-                :packed-attrs $ assemble-strip-lines lines hexagon-shape step gravity
+                :packed-attrs $ assemble-strip-lines (decode-strip-source lines) hexagon-shape step gravity
                 :get-uniforms $ fn () $ &js-object :u_color
                   if (list? color) (to-js-data color) color
                   , :u_offset offset :u_dot_radius dot-radius
@@ -1905,6 +1915,22 @@
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
             :features :js-ffi
+        'decode-strip-source $ %{} 'CodeEntry
+          :doc "|Check raw strip layout segments before recursive mesh generation."
+          :code $ quote $ defn decode-strip-source (raw)
+            cond
+                map? raw
+                let
+                    p $ triadica.vector/expect-number-list $ .unwrap (get raw :from)
+                    q $ triadica.vector/expect-number-list $ .unwrap (get raw :to)
+                  StripEndpoints :from p :to q
+              (list? raw)
+                .map
+                  decode-map-as raw $ List Dynamic
+                  , decode-strip-source
+              true $ raise |Expected-strip-map-or-nested-list
+          :examples $ []
+          :schema $ quote $ Fn Dynamic (-> triadica.comp.bunch/StripSource) (:open :decode)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.comp.bunch
           :require
