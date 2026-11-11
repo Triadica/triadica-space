@@ -33,9 +33,10 @@
               collect! $ decode-map-as data $ Map Tag Dynamic
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn Input
             Fn (Map Tag Dynamic) (-> Unit)
             -> Unit
+            :generics Input
             :features :js-ffi
         'decode-packed-value $ %{} 'CodeEntry
           :doc "|Decode a raw `:packed-attrs` value into PackedValue, raising with the attribute name when it is neither a Number nor a List of Numbers."
