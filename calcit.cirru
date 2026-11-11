@@ -2900,18 +2900,15 @@
         '*draw-fb $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *draw-fb None
           :examples $ []
-          :schema $ quote $ Ref
-            Option $ Map Tag Dynamic
+          :schema $ quote $ Ref (Option FramebufferCache)
         '*effect-x-fb $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *effect-x-fb None
           :examples $ []
-          :schema $ quote $ Ref
-            Option $ Map Tag Dynamic
+          :schema $ quote $ Ref (Option FramebufferCache)
         '*effect-y-fb $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *effect-y-fb None
           :examples $ []
-          :schema $ quote $ Ref
-            Option $ Map Tag Dynamic
+          :schema $ quote $ Ref (Option FramebufferCache)
         '*paint-pending? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *paint-pending? false
           :examples $ []
@@ -2938,6 +2935,10 @@
             :names $ {} $ :first |0
           :schema $ quote Trait
           :tags $ #{} :ffi :js-host
+        'FramebufferCache $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct FramebufferCache (:width Number) (:height Number) (:framebuffer JsObject)
+          :examples $ []
+          :schema $ quote StructDef
         'FramebufferInfoHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait FramebufferInfoHost (:attachments 'JsObject)
           :examples $ []
@@ -3350,25 +3351,25 @@
         'load-sized-buffer! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-sized-buffer! (gl *fb-ref w h)
             let
-                b $ .unwrap-or
-                  assert-type (deref *fb-ref)
-                    Option $ Map Tag Dynamic
-                  assert-type ({}) (Map Tag Dynamic)
-              if
-                and (contains? b :buffer)
-                  &= ([] w h)
-                    decode-map-as
-                      .unwrap $ get b :size
-                      List Number
-                js-ffi.contract/expect-object |framebuffer.cache $ .unwrap $ get b :buffer
-                let
-                    f $ js-ffi.contract/expect-object |twgl.createFramebufferInfo $ twgl/createFramebufferInfo gl
-                  reset! *fb-ref $ Some $ {} (:buffer f)
-                    :size $ [] w h
-                  , f
+                cached-framebuffer $ match @*fb-ref
+                  (:none) None
+                  (:some cached)
+                    if
+                      and
+                        &= w $ :width cached
+                        &= h $ :height cached
+                      Some $ :framebuffer cached
+                      , None
+              match cached-framebuffer
+                (:some framebuffer) framebuffer
+                (:none)
+                  let
+                      fresh $ js-ffi.contract/expect-object |twgl.createFramebufferInfo $ twgl/createFramebufferInfo gl
+                    reset! *fb-ref $ Some $ FramebufferCache :width w :height h :framebuffer fresh
+                    , fresh
           :examples $ []
           :schema $ quote $ Fn JsObject
-            Ref $ Option $ Map Tag Dynamic
+            Ref $ Option FramebufferCache
             , Number Number (-> JsObject) (:features :js-ffi)
         'load-tree-node $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-tree-node (tree path)
