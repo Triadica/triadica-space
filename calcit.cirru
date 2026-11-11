@@ -3013,19 +3013,11 @@
         'count-recursive $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn count-recursive (xs)
             if (list? xs)
-              let
-                  items $ decode-map-as xs $ List Dynamic
-                loop
-                    idx 0
-                    total 0
-                  if
-                    < idx $ .len items
-                    recur (inc idx)
-                      + total $ count-recursive $ .unwrap (nth items idx)
-                    , total
+              foldl xs 0 $ fn (total item)
+                + total $ count-recursive item
               , 1
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Number) (:features :js-ffi)
+          :schema $ quote $ Fn T (-> Number) (:generics T)
         'create-attribute-array $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn create-attribute-array (points)
             let
