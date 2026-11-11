@@ -14,9 +14,9 @@
 
 [![Rose shape](./assets/rose.jpeg)](https://www.ixigua.com/iframe/7128061977837961741?autoplay=0&startTime=25)
 
-### 0.40.0 使用者需要注意
+### 0.41.0 使用者需要注意
 
-CLI 与 `@calcit/procs` 配对正式 0.40.0，Quaternion 更新到正式 0.2.25。升级后请重新安装依赖、生成 JS 并刷新。`comp-strip-light` 的线段配置仍可使用嵌套列表和 Map。直接调用 `assemble-strip-lines` 时先用 `decode-strip-source` 校验原配置，或传入已具名的 `StripSource`。
+CLI 与 `@calcit/procs` 配对正式 0.41.0，Quaternion 更新到正式 0.2.25。升级后请重新安装依赖、生成 JS 并刷新。`comp-strip-light` 的线段配置仍可使用嵌套列表和 Map。直接调用 `assemble-strip-lines` 时先用 `decode-strip-source` 校验原配置，或传入已具名的 `StripSource`。 树枝示例的两种生成器使用递归联合类型描述嵌套顶点，渲染仍读取原有位置和颜色属性。
 
 线段输入使用 `StripSource` 保留端点与分组，顶点生成使用递归的 `StripMesh` 保留分组和属性类型。线宽与颜色索引在生成顶点时复用原数值属性解码。
 
