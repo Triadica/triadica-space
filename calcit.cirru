@@ -202,7 +202,7 @@
                     {} (:color_index color-index) (:position position)
                     {} (:color_index color-index)
                       :position $ &v+ position $ v-scale forward length
-                  List triadica.app.comp.branches/BranchMesh
+                  List BranchMesh
                 side-branches $ ->
                   range 1 $ inc parts
                   map $ fn (n)
@@ -221,8 +221,8 @@
                         [] $ if (<= max-level 0) ([])
                           build-multiple-path (dec max-level) parts $ BranchInfo :position base :length side-length :forward side-forward :upward $ v-normalize
                             &v- side-forward $ v-scale forward $ &/ 1 (cos branch-angle)
-                        List triadica.app.comp.branches/BranchMesh
-              assert-type ([] main-branch side-branches) (List triadica.app.comp.branches/BranchMesh)
+                        List BranchMesh
+              assert-type ([] main-branch side-branches) (List BranchMesh)
           :examples $ []
           :schema $ quote $ Fn Number Number BranchInfo
             -> $ List BranchMesh
@@ -242,7 +242,7 @@
                   []
                     {} $ :position position
                     {} $ :position $ &v+ position (v-scale forward length)
-                  List triadica.app.comp.branches/BranchMesh
+                  List BranchMesh
                 side-branches $ ->
                   range 1 $ inc segments
                   map $ fn (n)
@@ -266,8 +266,8 @@
                           if (<= max-level 0) ([])
                             build-path (dec max-level) branch-angle $ BranchInfo :position base :length side-length :forward side-forward :upward $ v-normalize
                               &v- side-forward $ v-scale forward $ &/ 1 (cos branch-angle)
-                        List triadica.app.comp.branches/BranchMesh
-              assert-type ([] main-branch side-branches) (List triadica.app.comp.branches/BranchMesh)
+                        List BranchMesh
+              assert-type ([] main-branch side-branches) (List BranchMesh)
           :examples $ []
           :schema $ quote $ Fn Number Number BranchInfo
             -> $ List BranchMesh
@@ -1704,7 +1704,7 @@
                 units 20
                 data $ mapcat seed $ fn (pair)
                   hint-fn $ Fn (List Number)
-                    -> $ List triadica.app.shapes/SpinCityVertex
+                    -> $ List SpinCityVertex
                   let
                       radius $ .unwrap $ nth pair 0
                       depth $ .unwrap $ nth pair 1
@@ -1847,15 +1847,15 @@
                 let
                     points $ build-strip-points (:from segment) (:to segment) step gravity
                   -> points $ map $ fn (position)
-                    hint-fn $ Fn (List Number) (-> triadica.comp.bunch/StripMesh)
+                    hint-fn $ Fn (List Number) (-> StripMesh)
                     -> hexagon-shape $ map $ fn (idx)
-                      hint-fn $ Fn Number $ -> triadica.comp.bunch/StripMesh
+                      hint-fn $ Fn Number $ -> StripMesh
                       assert-type
                         {} (:position position) (:direction idx)
                         Map Tag triadica.alias/PackedValue
               (List segments)
                 .map segments $ fn (segment)
-                  hint-fn $ Fn triadica.comp.bunch/StripSource $ -> triadica.comp.bunch/StripMesh
+                  hint-fn $ Fn StripSource $ -> StripMesh
                   assemble-strip-lines segment hexagon-shape step gravity
           :examples $ []
           :schema $ quote $ Fn StripSource (List Number) Number (List Number)
@@ -2955,6 +2955,10 @@
             :coord $ Option $ List Number
           :examples $ []
           :schema $ quote StructDef
+        'NumericArrayNode $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion NumericArrayNode Number (List NumericArrayNode)
+          :examples $ []
+          :schema $ quote UnionDef
         'ProgramInfoHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait ProgramInfoHost (:program 'JsObject)
           :examples $ []
@@ -3331,10 +3335,9 @@
                       fs $ scene-string-field obj :fragment-shader
                       program $ cached-build-program gl vs fs
                       buffer $ twgl/createBufferInfoFromArrays gl $ scene-arrays obj
-                    swap! *objects-buffer conj $ {} (:program program) (:buffer buffer)
-                      :draw-mode $ scene-draw-mode obj
-                      :get-uniforms $ .unwrap-or (get obj :get-uniforms)
-                        fn () $ &js-object
+                    swap! *objects-buffer conj $ triadica.global/RenderBuffer :program (expect-object |object.program program) :buffer (expect-object |object.buffer buffer) :draw-mode (scene-draw-mode obj) :uniforms $ fn (uniforms)
+                      hint-fn $ Fn JsObject (-> JsObject) (:features :js-ffi)
+                      object-uniforms obj uniforms
                   , &unit
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
@@ -3383,16 +3386,29 @@
             :features :js-ffi
         'mutably-write-array! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mutably-write-array! (data write-array!)
-            cond
-                list? data
-                &doseq (child data) (mutably-write-array! child write-array!)
-              (number? data) (write-array! data)
-              true $ raise "|unknown data to write to augmented array"
+            match data
+              (Number value) (write-array! value)
+              (List children)
+                &doseq (child children) (mutably-write-array! child write-array!)
+            , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn NumericArrayNode
             Fn Number $ -> Unit
             -> Unit
-            :features :js-ffi
+          :tests $ [] $ %{} 'TestEntry (:name |nested-write-order)
+            :code $ quote $ let
+                values $ ref $ assert-type ([]) (List Number)
+                write! $ fn (value)
+                  hint-fn $ Fn Number $ -> Unit
+                  swap! values append value
+                  , &unit
+                input $ decode-map-as
+                  [] 1
+                    [] 2 ([] 3) ([])
+                    , 4
+                  , NumericArrayNode
+              mutably-write-array! input write!
+              assert= ([] 1 2 3 4) @values
         'object-uniforms $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn object-uniforms (object uniforms)
             let
@@ -3505,13 +3521,14 @@
                     ; .!cullFace gl $ .-FRONT_AND_BACK gl
                     &doseq (object @*objects-buffer)
                       let
-                          program-info $ expect-object |object.program $ .unwrap (get object :program)
-                          buffer-info $ expect-object |object.buffer $ .unwrap (get object :buffer)
-                          current-uniforms $ object-uniforms object uniforms
+                          program-info $ :program object
+                          buffer-info $ :buffer object
+                          read-uniforms $ :uniforms object
+                          current-uniforms $ read-uniforms uniforms
                         gl-host .use-program! $ host-object-field |program.program program-info |program
                         twgl/setBuffersAndAttributes gl program-info buffer-info
                         twgl/setUniforms program-info current-uniforms
-                        match (scene-draw-mode object)
+                        match (:draw-mode object)
                           :triangles $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLES gl |TRIANGLES
                           :triangle-strip $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLE_STRIP gl |TRIANGLE_STRIP
                           :triangle-fan $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.TRIANGLE_FAN gl |TRIANGLE_FAN
@@ -3519,7 +3536,7 @@
                           :line-strip $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINE_STRIP gl |LINE_STRIP
                           :line-loop $ twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINE_LOOP gl |LINE_LOOP
                           _ $ do
-                            js/console.warn |unknown-draw-mode: $ scene-draw-mode object
+                            js/console.warn |unknown-draw-mode: $ :draw-mode object
                             twgl/drawBufferInfo gl buffer-info $ host-number-field |gl.LINES gl |LINES
                     when post-effect? $ let
                         effect-x-program $ cached-build-program gl (inline-shader |effect-x.vert) (inline-shader |effect-x.frag)
@@ -3692,8 +3709,7 @@
         '*objects-buffer $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *objects-buffer ([])
           :examples $ []
-          :schema $ quote $ Ref
-            List $ Map Tag Dynamic
+          :schema $ quote $ Ref (List RenderBuffer)
         '*objects-tree $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *objects-tree
             noted |tree-for-rendering-and-events $ {}
@@ -3705,6 +3721,11 @@
           :examples $ []
           :schema $ quote $ Ref
             Fn Dynamic Dynamic $ -> Unit
+        'RenderBuffer $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct RenderBuffer (:program JsObject) (:buffer JsObject) (:draw-mode Tag)
+            :uniforms $ Fn JsObject $ -> JsObject
+          :examples $ []
+          :schema $ quote StructDef
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.global
     'triadica.hud $ %{} 'FileEntry

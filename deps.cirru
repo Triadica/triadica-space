@@ -1,5 +1,5 @@
 
-{} (:calcit-version |0.41.0)
+{} (:calcit-version |0.41.1)
   :version |0.0.50
   :dependencies $ {} (|Respo/respo.calcit |0.19.5)
     |Triadica/touch-control |0.0.39
