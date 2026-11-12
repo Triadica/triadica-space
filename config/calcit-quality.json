@@ -37,7 +37,6 @@
     "triadica.app.shapes/tiny-cube-object": {"schema-dynamic/js-ffi-non-host": 1},
     "triadica.comp.axis/comp-axis": {"schema-dynamic/unresolved": 2},
     "triadica.comp.bunch/comp-strip-light": {"schema-dynamic/intentional-js-ffi": 2},
-    "triadica.comp.bunch/decode-strip-source": {"schema-dynamic/intentional-open": 1},
     "triadica.comp.drag-point/comp-button": {"schema-dynamic/js-ffi-non-host": 3},
     "triadica.comp.drag-point/comp-drag-point": {"schema-dynamic/intentional-js-ffi": 1, "schema-dynamic/js-ffi-non-host": 3},
     "triadica.comp.drag-point/comp-slider": {"schema-dynamic/intentional-js-ffi": 1, "schema-dynamic/js-ffi-non-host": 3},
