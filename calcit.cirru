@@ -2955,6 +2955,10 @@
             :coord $ Option $ List Number
           :examples $ []
           :schema $ quote StructDef
+        'NumericArrayNode $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion NumericArrayNode Number (List NumericArrayNode)
+          :examples $ []
+          :schema $ quote UnionDef
         'ProgramInfoHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait ProgramInfoHost (:program 'JsObject)
           :examples $ []
@@ -3382,16 +3386,29 @@
             :features :js-ffi
         'mutably-write-array! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mutably-write-array! (data write-array!)
-            cond
-                list? data
-                &doseq (child data) (mutably-write-array! child write-array!)
-              (number? data) (write-array! data)
-              true $ raise "|unknown data to write to augmented array"
+            match data
+              (Number value) (write-array! value)
+              (List children)
+                &doseq (child children) (mutably-write-array! child write-array!)
+            , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn NumericArrayNode
             Fn Number $ -> Unit
             -> Unit
-            :features :js-ffi
+          :tests $ [] $ %{} 'TestEntry (:name |nested-write-order)
+            :code $ quote $ let
+                values $ ref $ assert-type ([]) (List Number)
+                write! $ fn (value)
+                  hint-fn $ Fn Number $ -> Unit
+                  swap! values append value
+                  , &unit
+                input $ decode-map-as
+                  [] 1
+                    [] 2 ([] 3) ([])
+                    , 4
+                  , NumericArrayNode
+              mutably-write-array! input write!
+              assert= ([] 1 2 3 4) @values
         'object-uniforms $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn object-uniforms (object uniforms)
             let
