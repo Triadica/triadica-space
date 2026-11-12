@@ -16,7 +16,14 @@
 
 ### 0.42.0 使用者需要注意
 
-CLI 与 `@calcit/procs` 配对正式 0.42.0。按 0.42.0 效果边界，`triadica.core` 的 `load-objects!`、`paint-canvas!`、`setup-mouse-events!`、屏幕事件处理和 `triadica.perspective` 的视角移动函数读写全局状态，`Fn` schema 声明了 `:state`；应用里调用它们的函数也要声明 `:state`，否则 0.42 会给出 `W_STATE_FEATURE_REQUIRED` 提示，可用 `calcit fix --rule effect-features-v1` 一次补齐。
+CLI 与 `@calcit/procs` 配对正式 0.42.0。按 0.42.0 效果边界，`triadica.core` 的 `load-objects!`、`paint-canvas!`、`setup-mouse-events!`、屏幕事件处理和 `triadica.perspective` 的视角移动函数读写全局状态，`Fn` schema 声明了 `:state`；应用里调用它们的函数也要声明 `:state`，否则 0.42 会给出 `W_STATE_FEATURE_REQUIRED` 提示。
+
+在应用目录先预览效果标注，再将第一条命令输出的 `revision` 填入第二条命令的 `<revision>`。预览不会写入源码。
+
+```bash
+calcit fix --rule effect-features-v1 --dry-run --format json
+calcit fix --rule effect-features-v1 --apply --expect-revision '<revision>'
+```
 
 ### 0.41.1 使用者需要注意
 
