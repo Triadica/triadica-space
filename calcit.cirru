@@ -1939,12 +1939,10 @@
                     q $ triadica.vector/expect-number-list $ .unwrap (get raw :to)
                   StripEndpoints :from p :to q
               (list? raw)
-                .map
-                  decode-map-as raw $ List Dynamic
-                  , decode-strip-source
+                .map raw $ fn (item) (decode-strip-source item)
               true $ raise |Expected-strip-map-or-nested-list
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> StripSource) (:open :decode)
+          :schema $ quote $ Fn Raw (-> StripSource) (:generics Raw) (:open :decode)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.comp.bunch
           :require
