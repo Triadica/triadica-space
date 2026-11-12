@@ -292,7 +292,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
-            :features :js-ffi
+            :features :js-ffi :state
         'comp-multiple-branches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-multiple-branches ()
             let
@@ -986,6 +986,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
+            :features :io :state
         'comp-segments-curves-demo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-segments-curves-demo ()
             comp-segments-curves $ {} $ :curves
@@ -1251,7 +1252,7 @@
                   (:none) &unit
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic Dynamic (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn Dynamic Dynamic (-> Unit) (:features :js-ffi :state)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             if dev? $ load-console-formatter!
@@ -1271,7 +1272,7 @@
             ; render-loop!
             setup-mouse-events! canvas
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -1284,19 +1285,19 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             load-objects! (comp-container @*store) dispatch!
             paint-canvas!
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io :state)
         'render-loop! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-loop! ()
             js/requestAnimationFrame $ fn (a) (paint-canvas!) (render-loop!)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.app.main
           :require (|./calcit.build-errors :default build-errors) (|bottom-tip :default hud!)
@@ -1728,7 +1729,7 @@
           :examples $ []
           :schema $ quote $ Fn
             -> $ Map Tag Dynamic
-            :features :js-ffi
+            :features :js-ffi :state
         'tiny-cube-object $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn tiny-cube-object (v)
             let
@@ -1782,7 +1783,7 @@
           :examples $ []
           :schema $ quote $ Fn Number
             -> $ Map Tag Dynamic
-            :features :js-ffi
+            :features :io :js-ffi :state
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.app.shapes
           :require (|twgl.js :as twgl)
@@ -2090,7 +2091,7 @@
               Fn Dynamic Dynamic $ -> Unit
               -> Unit
             -> $ Map Tag Dynamic
-            :features :js-ffi
+            :features :js-ffi :state
         'comp-slider $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-slider (props on-move)
             let
@@ -2165,7 +2166,7 @@
               Fn Dynamic Dynamic $ -> Unit
               -> Unit
             -> $ Map Tag Dynamic
-            :features :js-ffi
+            :features :js-ffi :state
         'drag-number $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn drag-number (value fallback)
             if (js-present? value) (js-ffi.contract/expect-number |pointer.coordinate value) fallback
@@ -2805,7 +2806,7 @@
                   swap! *shader-programs assoc field program
                   , program
           :examples $ []
-          :schema $ quote $ Fn JsObject String String (-> JsObject) (:features :js-ffi)
+          :schema $ quote $ Fn JsObject String String (-> JsObject) (:features :js-ffi :state)
         'detect-mobile? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn detect-mobile? ()
             <
@@ -3208,7 +3209,7 @@
                       , event @*proxied-dispatch
                     , &unit
           :examples $ []
-          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi :state)
         'handle-screen-mousedown! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mousedown! (event)
             let
@@ -3253,7 +3254,7 @@
                     swap! *mouse-holding-paths conj $ .unwrap $ :coord nearest
                     , &unit
           :examples $ []
-          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi :state)
         'handle-screen-mousemove! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mousemove! (event)
             let
@@ -3281,7 +3282,7 @@
                     , &unit
             , &unit
           :examples $ []
-          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi :state)
         'handle-screen-mouseup! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mouseup! (event)
             let
@@ -3310,7 +3311,7 @@
                   reset! *mouse-holding-paths $ []
             , &unit
           :examples $ []
-          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi :state)
         'host-number-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn host-number-field (label object key)
             expect-number label $ object-field label object key
@@ -3343,7 +3344,7 @@
           :schema $ quote $ Fn (Map Tag Dynamic)
             Fn Dynamic Dynamic $ -> Unit
             -> Unit
-            :features :js-ffi
+            :features :js-ffi :state
         'load-sized-buffer! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-sized-buffer! (gl *fb-ref w h)
             let
@@ -3366,7 +3367,7 @@
           :examples $ []
           :schema $ quote $ Fn JsObject
             Ref $ Option FramebufferCache
-            , Number Number (-> JsObject) (:features :js-ffi)
+            , Number Number (-> JsObject) (:features :js-ffi :state)
         'load-tree-node $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-tree-node (tree path)
             if (empty? path) (Some tree)
@@ -3471,7 +3472,7 @@
                 paint-canvas!
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Number ControlState ControlDelta (-> Unit)
+          :schema $ quote $ Fn Number ControlState ControlDelta (-> Unit) (:features :state)
         'paint-canvas! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn paint-canvas! ()
             when (not @*paint-pending?) (reset! *paint-pending? true)
@@ -3570,7 +3571,7 @@
                 , &unit
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
         'refine-strength $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn refine-strength (x)
             &* x $ sqrt $ abs (&* x 0.02)
@@ -3627,7 +3628,7 @@
             set! (.-onpointerleave canvas) handle-screen-mouseup!
             , &unit
           :examples $ []
-          :schema $ quote $ Fn DomElementHost (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn DomElementHost (-> Unit) (:features :js-ffi :state)
         'traverse-tree $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn traverse-tree (tree coord cb)
             match (get tree :type)
@@ -3753,7 +3754,7 @@
           :examples $ []
           :schema $ quote $ Fn String (List Number)
             -> $ List Number
-            :features :js-ffi
+            :features :js-ffi :state
         'inject-hud! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn inject-hud! ()
             match (query-selector |body)
@@ -3873,12 +3874,13 @@
               ; println ([] x0 y0 z0) |=> $ [] dx dy dz
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Number Number Number (-> Unit)
+          :schema $ quote $ Fn Number Number Number (-> Unit) (:features :state)
         'new-lookat-point $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn new-lookat-point () (v-scale @*viewer-forward 600)
           :examples $ []
           :schema $ quote $ Fn
             -> $ List Number
+            :features :state
         'rotate-glance-by! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rotate-glance-by! (x y)
             if (not= x 0)
@@ -3903,7 +3905,7 @@
                   v-scale forward $ negate $ sin da
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Number Number (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn Number Number (-> Unit) (:features :js-ffi :state)
         'spin-glance-by! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn spin-glance-by! (v)
             if (not= v 0)
@@ -3917,7 +3919,7 @@
                   v-scale rightward $ sin da
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Number (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn Number (-> Unit) (:features :js-ffi :state)
         'to-viewer-axis $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn to-viewer-axis (x y z)
             ; "|converting from WebGL coordinate to object coordinate"
@@ -3933,6 +3935,7 @@
           :examples $ []
           :schema $ quote $ Fn Number Number Number
             -> $ List Number
+            :features :state
         'transform-3d $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn transform-3d (p0)
             let
@@ -3959,7 +3962,7 @@
           :examples $ []
           :schema $ quote $ Fn (List Number)
             -> $ List Number
-            :features :js-ffi
+            :features :js-ffi :state
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.perspective
           :require
