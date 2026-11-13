@@ -2999,6 +2999,12 @@
             :names $ {} $ :program |program
           :schema $ quote Trait
           :tags $ #{} :ffi :js-host
+        'SceneNode $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum SceneNode (:object)
+            :group $ List $ Map Tag Dynamic
+            :unknown Dynamic
+          :examples $ []
+          :schema $ quote EnumDef
         'WebGLClearHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait WebGLClearHost (:color-buffer-bit 'Number) (:depth-buffer-bit 'Number)
             .clear-color! $ Fn WebGLClearHost Number Number Number Number $ -> Unit
@@ -3604,6 +3610,17 @@
             , &unit
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
+        'read-scene-node $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-scene-node (tree)
+            match (get tree :type)
+              (:some kind)
+                match kind
+                  :object $ SceneNode :object
+                  :group $ SceneNode :group $ scene-children tree
+                  _ $ SceneNode :unknown kind
+              (:none) (SceneNode :unknown "|missing :type")
+          :examples $ []
+          :schema $ quote $ Fn (Map Tag V) (-> SceneNode) (:generics V) (:features :js-ffi)
         'refine-strength $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn refine-strength (x)
             &* x $ sqrt $ abs (&* x 0.02)
@@ -3621,7 +3638,7 @@
           :code $ quote $ defn scene-arrays (object)
             expect-object |scene.arrays $ .unwrap $ get object :arrays
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (-> JsObject) (:features :js-ffi)
+          :schema $ quote $ Fn (Map Tag V) (-> JsObject) (:generics V) (:features :js-ffi)
         'scene-children $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-children (tree)
             match (get tree :children)
@@ -3631,8 +3648,9 @@
                   []
               (:none) ([])
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag V)
             -> $ List $ Map Tag Dynamic
+            :generics V
             :features :js-ffi
         'scene-draw-mode $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-draw-mode (object)
@@ -3663,25 +3681,24 @@
           :schema $ quote $ Fn DomElementHost (-> Unit) (:features :js-ffi :state)
         'traverse-tree $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn traverse-tree (tree coord cb)
-            match (get tree :type)
-              (:some kind)
-                match kind
-                  :object $ do
-                    cb (dissoc tree :children) coord
-                    , &unit
-                  :group $ let
-                      children $ scene-children tree
-                    map-indexed children $ fn (idx child)
-                      hint-fn $ Fn Number (Map Tag Dynamic) (-> Unit) (:features :js-ffi)
-                      traverse-tree child (conj coord idx) cb
-                    , &unit
-                  _ $ do (js/console.warn |Unknown-element-type: kind) &unit
-              (:none)
-                do (js/console.warn |Unknown-element-type: "|missing :type") &unit
+            match (read-scene-node tree)
+              (:object)
+                do
+                  cb (dissoc tree :children) coord
+                  , &unit
+              (:group children)
+                do
+                  map-indexed children $ fn (idx child)
+                    hint-fn $ Fn Number (Map Tag Dynamic) (-> Unit) (:features :js-ffi)
+                    traverse-tree child (conj coord idx) cb
+                  , &unit
+              (:unknown kind)
+                do (js/console.warn |Unknown-element-type: kind) &unit
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (List Number)
+          :schema $ quote $ Fn (Map Tag V) (List Number)
             Fn (Map Tag Dynamic) (List Number) (-> Unit)
             -> Unit
+            :generics V
             :features :js-ffi
         'update-states $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn update-states (store pair)
