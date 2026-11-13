@@ -40,7 +40,7 @@
     "triadica.comp.drag-point/comp-button": {"schema-dynamic/js-ffi-non-host": 3},
     "triadica.comp.drag-point/comp-drag-point": {"schema-dynamic/intentional-js-ffi": 1, "schema-dynamic/js-ffi-non-host": 3},
     "triadica.comp.drag-point/comp-slider": {"schema-dynamic/intentional-js-ffi": 1, "schema-dynamic/js-ffi-non-host": 3},
-    "triadica.comp.line/build-brush-points": {"schema-dynamic/unresolved": 4},
+    "triadica.comp.line/build-brush-points": {"schema-dynamic/unresolved": 2},
     "triadica.comp.line/build-tube-points": {"schema-dynamic/unresolved": 2},
     "triadica.comp.line/comp-brush": {"schema-dynamic/intentional-js-ffi": 1, "schema-dynamic/js-ffi-non-host": 1},
     "triadica.comp.line/comp-tube": {"schema-dynamic/intentional-js-ffi": 1, "schema-dynamic/js-ffi-non-host": 1},

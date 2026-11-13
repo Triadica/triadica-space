@@ -2193,22 +2193,18 @@
                     [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc p-raw :brush brush) (assoc q-raw :brush zero-2d) (assoc q-raw :brush brush)
                     match brush1
                       (:some b)
-                        if (non-nil? b)
-                          [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
-                          []
+                        [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
                       (:none) ([])
                     match brush2
                       (:some b)
-                        if (non-nil? b)
-                          [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
-                          []
+                        [] (assoc p-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc p-raw :brush b) (assoc q-raw :brush zero-2d) (assoc q-raw :brush b)
                       (:none) ([])
           :examples $ []
           :schema $ quote $ Fn
             List $ Map Tag Dynamic
             List Number
-            Option Dynamic
-            Option Dynamic
+            Option $ List Number
+            Option $ List Number
             -> $ List $ List
               List $ Map Tag Dynamic
         'build-tube-points $ %{} 'CodeEntry (:doc |)
@@ -2289,14 +2285,11 @@
                 points $ decode-map-as
                   .unwrap $ get options :curve
                   List Dynamic
-                brush $ decode-map-as
-                  match (get options :brush)
-                    (:some field-value)
-                      either field-value $ [] 8 0
-                    (:none) ([] 8 0)
-                  List Number
-                brush1 $ get options :brush1
-                brush2 $ get options :brush2
+                brush $ .unwrap-or
+                  read-optional-brush $ get options :brush
+                  [] 8 0
+                brush1 $ read-optional-brush $ get options :brush1
+                brush2 $ read-optional-brush $ get options :brush2
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
                   (:some field-value) (either field-value :triangles)
@@ -2376,6 +2369,47 @@
           :examples $ []
           :schema $ quote $ Fn (List Number) (List Number) Number
             -> $ List $ Map Tag (List Number)
+        'read-optional-brush $ %{} 'CodeEntry
+          :doc "|Decode optional packed brush attributes. A missing or nil value disables that brush."
+          :code $ quote $ defn read-optional-brush (value)
+            match value
+              (:some raw)
+                if (nil? raw) None $ match (decode-map-as raw triadica.alias/PackedValue)
+                  (Number n)
+                    Some $ [] n 0
+                  (List components)
+                    match (.len components)
+                      1 $ Some $ .append components 0
+                      2 $ Some components
+                      _ $ raise "|Optional brush expects one or two components"
+              (:none) None
+          :examples $ []
+          :schema $ quote $ Fn (Option Value)
+            -> $ Option $ List Number
+            :generics Value
+          :tests $ [] $ %{} 'TestEntry (:name |normalizes-optional-brush-width)
+            :code $ quote $ do
+              assert= None $ read-optional-brush None
+              assert= None $ read-optional-brush $ Some nil
+              assert=
+                Some $ [] 0 0
+                read-optional-brush $ Some 0
+              assert=
+                Some $ [] 4 0
+                read-optional-brush $ Some $ [] 4
+              assert=
+                Some $ [] 4 2
+                read-optional-brush $ Some $ [] 4 2
+              assert= true $ try
+                do
+                  read-optional-brush $ Some $ [] 4 2 1
+                  , false
+                fn (_error) true
+              assert= true $ try
+                do
+                  read-optional-brush $ Some $ [] 4 |bad
+                  , false
+                fn (_error) true
         'zero-2d $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def zero-2d ([] 0 0)
           :examples $ []
