@@ -62,7 +62,7 @@
     "triadica.core/object-uniforms": {"schema-dynamic/intentional-js-ffi": 1},
     "triadica.core/paint-canvas!": {"code-nil/unresolved": 2},
     "triadica.core/scene-children": {"schema-dynamic/js-ffi-non-host": 1},
-    "triadica.core/traverse-tree": {"schema-dynamic/js-ffi-non-host": 2},
+    "triadica.core/traverse-tree": {"schema-dynamic/js-ffi-non-host": 1},
     "triadica.core/update-states": {"schema-dynamic/js-ffi-non-host": 3},
     "triadica.global/*objects-buffer": {"schema-dynamic/unresolved": 1},
     "triadica.global/*objects-tree": {"schema-dynamic/unresolved": 1},

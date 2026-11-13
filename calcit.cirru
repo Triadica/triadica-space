@@ -3661,9 +3661,10 @@
               (:unknown kind)
                 do (js/console.warn |Unknown-element-type: kind) &unit
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (List Number)
+          :schema $ quote $ Fn (Map Tag V) (List Number)
             Fn (Map Tag Dynamic) (List Number) (-> Unit)
             -> Unit
+            :generics V
             :features :js-ffi
         'update-states $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn update-states (store pair)
