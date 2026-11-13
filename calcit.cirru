@@ -3587,7 +3587,7 @@
           :code $ quote $ defn scene-arrays (object)
             expect-object |scene.arrays $ .unwrap $ get object :arrays
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (-> JsObject) (:features :js-ffi)
+          :schema $ quote $ Fn (Map Tag V) (-> JsObject) (:generics V) (:features :js-ffi)
         'scene-children $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-children (tree)
             match (get tree :children)
@@ -3597,8 +3597,9 @@
                   []
               (:none) ([])
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag V)
             -> $ List $ Map Tag Dynamic
+            :generics V
             :features :js-ffi
         'scene-draw-mode $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scene-draw-mode (object)
