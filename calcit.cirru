@@ -10,6 +10,10 @@
   :files $ {}
     'triadica.alias $ %{} 'FileEntry
       :defs $ {}
+        'PackedTree $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion PackedTree (Map Tag PackedValue) (List PackedTree)
+          :examples $ []
+          :schema $ quote UnionDef
         'PackedValue $ %{} 'CodeEntry
           :doc "|One attribute value in `:packed-attrs`: a scalar, or a vector of 1 to 3 numbers."
           :code $ quote $ defunion PackedValue Number (List Number)
@@ -17,9 +21,8 @@
           :schema $ quote UnionDef
         'build-packed-attrs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-packed-attrs (data collect!)
-            if (list? data)
-              let
-                  items $ decode-map-as data $ List Dynamic
+            match data
+              (List items)
                 loop
                     idx 0
                   if
@@ -30,14 +33,12 @@
                         , collect!
                       recur $ inc idx
                     , &unit
-              collect! $ decode-map-as data $ Map Tag Dynamic
+              (Map attrs) (collect! attrs)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Input
-            Fn (Map Tag Dynamic) (-> Unit)
+          :schema $ quote $ Fn PackedTree
+            Fn (Map Tag PackedValue) (-> Unit)
             -> Unit
-            :generics Input
-            :features :js-ffi
         'decode-packed-value $ %{} 'CodeEntry
           :doc "|Decode a raw `:packed-attrs` value into PackedValue, raising with the attribute name when it is neither a Number nor a List of Numbers."
           :code $ quote $ defn decode-packed-value (name raw)
@@ -100,27 +101,27 @@
                     when (empty? raw) (js/console.error options) (raise |expected-data-in-packed-attributes)
                     let
                         ret $ &js-object
-                        g0 $ peek-packed-attrs raw
+                        packed $ decode-map-as raw PackedTree
+                        g0 $ peek-packed-attrs packed
                         names $ keys g0
-                        size $ count-recursive raw
+                        size $ count-recursive packed
                         counter $ ref 0
                         widths $ foldl names ({})
                           fn (acc name)
                             hint-fn $ Fn (Map Tag Number) Tag $ -> (Map Tag Number)
-                            assoc acc name $ packed-width $ decode-packed-value name
-                              .unwrap $ get g0 name
+                            assoc acc name $ packed-width $ .unwrap (get g0 name)
                       &doseq (name names)
                         let
                             width $ .unwrap $ get widths name
                           aset ret (to-string name)
                             js-ffi.contract/expect-object |packed.attribute $ .!createAugmentedTypedArray twgl/primitives width size
-                      build-packed-attrs raw $ fn (info)
+                      build-packed-attrs packed $ fn (info)
                         let
                             idx @counter
                           swap! counter inc
                           &doseq (name names)
                             let
-                                value $ decode-packed-value name $ .unwrap (get info name)
+                                value $ .unwrap $ get info name
                                 target $ triadica.core/host-object-field |packed.attribute ret $ to-string name
                                 width $ .unwrap $ get widths name
                               when
@@ -155,18 +156,13 @@
           :schema $ quote $ Fn PackedValue (-> Number)
         'peek-packed-attrs $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn peek-packed-attrs (packed-attrs)
-            cond
-                list? packed-attrs
-                recur $ .unwrap $ nth
-                  decode-map-as packed-attrs $ List Dynamic
-                  , 0
-              (map? packed-attrs)
-                decode-map-as packed-attrs $ Map Tag Dynamic
-              true $ do (js/console.warn |unknown-attribute-group packed-attrs) ({})
+            match packed-attrs
+              (List items)
+                recur $ .unwrap $ nth items 0
+              (Map attrs) attrs
           :examples $ []
-          :schema $ quote $ Fn Dynamic
-            -> $ Map Tag Dynamic
-            :features :js-ffi
+          :schema $ quote $ Fn PackedTree
+            -> $ Map Tag PackedValue
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.alias
           :require (|twgl.js :as twgl)
