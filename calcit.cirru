@@ -326,6 +326,8 @@
                       angle1 $ / (* 2 &PI) ball-size
                     -> (range ball-size)
                       map $ fn (j)
+                        hint-fn $ Fn Number $ ->
+                          List $ Map Tag triadica.alias/PackedValue
                         let
                             v0 $ []
                               * rx $ cos $ * j angle1
@@ -338,7 +340,7 @@
           :examples $ []
           :schema $ quote $ Fn (List Number) Number Number Number
             -> $ List $ List
-              List $ Map Tag Dynamic
+              List $ Map Tag triadica.alias/PackedValue
             :features :js-ffi
         'calc-parabola $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn calc-parabola (v0 t)
