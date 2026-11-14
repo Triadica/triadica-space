@@ -1803,7 +1803,7 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-axis (o)
             let
-                options $ .unwrap-or o $ assert-type ({}) (Map Tag Dynamic)
+                options $ .unwrap-or o $ assert-type ({}) (Map Tag V)
                 radius $ dynamic-number-field options :radius 2
                 segments $ dynamic-number-field options :segments 10
                 length $ dynamic-number-field options :length 400
@@ -1819,8 +1819,9 @@
                   interpolate-line-positions ([] 0 0 neg-length) ([] 0 0 length) segments
           :examples $ []
           :schema $ quote $ Fn
-            Option $ Map Tag Dynamic
+            Option $ Map Tag V
             -> $ Map Tag Dynamic
+            :generics V
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.comp.axis
           :require
