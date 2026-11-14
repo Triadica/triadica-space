@@ -2197,12 +2197,13 @@
                       (:none) ([])
           :examples $ []
           :schema $ quote $ Fn
-            List $ Map Tag Dynamic
+            List $ Map Tag Field
             List Number
             Option $ List Number
             Option $ List Number
             -> $ List $ List
               List $ Map Tag Dynamic
+            :generics Field
         'build-tube-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-tube-points (points radius normal0 circle-step)
             let
@@ -2252,10 +2253,11 @@
                           , output
           :examples $ []
           :schema $ quote $ Fn
-            List $ Map Tag Dynamic
+            List $ Map Tag Field
             , Number (List Number) Number
               -> $ List $ List
                 List $ Map Tag Dynamic
+              :generics Field
           :tests $ [] $ %{} 'TestEntry (:name |tube-keeps-positions-and-metadata)
             :code $ quote $ let
                 points $ []
@@ -2456,9 +2458,10 @@
                       List $ Map Tag triadica.alias/PackedValue
           :examples $ []
           :schema $ quote $ Fn
-            List $ Map Tag Dynamic
+            List $ Map Tag Field
             , Number
               -> $ List $ List (Map Tag triadica.alias/PackedValue)
+              :generics Field
         'comp-segments $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-segments (options)
             let
