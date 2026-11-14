@@ -493,6 +493,10 @@
             triadica.vector :refer $ &v+ v-scale
     'triadica.app.comp.lamps $ %{} 'FileEntry
       :defs $ {}
+        'PetalField $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion PetalField Number (List Number)
+          :examples $ []
+          :schema $ quote UnionDef
         'comp-lamps $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-lamps ()
             let
@@ -712,6 +716,8 @@
                         ->
                           range (negate side) side
                           map $ fn (di)
+                            hint-fn $ Fn Number $ ->
+                              List $ Map Tag PetalField
                             let
                                 angle-perp $ + angle $ * 0.5 &PI
                                 dr $ * di tile-size
@@ -769,7 +775,7 @@
           :examples $ []
           :schema $ quote $ Fn Number Number Number Number Number
             -> $ List $ List
-              List $ List $ Map Tag Dynamic
+              List $ List $ Map Tag PetalField
         'render-rose-petal $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-rose-petal (idx)
             let
