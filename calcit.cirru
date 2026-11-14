@@ -3185,14 +3185,24 @@
             -> $ Option HitTarget
         'flatten-objects $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn flatten-objects (tree)
-            match (scene-draw-mode tree)
-              :group $ mapcat (scene-children tree) flatten-objects
-              :object $ [] tree
-              _ $ do (js/console.log |unknown-type-in: tree) ([])
+            match (read-scene-node tree)
+              (:group children) (mapcat children flatten-objects)
+              (:object) ([] tree)
+              (:unknown _)
+                do (js/console.log |unknown-type-in: tree) ([])
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ List $ Map Tag Dynamic
             :features :js-ffi
+          :tests $ [] $ %{} 'TestEntry (:name |preserves-node-kind-and-order)
+            :code $ quote $ let
+                first-object $ {} (:type :object) (:draw-mode :lines)
+                second-object $ {} (:type :object) (:draw-mode :triangles)
+                nested $ {} (:type :group)
+                  :children $ [] second-object
+                root $ {} (:type :group)
+                  :children $ [] first-object nested
+              assert= ([] first-object second-object) (flatten-objects root)
         'framebuffer-first-texture $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn framebuffer-first-texture (framebuffer)
             let
