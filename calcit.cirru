@@ -3379,9 +3379,10 @@
                       object-uniforms obj uniforms
                   , &unit
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag V)
             Fn Dynamic Dynamic $ -> Unit
             -> Unit
+            :generics V
             :features :js-ffi :state
         'load-sized-buffer! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-sized-buffer! (gl *fb-ref w h)
