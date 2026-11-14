@@ -3464,7 +3464,7 @@
                   (:none) (&js-object)
               js-ffi.contract/expect-object |uniforms.assign $ js/Object.assign el-uniforms uniforms
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) JsObject (-> JsObject) (:features :js-ffi)
+          :schema $ quote $ Fn (Map Tag V) JsObject (-> JsObject) (:generics V) (:features :js-ffi)
         'on-control-event $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-control-event (elapsed states delta)
             let
