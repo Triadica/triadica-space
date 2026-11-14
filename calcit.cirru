@@ -924,6 +924,10 @@
             triadica.vector :refer $ v-scale
     'triadica.app.container $ %{} 'FileEntry
       :defs $ {}
+        'TabEntryValue $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion TabEntryValue Tag (List Number)
+          :examples $ []
+          :schema $ quote UnionDef
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-container (store)
             let
@@ -1185,7 +1189,7 @@
               {} (:key :bunch)
                 :position $ [] -200 -240 0
           :examples $ []
-          :schema $ quote $ List (Map Tag Dynamic)
+          :schema $ quote $ List (Map Tag TabEntryValue)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.app.container
           :require
@@ -2740,7 +2744,7 @@
                   Option Tag
               group ({}) & $ -> entries $ map-indexed
                 fn (idx entry)
-                  hint-fn $ Fn Number (Map Tag Dynamic)
+                  hint-fn $ Fn Number (Map Tag V)
                     -> $ Map Tag Dynamic
                   let
                       key $ decode-map-as
@@ -2791,12 +2795,13 @@
                               on-click key d!
           :examples $ []
           :schema $ quote $ Fn
-            List $ Map Tag Dynamic
+            List $ Map Tag V
             Map Tag Dynamic
             Fn Tag
               Fn Tag Tag $ -> Unit
               -> Unit
             -> $ Map Tag Dynamic
+            :generics V
             :features :js-ffi
         'dice-shape-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dice-shape-points
