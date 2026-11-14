@@ -3409,21 +3409,38 @@
             , Number Number (-> JsObject) (:features :js-ffi :state)
         'load-tree-node $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn load-tree-node (tree path)
-            if (empty? path) (Some tree)
-              let
-                  children $ scene-children tree
-                  idx $ .unwrap $ .first path
-                if
-                  and (>= idx 0)
-                    < idx $ .len children
-                  load-tree-node
-                    .unwrap $ nth children idx
-                    rest path
-                  , None
+            loop
+                node tree
+                remaining path
+              hint-fn $ Fn (Map Tag Dynamic) (List Number)
+                -> $ Option $ Map Tag Dynamic
+                :features :js-ffi
+              match (.first remaining)
+                (:none) (Some node)
+                (:some idx)
+                  match
+                    nth (scene-children node) idx
+                    (:none) None
+                    (:some child)
+                      recur child $ rest remaining
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) (List Number)
+          :schema $ quote $ Fn (Map Tag V) (List Number)
             -> $ Option $ Map Tag Dynamic
+            :generics V
             :features :js-ffi
+          :tests $ [] $ %{} 'TestEntry (:name |resolves-legacy-child-paths)
+            :code $ quote $ let
+                leaf-node $ {} (:type :object) (:draw-mode :lines)
+                group-node $ {} (:type :group)
+                  :children $ [] leaf-node
+                root $ {} (:type :group)
+                  :children $ [] group-node
+              assert= (Some root)
+                load-tree-node root $ []
+              assert= (Some leaf-node)
+                load-tree-node root $ [] 0 0
+              assert= None $ load-tree-node root $ [] -1
+              assert= None $ load-tree-node root $ [] 0 1
         'mutably-write-array! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mutably-write-array! (data write-array!)
             match data
