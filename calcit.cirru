@@ -804,6 +804,8 @@
                 map $ fn (ring-idx)
                   -> (range sector-size)
                     map $ fn (sector-idx)
+                      hint-fn $ Fn Number $ ->
+                        List $ Map Tag $ List Number
                       let
                           this-radian $ * center-y-radian $ / ring-idx ring-size
                           next-radian $ * center-y-radian $ / (inc ring-idx) ring-size
@@ -861,7 +863,7 @@
           :examples $ []
           :schema $ quote $ Fn Number
             -> $ List $ List
-              List $ Map Tag Dynamic
+              List $ Map Tag $ List Number
             :features :js-ffi
         'xy-length $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn xy-length (xy)
