@@ -52,9 +52,10 @@
           :code $ quote $ defn group (options & children)
             {} (:type :group) (:children children)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag V)
             & $ Map Tag Dynamic
             -> $ Map Tag Dynamic
+            :generics V
         'object $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn object (options)
             let
@@ -143,8 +144,9 @@
                 , &unit
               -> options (assoc :type :object) (assoc :arrays arrays)
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag V)
             -> $ Map Tag Dynamic
+            :generics V
             :features :js-ffi
         'packed-width $ %{} 'CodeEntry
           :doc "|Number of floats one PackedValue occupies in the typed array."
