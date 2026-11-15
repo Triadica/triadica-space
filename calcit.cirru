@@ -326,6 +326,8 @@
                       angle1 $ / (* 2 &PI) ball-size
                     -> (range ball-size)
                       map $ fn (j)
+                        hint-fn $ Fn Number $ ->
+                          List $ Map Tag triadica.alias/PackedValue
                         let
                             v0 $ []
                               * rx $ cos $ * j angle1
@@ -338,7 +340,7 @@
           :examples $ []
           :schema $ quote $ Fn (List Number) Number Number Number
             -> $ List $ List
-              List $ Map Tag Dynamic
+              List $ Map Tag triadica.alias/PackedValue
             :features :js-ffi
         'calc-parabola $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn calc-parabola (v0 t)
@@ -493,6 +495,10 @@
             triadica.vector :refer $ &v+ v-scale
     'triadica.app.comp.lamps $ %{} 'FileEntry
       :defs $ {}
+        'PetalField $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion PetalField Number (List Number)
+          :examples $ []
+          :schema $ quote UnionDef
         'comp-lamps $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-lamps ()
             let
@@ -712,6 +718,8 @@
                         ->
                           range (negate side) side
                           map $ fn (di)
+                            hint-fn $ Fn Number $ ->
+                              List $ Map Tag PetalField
                             let
                                 angle-perp $ + angle $ * 0.5 &PI
                                 dr $ * di tile-size
@@ -769,7 +777,7 @@
           :examples $ []
           :schema $ quote $ Fn Number Number Number Number Number
             -> $ List $ List
-              List $ List $ Map Tag Dynamic
+              List $ List $ Map Tag PetalField
         'render-rose-petal $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-rose-petal (idx)
             let
@@ -798,6 +806,8 @@
                 map $ fn (ring-idx)
                   -> (range sector-size)
                     map $ fn (sector-idx)
+                      hint-fn $ Fn Number $ ->
+                        List $ Map Tag $ List Number
                       let
                           this-radian $ * center-y-radian $ / ring-idx ring-size
                           next-radian $ * center-y-radian $ / (inc ring-idx) ring-size
@@ -855,7 +865,7 @@
           :examples $ []
           :schema $ quote $ Fn Number
             -> $ List $ List
-              List $ Map Tag Dynamic
+              List $ Map Tag $ List Number
             :features :js-ffi
         'xy-length $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn xy-length (xy)
@@ -924,6 +934,10 @@
             triadica.vector :refer $ v-scale
     'triadica.app.container $ %{} 'FileEntry
       :defs $ {}
+        'TabEntryValue $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion TabEntryValue Tag (List Number)
+          :examples $ []
+          :schema $ quote UnionDef
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-container (store)
             let
@@ -1185,7 +1199,7 @@
               {} (:key :bunch)
                 :position $ [] -200 -240 0
           :examples $ []
-          :schema $ quote $ List (Map Tag Dynamic)
+          :schema $ quote $ List (Map Tag TabEntryValue)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.app.container
           :require
@@ -1793,7 +1807,7 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-axis (o)
             let
-                options $ .unwrap-or o $ assert-type ({}) (Map Tag Dynamic)
+                options $ .unwrap-or o $ assert-type ({}) (Map Tag V)
                 radius $ dynamic-number-field options :radius 2
                 segments $ dynamic-number-field options :segments 10
                 length $ dynamic-number-field options :length 400
@@ -1809,8 +1823,9 @@
                   interpolate-line-positions ([] 0 0 neg-length) ([] 0 0 length) segments
           :examples $ []
           :schema $ quote $ Fn
-            Option $ Map Tag Dynamic
+            Option $ Map Tag V
             -> $ Map Tag Dynamic
+            :generics V
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.comp.axis
           :require
@@ -2197,12 +2212,13 @@
                       (:none) ([])
           :examples $ []
           :schema $ quote $ Fn
-            List $ Map Tag Dynamic
+            List $ Map Tag Field
             List Number
             Option $ List Number
             Option $ List Number
             -> $ List $ List
               List $ Map Tag Dynamic
+            :generics Field
         'build-tube-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-tube-points (points radius normal0 circle-step)
             let
@@ -2252,10 +2268,11 @@
                           , output
           :examples $ []
           :schema $ quote $ Fn
-            List $ Map Tag Dynamic
+            List $ Map Tag Field
             , Number (List Number) Number
               -> $ List $ List
                 List $ Map Tag Dynamic
+              :generics Field
           :tests $ [] $ %{} 'TestEntry (:name |tube-keeps-positions-and-metadata)
             :code $ quote $ let
                 points $ []
@@ -2456,9 +2473,10 @@
                       List $ Map Tag triadica.alias/PackedValue
           :examples $ []
           :schema $ quote $ Fn
-            List $ Map Tag Dynamic
+            List $ Map Tag Field
             , Number
               -> $ List $ List (Map Tag triadica.alias/PackedValue)
+              :generics Field
         'comp-segments $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-segments (options)
             let
@@ -2737,7 +2755,7 @@
                   Option Tag
               group ({}) & $ -> entries $ map-indexed
                 fn (idx entry)
-                  hint-fn $ Fn Number (Map Tag Dynamic)
+                  hint-fn $ Fn Number (Map Tag V)
                     -> $ Map Tag Dynamic
                   let
                       key $ decode-map-as
@@ -2788,12 +2806,13 @@
                               on-click key d!
           :examples $ []
           :schema $ quote $ Fn
-            List $ Map Tag Dynamic
+            List $ Map Tag V
             Map Tag Dynamic
             Fn Tag
               Fn Tag Tag $ -> Unit
               -> Unit
             -> $ Map Tag Dynamic
+            :generics V
             :features :js-ffi
         'dice-shape-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dice-shape-points
