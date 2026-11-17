@@ -3001,8 +3001,9 @@
         'HitTarget $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct HitTarget (:distance Number)
             :handler $ Fn js-ffi.browser/MouseEventHost
-              Fn Dynamic Dynamic $ -> Unit
+              Fn Dynamic Dynamic (-> Unit) (:features :state :io :js-ffi)
               -> Unit
+              :features :state :io :js-ffi
             :coord $ Option $ List Number
           :examples $ []
           :schema $ quote StructDef
@@ -3181,14 +3182,16 @@
           :code $ quote $ defn event-handler (value)
             if (fn? value)
               unsafe-coerce value $ Fn js-ffi.browser/MouseEventHost
-                Fn Dynamic Dynamic $ -> Unit
+                Fn Dynamic Dynamic (-> Unit) (:features :state :io :js-ffi)
                 -> Unit
+                :features :state :io :js-ffi
               raise |Expected-callable-hit-handler
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ Fn MouseEventHost
-              Fn Dynamic Dynamic $ -> Unit
+              Fn Dynamic Dynamic (-> Unit) (:features :io :js-ffi :state)
               -> Unit
+              :features :io :js-ffi :state
             :features :js-ffi
         'find-nearest $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn find-nearest (xs)
@@ -3408,7 +3411,7 @@
                   , &unit
           :examples $ []
           :schema $ quote $ Fn (Map Tag V)
-            Fn Dynamic Dynamic $ -> Unit
+            Fn Dynamic Dynamic (-> Unit) (:features :io :js-ffi :state)
             -> Unit
             :generics V
             :features :js-ffi :state
@@ -3811,7 +3814,7 @@
             fn (op data) (println "|not rendered yet")
           :examples $ []
           :schema $ quote $ Ref
-            Fn Dynamic Dynamic $ -> Unit
+            Fn Dynamic Dynamic (-> Unit) (:features :io :js-ffi :state)
         'RenderBuffer $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct RenderBuffer (:program JsObject) (:buffer JsObject) (:draw-mode Tag)
             :uniforms $ Fn JsObject $ -> JsObject
