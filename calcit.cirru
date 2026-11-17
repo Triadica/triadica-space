@@ -290,7 +290,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
-            :features :js-ffi :state
+            :features :io :js-ffi :state
         'comp-multiple-branches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-multiple-branches ()
             let
@@ -2114,9 +2114,9 @@
                 indices $ [] 0 5 2 1 4 2 1 5 3 0 4 3
                 handle-drag! $ fn (x y d!)
                   hint-fn $ Fn Number Number
-                    Fn Dynamic Dynamic $ -> Unit
+                    Fn Dynamic Dynamic (-> Unit) (:features :state :io :js-ffi)
                     -> Unit
-                    :features :js-ffi
+                    :features :state :io :js-ffi
                   let
                       prev @*drag-cache
                       dx $ - x $ dynamic-number-field prev :x 0
@@ -2135,9 +2135,9 @@
                 :hit-region $ {} (:position position) (:radius 20)
                   :on-mousedown $ fn (e d!)
                     hint-fn $ Fn js-ffi.browser/MouseEventHost
-                      Fn Dynamic Dynamic $ -> Unit
+                      Fn Dynamic Dynamic (-> Unit) (:features :state :io :js-ffi)
                       -> Unit
-                      :features :js-ffi
+                      :features :state :io :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
@@ -2145,9 +2145,9 @@
                     , &unit
                   :on-mousemove $ fn (e d!)
                     hint-fn $ Fn js-ffi.browser/MouseEventHost
-                      Fn Dynamic Dynamic $ -> Unit
+                      Fn Dynamic Dynamic (-> Unit) (:features :state :io :js-ffi)
                       -> Unit
-                      :features :js-ffi
+                      :features :state :io :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
@@ -2156,9 +2156,9 @@
                     , &unit
                   :on-mouseup $ fn (e d!)
                     hint-fn $ Fn js-ffi.browser/MouseEventHost
-                      Fn Dynamic Dynamic $ -> Unit
+                      Fn Dynamic Dynamic (-> Unit) (:features :state :io :js-ffi)
                       -> Unit
-                      :features :js-ffi
+                      :features :state :io :js-ffi
                     let
                         x $ drag-number (.-clientX e) 0
                         y $ drag-number (.-clientY e) 0
@@ -2175,8 +2175,9 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             Fn (List Number)
-              Fn Dynamic Dynamic $ -> Unit
+              Fn Dynamic Dynamic (-> Unit) (:features :io :js-ffi :state)
               -> Unit
+              :features :io :js-ffi :state
             -> $ Map Tag Dynamic
             :features :js-ffi :state
         'drag-number $ %{} 'CodeEntry (:doc |)
@@ -3278,7 +3279,7 @@
                       , event @*proxied-dispatch
                     , &unit
           :examples $ []
-          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi :state)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :io :js-ffi :state)
         'handle-screen-mousedown! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mousedown! (event)
             let
@@ -3323,7 +3324,7 @@
                     swap! *mouse-holding-paths conj $ .unwrap $ :coord nearest
                     , &unit
           :examples $ []
-          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi :state)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :io :js-ffi :state)
         'handle-screen-mousemove! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mousemove! (event)
             let
@@ -3351,7 +3352,7 @@
                     , &unit
             , &unit
           :examples $ []
-          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi :state)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :io :js-ffi :state)
         'handle-screen-mouseup! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-screen-mouseup! (event)
             let
@@ -3380,7 +3381,7 @@
                   reset! *mouse-holding-paths $ []
             , &unit
           :examples $ []
-          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :js-ffi :state)
+          :schema $ quote $ Fn MouseEventHost (-> Unit) (:features :io :js-ffi :state)
         'host-number-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn host-number-field (label object key)
             expect-number label $ object-field label object key
@@ -3722,7 +3723,7 @@
             set! (.-onpointerleave canvas) handle-screen-mouseup!
             , &unit
           :examples $ []
-          :schema $ quote $ Fn DomElementHost (-> Unit) (:features :js-ffi :state)
+          :schema $ quote $ Fn DomElementHost (-> Unit) (:features :io :js-ffi :state)
         'traverse-tree $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn traverse-tree (tree coord cb)
             match (read-scene-node tree)
