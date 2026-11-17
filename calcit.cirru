@@ -1300,7 +1300,8 @@
           :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
-            load-objects! (comp-container @*store) dispatch!
+            load-objects! (comp-container @*store)
+              fn (op data) (dispatch! op data)
             paint-canvas!
           :examples $ []
           :schema $ quote $ Fn (-> Unit) (:features :io :state)
@@ -3523,31 +3524,26 @@
                 left-b? $ :left-b? states
               ; println |L l-move |R r-move
               when
-                not= 0 $ .unwrap $ nth l-move 1
-                move-viewer-by! 0 0 $ negate $ * 2 elapsed
-                  .unwrap $ nth l-move 1
+                not= 0 $ nth l-move 1
+                move-viewer-by! 0 0 $ negate $ * 2 elapsed (nth l-move 1)
               when
-                not= 0 $ .unwrap $ nth l-move 0
+                not= 0 $ nth l-move 0
                 rotate-glance-by!
-                  * -0.05 elapsed $ .unwrap $ nth l-move 0
+                  * -0.05 elapsed $ nth l-move 0
                   , 0
               when
                 and (not right-a?)
                   not= ([] 0 0) r-move
                 move-viewer-by!
-                  * 2 elapsed $ .unwrap $ nth r-move 0
-                  * 2 elapsed $ .unwrap $ nth r-move 1
+                  * 2 elapsed $ nth r-move 0
+                  * 2 elapsed $ nth r-move 1
                   , 0
               when
-                and right-a? $ not= 0 $ .unwrap (nth r-move 1)
-                rotate-glance-by! 0 $ * 0.05
-                  .unwrap $ nth r-move 1
-                  , elapsed
+                and right-a? $ not= 0 $ nth r-move 1
+                rotate-glance-by! 0 $ * 0.05 (nth r-move 1) elapsed
               when
-                and right-a? $ not= 0 $ .unwrap (nth r-move 0)
-                spin-glance-by! $ * -0.05
-                  .unwrap $ nth r-move 0
-                  , elapsed
+                and right-a? $ not= 0 $ nth r-move 0
+                spin-glance-by! $ * -0.05 (nth r-move 0) elapsed
               when
                 or
                   not= l-move $ [] 0 0
