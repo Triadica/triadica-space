@@ -14,6 +14,10 @@
 
 [![Rose shape](./assets/rose.jpeg)](https://www.ixigua.com/iframe/7128061977837961741?autoplay=0&startTime=25)
 
+### 0.44.0 使用者需要注意
+
+开发和构建请配对使用正式 Calcit 与 `@calcit/procs` 0.44.0；本候选依赖 Respo 0.19.12、Touch Control 0.0.42、JS-FFI 0.2.18 和 Quaternion 0.2.25。重新安装依赖并重建；渲染和交互源码未改。
+
 ### 0.42.1 使用者需要注意
 
 CLI 与 `@calcit/procs` 配对正式 0.42.1。按 0.42.1 效果边界，`triadica.core` 的 `load-objects!`、`paint-canvas!`、`setup-mouse-events!`、屏幕事件处理和 `triadica.perspective` 的视角移动函数读写全局状态，`Fn` schema 声明了 `:state`；应用里调用它们的函数也要声明 `:state`，否则 0.42 会给出 `W_STATE_FEATURE_REQUIRED` 提示。
