@@ -224,7 +224,7 @@
           :examples $ []
           :schema $ quote $ Fn Number Number BranchInfo
             -> $ List BranchMesh
-            :features :js-ffi
+            :features :io :js-ffi
         'build-path $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-path (max-level branch-angle info)
             let
@@ -269,7 +269,7 @@
           :examples $ []
           :schema $ quote $ Fn Number Number BranchInfo
             -> $ List BranchMesh
-            :features :js-ffi
+            :features :io :js-ffi
         'comp-branches $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-branches (states)
             let
@@ -304,6 +304,7 @@
           :examples $ []
           :schema $ quote $ Fn
             -> $ Map Tag Dynamic
+            :features :io
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.app.comp.branches
           :require
@@ -668,7 +669,7 @@
           :examples $ []
           :schema $ quote $ Fn
             -> $ Map Tag Dynamic
-            :features :js-ffi
+            :features :io :js-ffi
         'f-drop $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn f-drop (x r)
             * r $ - (pow x 2) 1
@@ -868,7 +869,7 @@
           :schema $ quote $ Fn Number
             -> $ List $ List
               List $ Map Tag $ List Number
-            :features :js-ffi
+            :features :io :js-ffi
         'xy-length $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn xy-length (xy)
             let[] (x y) xy $ sqrt $ + (pow x 2) (pow y 2)
@@ -1076,6 +1077,7 @@
           :examples $ []
           :schema $ quote $ Fn
             -> $ Map Tag Dynamic
+            :features :io
         'comp-strip-light-demo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-strip-light-demo ()
             comp-strip-light $ {} (; :draw-mode :line-strip)
@@ -1102,6 +1104,7 @@
           :examples $ []
           :schema $ quote $ Fn
             -> $ Map Tag Dynamic
+            :features :io
         'comp-tube-demo $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-tube-demo ()
             group ({})
@@ -1138,6 +1141,7 @@
           :examples $ []
           :schema $ quote $ Fn
             -> $ Map Tag Dynamic
+            :features :io
         'rand-bothway $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn rand-bothway ()
             let
@@ -1310,7 +1314,7 @@
             js/requestAnimationFrame $ fn (a) (paint-canvas!) (render-loop!)
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.app.main
           :require (|./calcit.build-errors :default build-errors) (|bottom-tip :default hud!)
@@ -1829,6 +1833,7 @@
             Option $ Map Tag V
             -> $ Map Tag Dynamic
             :generics V
+            :features :io
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns triadica.comp.axis
           :require
@@ -1875,6 +1880,7 @@
           :examples $ []
           :schema $ quote $ Fn StripSource (List Number) Number (List Number)
             -> $ List StripMesh
+            :features :io
         'build-strip-points $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn build-strip-points (p q step gravity)
             let
@@ -1898,7 +1904,7 @@
           :examples $ []
           :schema $ quote $ Fn (List Number) (List Number) Number (List Number)
             -> $ List $ List Number
-            :features :js-ffi
+            :features :io :js-ffi
         'comp-strip-light $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-strip-light (options)
             let
@@ -1942,7 +1948,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
-            :features :js-ffi
+            :features :io :js-ffi
         'decode-strip-source $ %{} 'CodeEntry
           :doc "|Check raw strip layout segments before recursive mesh generation."
           :code $ quote $ defn decode-strip-source (raw)
@@ -2277,6 +2283,7 @@
               -> $ List $ List
                 List $ Map Tag Dynamic
               :generics Field
+              :features :io
           :tests $ [] $ %{} 'TestEntry (:name |tube-keeps-positions-and-metadata)
             :code $ quote $ let
                 points $ []
@@ -2372,7 +2379,7 @@
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Map Tag Dynamic
-            :features :js-ffi
+            :features :io :js-ffi
         'interpolate-line-positions $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn interpolate-line-positions (a b n)
             let
@@ -3555,7 +3562,7 @@
                 paint-canvas!
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Number ControlState ControlDelta (-> Unit) (:features :state)
+          :schema $ quote $ Fn Number ControlState ControlDelta (-> Unit) (:features :io :state)
         'paint-canvas! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn paint-canvas! ()
             when (not @*paint-pending?) (reset! *paint-pending? true)
@@ -3654,7 +3661,7 @@
                 , &unit
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'read-scene-node $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-scene-node (tree)
             match (get tree :type)
@@ -3927,7 +3934,7 @@
           :schema $ quote $ Fn (List Number) (List Number) Number
             -> $ Fn (List Number)
               -> $ List Number
-            :features :js-ffi
+            :features :io :js-ffi
         'square $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn square (x) (&* x x)
           :examples $ []
@@ -4146,6 +4153,7 @@
           :examples $ []
           :schema $ quote $ Fn (List Number)
             -> $ List Number
+            :features :io
         'v-scale $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn v-scale (v n)
             from-v3 $ qv/v-scale (to-v3 v) n
