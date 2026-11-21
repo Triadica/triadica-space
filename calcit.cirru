@@ -3922,6 +3922,7 @@
               defn rotate-3d-apply (p)
                 hint-fn $ Fn (List Number)
                   -> $ List Number
+                  :features :io
                 let
                     p-v $ &v- p origin
                     h $ v-dot axis-0 p-v
@@ -3934,6 +3935,7 @@
           :schema $ quote $ Fn (List Number) (List Number) Number
             -> $ Fn (List Number)
               -> $ List Number
+              :features :io
             :features :io :js-ffi
         'square $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn square (x) (&* x x)
