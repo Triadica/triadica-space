@@ -66,8 +66,7 @@
     "triadica.core/update-states": {"schema-dynamic/js-ffi-non-host": 3},
     "triadica.global/*objects-buffer": {"schema-dynamic/unresolved": 1},
     "triadica.global/*objects-tree": {"schema-dynamic/unresolved": 1},
-    "triadica.global/*proxied-dispatch": {"schema-dynamic/unresolved": 2},
-    "triadica.hud/*debug-info": {"schema-dynamic/unresolved": 1}
+    "triadica.global/*proxied-dispatch": {"schema-dynamic/unresolved": 2}
   },
   "coverage": {
     "triadica.alias/build-packed-attrs": "partial",
@@ -135,7 +134,6 @@
     "triadica.core/update-states": "partial",
     "triadica.global/*objects-buffer": "partial",
     "triadica.global/*objects-tree": "partial",
-    "triadica.global/*proxied-dispatch": "partial",
-    "triadica.hud/*debug-info": "partial"
+    "triadica.global/*proxied-dispatch": "partial"
   }
 }
