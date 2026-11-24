@@ -14,6 +14,10 @@
 
 [![Rose shape](./assets/rose.jpeg)](https://www.ixigua.com/iframe/7128061977837961741?autoplay=0&startTime=25)
 
+### 0.45.1 使用者需要注意
+
+开发和构建需配对正式 Calcit 与 `@calcit/procs` 0.45.1，重新安装依赖并重建。候选 0.0.55 使用 Respo 0.19.18、Touch Control 0.0.45、JS-FFI 0.2.24 和 Quaternion 0.2.27；渲染接口与数据格式保持，正式 tag 发布后再升级。
+
 ### 0.44.0 使用者需要注意
 
 开发和构建请配对使用正式 Calcit 与 `@calcit/procs` 0.44.0；本候选依赖 Respo 0.19.16、Touch Control 0.0.44、JS-FFI 0.2.23 和 Quaternion 0.2.26。重新安装依赖并重建；Quaternion 归一化遇到零长度时会输出诊断，Space 的对应几何和渲染调用链据实声明 `:io`，调用这些公开 API 的下游也需匹配 effect。渲染和交互逻辑未改。
