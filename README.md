@@ -16,7 +16,7 @@
 
 ### 0.44.0 使用者需要注意
 
-开发和构建请配对使用正式 Calcit 与 `@calcit/procs` 0.44.0；本候选依赖 Respo 0.19.13、Touch Control 0.0.43、JS-FFI 0.2.19 和 Quaternion 0.2.26。重新安装依赖并重建；Quaternion 归一化遇到零长度时会输出诊断，Space 的对应几何和渲染调用链据实声明 `:io`，调用这些公开 API 的下游也需匹配 effect。渲染和交互逻辑未改。
+开发和构建请配对使用正式 Calcit 与 `@calcit/procs` 0.44.0；本候选依赖 Respo 0.19.16、Touch Control 0.0.44、JS-FFI 0.2.23 和 Quaternion 0.2.26。重新安装依赖并重建；Quaternion 归一化遇到零长度时会输出诊断，Space 的对应几何和渲染调用链据实声明 `:io`，调用这些公开 API 的下游也需匹配 effect。渲染和交互逻辑未改。
 
 ### 0.42.1 使用者需要注意
 
