@@ -3835,7 +3835,8 @@
         '*debug-info $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *debug-info ({})
           :examples $ []
-          :schema $ quote $ Ref (Map String Dynamic)
+          :schema $ quote $ Ref
+            Map String $ List Number
         'css-debug $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle css-debug
             {} $ |$0 $ {} (:color :white) (:font-family |menlo,monospace) (:padding "|6px 8px") (:border-radius |6px) (:position :absolute) (:top 0) (:left 0) (:margin 0) (:font-size 10) (:line-height 1.5)
