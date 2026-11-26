@@ -3132,8 +3132,9 @@
                   []
               (:none) ([])
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag
+          :schema $ quote $ Fn (Map Tag V) Tag
             -> $ List Dynamic
+            :generics V
             :features :js-ffi
         'dynamic-map-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-map-field (source key)
@@ -3144,8 +3145,9 @@
                   {}
               (:none) ({})
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic) Tag
+          :schema $ quote $ Fn (Map Tag V) Tag
             -> $ Map Tag Dynamic
+            :generics V
             :features :js-ffi
         'dynamic-number-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dynamic-number-field (source key fallback)
