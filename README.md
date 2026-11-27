@@ -14,9 +14,13 @@
 
 [![Rose shape](./assets/rose.jpeg)](https://www.ixigua.com/iframe/7128061977837961741?autoplay=0&startTime=25)
 
+### 0.46.0 使用者需要注意
+
+开发和构建需配对正式 Calcit 与 `@calcit/procs` 0.46.0，重新安装依赖并重建。候选 0.0.56 使用 Respo 0.20.0、Touch Control 0.0.47、JS-FFI 0.2.26 和 Quaternion 0.2.28；渲染接口和数据格式保持，正式 tag 发布后再升级。
+
 ### 0.45.1 使用者需要注意
 
-开发和构建需配对正式 Calcit 与 `@calcit/procs` 0.45.1，重新安装依赖并重建。候选 0.0.55 使用 Respo 0.19.18、Touch Control 0.0.45、JS-FFI 0.2.24 和 Quaternion 0.2.27；HUD 调试缓存的值现为数字列表，直接写入缓存的调用方需匹配；渲染接口与数据格式保持，正式 tag 发布后再升级。
+开发和构建需配对正式 Calcit 与 `@calcit/procs` 0.45.1，重新安装依赖并重建。0.0.55 使用 Respo 0.19.18、Touch Control 0.0.45、JS-FFI 0.2.24 和 Quaternion 0.2.27；HUD 调试缓存的值现为数字列表，直接写入缓存的调用方需匹配。
 
 ### 0.44.0 使用者需要注意
 
