@@ -1911,35 +1911,39 @@
                 lines $ .unwrap $ get options :lines
                 color $ match (get options :color)
                   (:some field-value)
-                    either field-value $ js-array 0.2 0.9 0.6
+                    if (nil? field-value) (js-array 0.2 0.9 0.6) field-value
                   (:none) (js-array 0.2 0.9 0.6)
                 step $ let
                     value $ match (get options :step)
-                      (:some field-value) (either field-value 4)
+                      (:some field-value)
+                        if (nil? field-value) 4 field-value
                       (:none) 4
                   if (number? value) value $ raise |Expected-numeric-strip-step
                 offset $ match (get options :offset)
-                  (:some field-value) (either field-value 4)
+                  (:some field-value)
+                    if (nil? field-value) 4 field-value
                   (:none) 4
                 dot-radius $ match (get options :dot-radius)
-                  (:some field-value) (either field-value 2)
+                  (:some field-value)
+                    if (nil? field-value) 2 field-value
                   (:none) 2
                 gravity $ triadica.vector/expect-number-list $ match (get options :gravity)
                   (:some field-value)
-                    either field-value $ [] 0 -0.0001 0
+                    if (nil? field-value) ([] 0 -0.0001 0) field-value
                   (:none) ([] 0 -0.0001 0)
                 hexagon-shape $ [] 0 1 2 0 2 3 0 3 4 0 4 5
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
-                  (:some field-value) (either field-value :triangles)
+                  (:some field-value)
+                    if (nil? field-value) :triangles field-value
                   (:none) :triangles
                 :vertex-shader $ match (get options :vertex-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |strip-light.vert
+                    if (nil? field-value) (inline-shader |strip-light.vert) field-value
                   (:none) (inline-shader |strip-light.vert)
                 :fragment-shader $ match (get options :fragment-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |strip-light.frag
+                    if (nil? field-value) (inline-shader |strip-light.frag) field-value
                   (:none) (inline-shader |strip-light.frag)
                 :packed-attrs $ assemble-strip-lines (decode-strip-source lines) hexagon-shape step gravity
                 :get-uniforms $ fn () $ &js-object :u_color
@@ -1988,11 +1992,11 @@
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ match (get props :vertex-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |drag-point.vert
+                    if (nil? field-value) (inline-shader |drag-point.vert) field-value
                   (:none) (inline-shader |drag-point.vert)
                 :fragment-shader $ match (get props :fragment-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |drag-point.frag
+                    if (nil? field-value) (inline-shader |drag-point.frag) field-value
                   (:none) (inline-shader |drag-point.frag)
                 :hit-region $ {} (:position position) (:radius size)
                   :on-hit $ fn (e d!)
@@ -2055,11 +2059,11 @@
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ match (get props :vertex-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |drag-point.vert
+                    if (nil? field-value) (inline-shader |drag-point.vert) field-value
                   (:none) (inline-shader |drag-point.vert)
                 :fragment-shader $ match (get props :fragment-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |drag-point.frag
+                    if (nil? field-value) (inline-shader |drag-point.frag) field-value
                   (:none) (inline-shader |drag-point.frag)
                 :hit-region $ merge
                   {} (:position position) (:radius size)
@@ -2132,11 +2136,11 @@
               object $ {} (:draw-mode :triangles)
                 :vertex-shader $ match (get props :vertex-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |drag-point.vert
+                    if (nil? field-value) (inline-shader |drag-point.vert) field-value
                   (:none) (inline-shader |drag-point.vert)
                 :fragment-shader $ match (get props :fragment-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |drag-point.frag
+                    if (nil? field-value) (inline-shader |drag-point.frag) field-value
                   (:none) (inline-shader |drag-point.frag)
                 :hit-region $ {} (:position position) (:radius 20)
                   :on-mousedown $ fn (e d!)
@@ -2316,15 +2320,16 @@
                 brush2 $ read-optional-brush $ get options :brush2
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
-                  (:some field-value) (either field-value :triangles)
+                  (:some field-value)
+                    if (nil? field-value) :triangles field-value
                   (:none) :triangles
                 :vertex-shader $ match (get options :vertex-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |brush.vert
+                    if (nil? field-value) (inline-shader |brush.vert) field-value
                   (:none) (inline-shader |brush.vert)
                 :fragment-shader $ match (get options :fragment-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |brush.frag
+                    if (nil? field-value) (inline-shader |brush.frag) field-value
                   (:none) (inline-shader |brush.frag)
                 :packed-attrs $ if
                   and
@@ -2363,15 +2368,16 @@
                         , radius normal0 circle-step
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
-                  (:some field-value) (either field-value :triangles)
+                  (:some field-value)
+                    if (nil? field-value) :triangles field-value
                   (:none) :triangles
                 :vertex-shader $ match (get options :vertex-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |lines.vert
+                    if (nil? field-value) (inline-shader |lines.vert) field-value
                   (:none) (inline-shader |lines.vert)
                 :fragment-shader $ match (get options :fragment-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |lines.frag
+                    if (nil? field-value) (inline-shader |lines.frag) field-value
                   (:none) (inline-shader |lines.frag)
                 :packed-attrs packed-attrs
                 :get-uniforms $ .unwrap-or (get options :get-uniforms)
@@ -2493,19 +2499,21 @@
             let
                 segments $ .unwrap $ get options :segments
                 w0 $ match (get options :width)
-                  (:some field-value) (either field-value 2)
+                  (:some field-value)
+                    if (nil? field-value) 2 field-value
                   (:none) 2
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
-                  (:some field-value) (either field-value :triangles)
+                  (:some field-value)
+                    if (nil? field-value) :triangles field-value
                   (:none) :triangles
                 :vertex-shader $ match (get options :vertex-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |segments.vert
+                    if (nil? field-value) (inline-shader |segments.vert) field-value
                   (:none) (inline-shader |segments.vert)
                 :fragment-shader $ match (get options :fragment-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |segments.frag
+                    if (nil? field-value) (inline-shader |segments.frag) field-value
                   (:none) (inline-shader |segments.frag)
                 :packed-attrs $ traverse-lines segments $ fn (segment)
                   hint-fn $ Fn (Map Tag Dynamic) (-> triadica.comp.bunch/StripMesh)
@@ -2518,10 +2526,12 @@
                         List Number
                       direction $ &v- to from
                       color-idx $ triadica.alias/decode-packed-value :color_index $ match (get segment :color-index)
-                        (:some field-value) (either field-value 0)
+                        (:some field-value)
+                          if (nil? field-value) 0 field-value
                         (:none) 0
                       width $ triadica.alias/decode-packed-value :width $ match (get segment :width)
-                        (:some field-value) (either field-value w0)
+                        (:some field-value)
+                          if (nil? field-value) w0 field-value
                         (:none) w0
                     []
                       {} (:position from) (:brush 0) (:ratio 0) (:direction direction) (:width width) (:color_index color-idx)
@@ -2542,20 +2552,21 @@
                 curves $ decode-map-as
                   match (get options :curves)
                     (:some field-value)
-                      either field-value $ []
+                      if (nil? field-value) ([]) field-value
                     (:none) ([])
                   List $ List $ Map Tag Dynamic
               object $ {}
                 :draw-mode $ match (get options :draw-mode)
-                  (:some field-value) (either field-value :triangles)
+                  (:some field-value)
+                    if (nil? field-value) :triangles field-value
                   (:none) :triangles
                 :vertex-shader $ match (get options :vertex-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |segments-curves.vert
+                    if (nil? field-value) (inline-shader |segments-curves.vert) field-value
                   (:none) (inline-shader |segments-curves.vert)
                 :fragment-shader $ match (get options :fragment-shader)
                   (:some field-value)
-                    either field-value $ inline-shader |segments-curves.frag
+                    if (nil? field-value) (inline-shader |segments-curves.frag) field-value
                   (:none) (inline-shader |segments-curves.frag)
                 :packed-attrs $ let
                     size $ .len curves
